@@ -63,11 +63,22 @@ def getFalseModel():
    # check satisfiability and print model in format CVC4 can handle 
    sol.check()
    m = sol.model()
-   return m.sexpr())
+   return m.sexpr()
 
 # TODO:
 # - generate values 1 to n
 # - next(1) = 1 or 2 or 3 or nil
 # - loop through ulist on all elsts until fixpoint
-def getTrueModels():
-   return None
+def getTrueModels(n):
+   sol = Solver()
+   all_constraints = []
+   for i in range(0,n):
+      constraints = [next(i) == -1]
+      for j in range(0, n):
+         if i != j:
+            constraints += [next(i) == j]
+      all_constraints += [Or(constraints)]
+   return all_constraints
+
+print(getFalseModel())
+print(getTrueModels(3))

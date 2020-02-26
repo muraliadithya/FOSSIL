@@ -4,6 +4,9 @@ from z3 import *
 next = Function('next', IntSort(), IntSort())
 prev = Function('prev', IntSort(), IntSort())
 
+fcts = [next, prev]
+fct_axioms = [next(-1) == -1, prev(-1) == -1]
+
 # recursive definitions
 list = Function('list', IntSort(), BoolSort())
 dlist = Function('dlist', IntSort(), BoolSort())
@@ -27,6 +30,10 @@ def udlist(x):
                                             And(prev(next(x)) == x, dlist(next(x))) ))
    )
 
+def add_constraints(sol, x):
+   sol.add(ulist(x))
+   sol.add(udlist(x))
+ 
 # VC
 def pgm(x, ret):
     return IteBool(x == -1, ret == -1, ret == next(x))
@@ -35,8 +42,9 @@ def vc(x, ret):
     return Implies( dlist(x),
                     Implies(pgm(x, ret), list(ret)))
 
-# dereferenced terms in vc: { x }
-# constants in vc: { -1 }
+x, ret = Ints('x ret')
+deref = [x]
+const = [-1]
 
 # TODO: enforce small false model?
 
@@ -44,18 +52,17 @@ def vc(x, ret):
 def getFalseModel():
    sol = Solver()
 
-   # add axiom next(nil) = nil
-   sol.add(next(-1) == -1)
+   # add axioms next(nil) = nil, prev(nil) = nil
+   for ax in fct_axioms:
+      sol.add(ax)
 
    # unfold constants
-   sol.add(ulist(-1))
-   sol.add(dlist(-1))
-
-   x, ret = Ints('x ret')
+   for c in const:
+      add_constraints(sol, c)
 
    # unfold dereferenced variables
-   sol.add(ulist(x))
-   sol.add(udlist(x))
+   for d in deref:
+      add_constraints(sol, d)
 
    # negate VC
    sol.add(Not(vc(x, ret)))
@@ -65,20 +72,23 @@ def getFalseModel():
    m = sol.model()
    return m.sexpr()
 
+def getTrueFctConstraints(n, fct):
+   all_constraints = []
+   for i in range(0,n):
+      constraints = [fct(i) == -1]
+      for j in range(0, n):
+         constraints += [fct(i) == j]
+      all_constraints += [Or(constraints)]
+   return all_constraints
+
 # TODO:
 # - generate values 1 to n
 # - next(1) = 1 or 2 or 3 or nil
 # - loop through ulist on all elsts until fixpoint
 def getTrueModels(n):
-   sol = Solver()
-   all_constraints = []
-   for i in range(0,n):
-      constraints = [next(i) == -1]
-      for j in range(0, n):
-         if i != j:
-            constraints += [next(i) == j]
-      all_constraints += [Or(constraints)]
-   return all_constraints
+   for fct in fcts:
+      print(getTrueFctConstraints(n, fct))
 
 print(getFalseModel())
-print(getTrueModels(3))
+print()
+print(getTrueModels(5))

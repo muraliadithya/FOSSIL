@@ -49,7 +49,6 @@ const = [-1]
 # unfold each recursive definition on x
 def unfold_recdefs(sol, x):
    for rec in recdefs:
-      print(rec)
       sol.add(rec(x))
 
 # Get false model - model where VC is false
@@ -76,41 +75,26 @@ def getFalseModel():
    m = sol.model()
    return m.sexpr()
 
-def getTrueFctConstraints(n, fct):
-   all_constraints = []
-   for i in range(0, n):
-      constraints = [fct(i) == -1]
-      for j in range(0, n):
-         constraints += [fct(i) == j]
-      all_constraints += [constraints]
-   return all_constraints
+# return product of two lists of lists
+def product(ll1, ll2):
+   return [ x + y for x in ll1 for y in ll2 ]
 
-# TODO:
-# - generate values 1 to n
-# - next(1) = 1 or 2 or 3 or nil
-# - loop through ulist on all elsts until fixpoint
-def getTrueModels(n):
-   all_constraints = {}
-   for i in range(0, n):
-      for fct in fcts:
-         for j in range(0, n):
-            print(fct(i) == j)
-   return None
+# generate all possible valuations of all functions at src
+def getTrueModelsElem(elems, fcts, src):
+   models_elt = [[]]
+   for fct in fcts:
+      fct_eval = [ [fct(src) == tgt] for tgt in elems ]
+      models_elt = product(fct_eval, models_elt)
+   return models_elt
 
-def oneStep(ld, l):
-   out = []
-   for d in ld:
-      for p in l:
-         d[p[0]] = p[1]
-         out += [d]
-   return out
+# generate true models in the form of all posible evaluations of all functions
+def getTrueModels(elems):
+   models = [[]]
+   for elem in elems:
+      models_elt = getTrueModelsElem(elems, fcts, elem)
+      models = product(models, models_elt)
+   return models
 
-def cartesianProduct():
-   ld = [{}]
-   for 
-
-# print(getFalseModel())
-# print()
-# print(getTrueModels(5))
-
-print(oneStep([ {0:0}, {0:1} ], [{1:0}, {1:1}]))
+print(getFalseModel())
+print()
+print(len(getTrueModels(range(3))))

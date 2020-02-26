@@ -30,10 +30,8 @@ def udlist(x):
                                             And(prev(next(x)) == x, dlist(next(x))) ))
    )
 
-def add_constraints(sol, x):
-   sol.add(ulist(x))
-   sol.add(udlist(x))
- 
+recdefs = [ulist, dlist]
+
 # VC
 def pgm(x, ret):
     return IteBool(x == -1, ret == -1, ret == next(x))
@@ -48,6 +46,12 @@ const = [-1]
 
 # TODO: enforce small false model?
 
+# unfold each recursive definition on x
+def unfold_recdefs(sol, x):
+   for rec in recdefs:
+      print(rec)
+      sol.add(rec(x))
+
 # Get false model - model where VC is false
 def getFalseModel():
    sol = Solver()
@@ -58,11 +62,11 @@ def getFalseModel():
 
    # unfold constants
    for c in const:
-      add_constraints(sol, c)
+      unfold_recdefs(sol, c)
 
    # unfold dereferenced variables
    for d in deref:
-      add_constraints(sol, d)
+      unfold_recdefs(sol, d)
 
    # negate VC
    sol.add(Not(vc(x, ret)))
@@ -74,11 +78,11 @@ def getFalseModel():
 
 def getTrueFctConstraints(n, fct):
    all_constraints = []
-   for i in range(0,n):
+   for i in range(0, n):
       constraints = [fct(i) == -1]
       for j in range(0, n):
          constraints += [fct(i) == j]
-      all_constraints += [Or(constraints)]
+      all_constraints += [constraints]
    return all_constraints
 
 # TODO:
@@ -86,9 +90,27 @@ def getTrueFctConstraints(n, fct):
 # - next(1) = 1 or 2 or 3 or nil
 # - loop through ulist on all elsts until fixpoint
 def getTrueModels(n):
-   for fct in fcts:
-      print(getTrueFctConstraints(n, fct))
+   all_constraints = {}
+   for i in range(0, n):
+      for fct in fcts:
+         for j in range(0, n):
+            print(fct(i) == j)
+   return None
 
-print(getFalseModel())
-print()
-print(getTrueModels(5))
+def oneStep(ld, l):
+   out = []
+   for d in ld:
+      for p in l:
+         d[p[0]] = p[1]
+         out += [d]
+   return out
+
+def cartesianProduct():
+   ld = [{}]
+   for 
+
+# print(getFalseModel())
+# print()
+# print(getTrueModels(5))
+
+print(oneStep([ {0:0}, {0:1} ], [{1:0}, {1:1}]))

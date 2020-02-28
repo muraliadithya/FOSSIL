@@ -30,7 +30,37 @@ def udlist(x):
                                             And(prev(next(x)) == x, dlist(next(x))) ))
    )
 
-recdefs = [ulist, dlist]
+recdefs_macros = [ulist, dlist]
+
+# for producing true models: functional versions of recursive definitions
+def list_fct(x, model):
+   if x == -1:
+      return True
+   elif model[next][x] == -1:
+      return True
+   else:
+      next_val = model[next][x]
+      return model[list_fct][next_val]
+
+def dlist_fct(x, model):
+   if x == -1:
+      return True
+   elif model[next][x] == -1:
+      return True
+   else:
+      next_val = model[next][x]
+      doubly_linked_cond = model[prev][next_val] == x
+      return doubly_linked_cond and model[dlist_fct][next_val]
+
+recdefs = [list_fct, dlist_fct]
+
+# string representation of recursive definition
+def recdefToStr(recdef):
+   if recdef == list_fct:
+      return 'list'
+   elif recdef == dlist_fct:
+      return 'dlist'
+   return None
 
 # VC
 def pgm(x, ret):
@@ -48,7 +78,7 @@ const = [-1]
 
 # unfold each recursive definition on x
 def unfold_recdefs(sol, x):
-   for rec in recdefs:
+   for rec in recdefs_macros:
       sol.add(rec(x))
 
 # Get false model - model where VC is false
@@ -75,26 +105,89 @@ def getFalseModel():
    m = sol.model()
    return m.sexpr()
 
-# return product of two lists of lists
+# return product of two lists of dictionaries
 def product(ll1, ll2):
+   out = []
+   for x in ll1:
+      for y in ll2:
+         new_dict = x.copy()
+         for key in y.keys():
+            if key in new_dict:
+               new_dict_key = new_dict[key].copy()
+               new_dict_key.update(y[key])
+               new_dict[key] = new_dict_key
+            else:
+               new_dict[key] = y[key]
+         out += [new_dict]
+   return out
+
+# return product of two lists of lists
+def productlist(ll1, ll2):
    return [ x + y for x in ll1 for y in ll2 ]
 
 # generate all possible valuations of all functions at src
 def getTrueModelsElem(elems, fcts, src):
-   models_elt = [[]]
+   models_elt = [{}]
    for fct in fcts:
-      fct_eval = [ [fct(src) == tgt] for tgt in elems ]
+      elems_with_nil = elems + [-1]
+      fct_eval = [ { fct : { src : tgt } } for tgt in elems_with_nil ]
       models_elt = product(fct_eval, models_elt)
    return models_elt
 
 # generate true models in the form of all posible evaluations of all functions
 def getTrueModels(elems):
-   models = [[]]
+   models = [{}]
    for elem in elems:
       models_elt = getTrueModelsElem(elems, fcts, elem)
       models = product(models, models_elt)
    return models
 
+# initialize dictionary where all recdefs are False for all elements
+def initializeRecDefs(elems):
+   init = {}
+   for recdef in recdefs:
+      curr = {}
+      for elem in elems:
+         curr[elem] = False
+      init[recdef] = curr
+   return init
+
+# evaluate model via recdef functions until fixpoint is reached
+def evaluateUntilFixpoint(model, prev_model, elems):
+   if model == prev_model:
+      return model
+   new_prev = model.copy()
+   for elem in elems:
+      for recdef in recdefs:
+         new_val = recdef(elem, model)
+         model[recdef][elem] = new_val
+   return evaluateUntilFixpoint(model, new_prev, elems)
+
+# avoid aliasing issues
+def copyModel(model):
+   newModel = {}
+   for fct in fcts:
+      newModel[fct] = model[fct]
+   for recdef in recdefs:
+      recdef_model = model[recdef].copy() # needed to avoid aliasing issues
+      newModel[recdef] = recdef_model
+   return newModel
+
+# evaluate recursive definitions on true model
+def getRecDefsEval(elems):
+   models = getTrueModels(elems)
+   init_recs = [ initializeRecDefs(elems) ]
+   init_models = product(models, init_recs)
+   evaluated_models = []
+   count = 0
+   for model in init_models:
+      new_model = copyModel(evaluateUntilFixpoint(model, [], elems))
+      evaluated_models += [ new_model ]
+   return evaluated_models
+
 print(getFalseModel())
 print()
-print(len(getTrueModels(range(3))))
+
+elems = [*range(2)]
+for i in getRecDefsEval(elems):
+   print(i)

@@ -163,31 +163,21 @@ def evaluateUntilFixpoint(model, prev_model, elems):
          model[recdef][elem] = new_val
    return evaluateUntilFixpoint(model, new_prev, elems)
 
-# avoid aliasing issues
-def copyModel(model):
-   newModel = {}
-   for fct in fcts:
-      newModel[fct] = model[fct]
-   for recdef in recdefs:
-      recdef_model = model[recdef].copy() # needed to avoid aliasing issues
-      newModel[recdef] = recdef_model
-   return newModel
-
 # evaluate recursive definitions on true model
 def getRecDefsEval(elems):
    models = getTrueModels(elems)
-   init_recs = [ initializeRecDefs(elems) ]
-   init_models = product(models, init_recs)
    evaluated_models = []
    count = 0
-   for model in init_models:
-      new_model = copyModel(evaluateUntilFixpoint(model, [], elems))
-      evaluated_models += [ new_model ]
+   for model in models:
+      init_recs = initializeRecDefs(elems)
+      model.update(init_recs)
+      eval_model = evaluateUntilFixpoint(model, [], elems)
+      evaluated_models += [ eval_model ]
    return evaluated_models
 
 print(getFalseModel())
 print()
 
 elems = [*range(2)]
-for i in getRecDefsEval(elems):
-   print(i)
+for model in getRecDefsEval(elems):
+   print(model)

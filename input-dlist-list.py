@@ -178,6 +178,22 @@ def getRecDefsEval(elems):
 print(getFalseModel())
 print()
 
+# add offset to true models to avoid non-unique keys
+def addOffset(model, f):
+   newModel = model.copy()
+   for key in fcts + recdefs:
+      newDict = {}
+      for fctkey in model[key].keys():
+         if isinstance(model[key][fctkey], bool) or model[key][fctkey] == -1:
+            newDict[f(fctkey)] = model[key][fctkey]
+         else:
+            newDict[f(fctkey)] = f(model[key][fctkey])
+      newModel[key] = newDict
+   return newModel
+
 elems = [*range(2)]
-for model in getRecDefsEval(elems):
-   print(model)
+
+models = getRecDefsEval(elems)
+for i in range(len(models)):
+   models[i] = addOffset(models[i], lambda x: x + 50*(i+1))
+   print(models[i])

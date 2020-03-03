@@ -187,9 +187,6 @@ def getRecDefsEval(elems):
       evaluated_models += [ eval_model ]
    return evaluated_models
 
-print(getFalseModel())
-print()
-
 # add offset to true models to avoid non-unique keys
 def addOffset(model, f):
    newModel = model.copy()
@@ -208,38 +205,27 @@ elems = [*range(2)]
 models = getRecDefsEval(elems)
 for i in range(len(models)):
    models[i] = addOffset(models[i], lambda x: x + 50*(i+1))
-   print(models[i])
 
-false_model = {'prev': {0: -1, 1: -1}, 'next': {0: 1, 1: -1}, 'list': {0: False, 1: False}, 'dlist': {0: True, 1: True}}
+false_model = getFalseModel()
+# manually generated
+false_model_dict = {'prev': {0: -1, 1: -1}, 'next': {0: 1, 1: -1}, 'list': {0: False, 1: False}, 'dlist': {0: True, 1: True}}
 
+all_models = models + [ false_model_dict ]
 
-def modelToSolver(model,sol):
+# add constraints from each model into a given solver
+def modelToSolver(model, sol):
    for key in model.keys():
       z3key = stringToZ3Fct(key)
       for arg in model[key].keys():
          sol.add(z3key(arg) == model[key][arg])
 
-def sygusBigModelEncoding(models,sol):
+# generate single model from a given list of models
+def sygusBigModelEncoding(models, sol):
    for model in models:
-      modelToSolver(model,sol)
+      modelToSolver(model, sol)
    sol.check()
    m = sol.model()
    return m.sexpr()
 
-encodingsol = Solver()
-print (sygusBigModelEncoding(models+[false_model],encodingsol))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+encodingSol = Solver()
+print(sygusBigModelEncoding(all_models, encodingSol))

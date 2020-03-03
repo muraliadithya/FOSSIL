@@ -210,4 +210,36 @@ for i in range(len(models)):
    models[i] = addOffset(models[i], lambda x: x + 50*(i+1))
    print(models[i])
 
-# false_model = {'prev': {0: -1, 1: -1}, 'next': {0: 1, 1: -1}, 'list': {0: False, 1: False}, 'dlist': {0: True, 1: True}}
+false_model = {'prev': {0: -1, 1: -1}, 'next': {0: 1, 1: -1}, 'list': {0: False, 1: False}, 'dlist': {0: True, 1: True}}
+
+
+def modelToSolver(model,sol):
+   for key in model.keys():
+      z3key = stringToZ3Fct(key)
+      for arg in model[key].keys():
+         sol.add(z3key(arg) == model[key][arg])
+
+def sygusBigModelEncoding(models,sol):
+   for model in models:
+      modelToSolver(model,sol)
+   sol.check()
+   m = sol.model()
+   return m.sexpr()
+
+encodingsol = Solver()
+print (sygusBigModelEncoding(models+[false_model],encodingsol))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

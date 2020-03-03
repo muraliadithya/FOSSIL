@@ -4,7 +4,7 @@ from z3 import *
 next = Function('next', IntSort(), IntSort())
 prev = Function('prev', IntSort(), IntSort())
 
-fcts = [next, prev]
+fcts = ['next', 'prev']
 fct_axioms = [next(-1) == -1, prev(-1) == -1]
 
 # recursive definitions
@@ -36,21 +36,21 @@ recdefs_macros = [ulist, dlist]
 def list_fct(x, model):
    if x == -1:
       return True
-   elif model[next][x] == -1:
+   elif model['next'][x] == -1:
       return True
    else:
-      next_val = model[next][x]
-      return model[list_fct][next_val]
+      next_val = model['next'][x]
+      return model['list'][next_val]
 
 def dlist_fct(x, model):
    if x == -1:
       return True
-   elif model[next][x] == -1:
+   elif model['next'][x] == -1:
       return True
    else:
-      next_val = model[next][x]
-      doubly_linked_cond = model[prev][next_val] == x
-      return doubly_linked_cond and model[dlist_fct][next_val]
+      next_val = model['next'][x]
+      doubly_linked_cond = model['prev'][next_val] == x
+      return doubly_linked_cond and model['dlist'][next_val]
 
 recdefs = [list_fct, dlist_fct]
 
@@ -149,7 +149,7 @@ def initializeRecDefs(elems):
       curr = {}
       for elem in elems:
          curr[elem] = False
-      init[recdef] = curr
+      init[recdefToStr(recdef)] = curr
    return init
 
 # evaluate model via recdef functions until fixpoint is reached
@@ -160,7 +160,7 @@ def evaluateUntilFixpoint(model, prev_model, elems):
    for elem in elems:
       for recdef in recdefs:
          new_val = recdef(elem, model)
-         model[recdef][elem] = new_val
+         model[recdefToStr(recdef)][elem] = new_val
    return evaluateUntilFixpoint(model, new_prev, elems)
 
 # evaluate recursive definitions on true model
@@ -181,7 +181,7 @@ print()
 # add offset to true models to avoid non-unique keys
 def addOffset(model, f):
    newModel = model.copy()
-   for key in fcts + recdefs:
+   for key in model.keys():
       newDict = {}
       for fctkey in model[key].keys():
          if isinstance(model[key][fctkey], bool) or model[key][fctkey] == -1:
@@ -197,3 +197,5 @@ models = getRecDefsEval(elems)
 for i in range(len(models)):
    models[i] = addOffset(models[i], lambda x: x + 50*(i+1))
    print(models[i])
+
+# false_model = {'prev': {0: -1, 1: -1}, 'next': {0: 1, 1: -1}, 'list': {0: False, 1: False}, 'dlist': {0: True, 1: True}}

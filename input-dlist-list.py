@@ -62,6 +62,18 @@ def recdefToStr(recdef):
       return 'dlist'
    return None
 
+# Z3Py representation of strings (for converting internal model to Z3Py model)
+def stringToZ3Fct(string):
+   if string == 'list':
+      return list
+   elif string == 'dlist':
+      return dlist
+   elif string == 'next':
+      return next
+   elif string == 'prev':
+      return prev
+   return None
+
 # VC
 def pgm(x, ret):
     return IteBool(x == -1, ret == -1, ret == next(x))

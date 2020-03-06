@@ -230,15 +230,14 @@ def addOffset(model, f):
         newDict = {}
         for fctkey in model[key].keys():
             if fctkey == -1:
-                if isinstance(model[key][fctkey], bool) or model[key][fctkey] == -1:
-                    newDict[fctkey] = model[key][fctkey]
-                else:
-                    newDict[fctkey] = f(model[key][fctkey])
+                new_in = fctkey
             else:
-                if isinstance(model[key][fctkey], bool) or model[key][fctkey] == -1:
-                    newDict[f(fctkey)] = model[key][fctkey]
-                else:
-                    newDict[f(fctkey)] = f(model[key][fctkey])
+                new_in = f(fctkey)
+            if isinstance(model[key][fctkey], bool) or model[key][fctkey] == -1:
+                new_out = model[key][fctkey]
+            else:
+                new_out = f(model[key][fctkey])
+            newDict[new_in] = new_out
         newModel[key] = newDict
     return newModel
 

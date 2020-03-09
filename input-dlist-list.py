@@ -125,16 +125,18 @@ def getFalseModel():
     # check satisfiability and print model in format CVC4 can handle 
     sol.check()
     m = sol.model()
-    return m.sexpr()
+    return m
 
 # get false model in dictionary representation
-# TODO: generate automatically
-def getFalseModelDict():
+def getFalseModelDict(elems, keys):
     false_model = getFalseModel()
-    false_model_dict = {'prev': {-1: -1, 0: -1, 1: -1},
-                        'next': {-1: -1, 0: 1, 1: -1},
-                        'list': {-1: True, 0: False, 1: False},
-                        'dlist': {-1: True, 0: True, 1: True}}
+    false_model_dict = {}
+    for key in keys:
+        key_dict = {}
+        for elem in elems:
+            z3_fct = stringToZ3Fct(key)
+            key_dict[elem] = false_model.eval(z3_fct(elem))
+        false_model_dict[key] = key_dict
     return false_model_dict
 
 # return product of two lists of dictionaries
@@ -283,7 +285,8 @@ def generateAllTrueConstraints(models, elems):
 def getSygusOutput():
     elems = [-1, *range(2)]
     true_models = getTrueModelsOffsets(elems)
-    false_model = getFalseModelDict()
+    keys = true_models[0].keys()
+    false_model = getFalseModelDict(elems, keys)
     all_models = true_models + [ false_model ]
     encoding_sol = Solver()
     sygus_model = sygusBigModelEncoding(all_models, encoding_sol)

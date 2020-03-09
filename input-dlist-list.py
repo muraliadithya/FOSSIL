@@ -203,7 +203,7 @@ def modelToSolver(model, sol):
         for arg in model[key].keys():
             sol.add(z3key(arg) == model[key][arg])
 
-# return True if given model satisfies all axioms
+# return True if given model satisfies all axioms, uses Z3 solving. slow
 def filterByAxioms(model):
     axiom_sol = Solver()
     modelToSolver(model, axiom_sol)
@@ -213,6 +213,13 @@ def filterByAxioms(model):
     else:
         return False
 
+# same as above, uses builtin functions on the model instead of Z3 solving. fast
+def filterByAxiomsFct(model):
+    for axiom in vc_axioms:
+        if not(axiom(model)):
+            return False
+    return True
+
 # evaluate recursive definitions on true model
 def getRecDefsEval(elems):
     models = getTrueModels(elems)
@@ -221,7 +228,7 @@ def getRecDefsEval(elems):
         init_recs = initializeRecDefs(elems)
         model.update(init_recs)
         eval_model = evaluateUntilFixpoint(model, [], elems)
-        if filterByAxioms(eval_model):
+        if filterByAxiomsFct(eval_model):
             evaluated_models += [ eval_model ]
     return evaluated_models
 

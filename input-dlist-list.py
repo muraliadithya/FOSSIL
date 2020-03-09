@@ -301,13 +301,17 @@ def getSygusOutput():
         for line in preamble:
             out.write(line)
         out.write('\n')
+        out.write(';; combination of true models and false model\n')
         out.write(sygus_model)
         out.write('\n\n')
         for line in grammar:
             out.write(line)
         out.write('\n')
+        out.write(';; constraints from false model\n')
         out.write(generateFalseConstraints(false_model))
         out.write('\n')
+        out.write('\n')
+        out.write(';; constraints from true models\n')
         out.write(generateAllTrueConstraints(true_models, elems))
         out.write('\n')
         out.write('(check-synth)')

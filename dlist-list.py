@@ -84,6 +84,7 @@ const = [-1]
 elems = [-1, *range(2)]
 
 getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
-               recdef_str, deref, const, vc(x, ret), z3_str)
+               recdef_str, deref, const, vc(x, ret), z3_str,
+               'preamble_dlist-list.sy', 'grammar_dlist-list.sy', 'out_dlist-list.sy')
 
 # TODO: enforce small false model?

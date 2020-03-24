@@ -192,7 +192,7 @@ def generateAllTrueConstraints(models, elems):
 
 # write output to a file that can be parsed by CVC4 SyGuS
 def getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
-                   recdef_str, deref, const, vc, z3_str):
+                   recdef_str, deref, const, vc, z3_str, preamble_file, grammar_file, out_file):
     true_models = getTrueModelsOffsets(elems, fcts, vc_axioms, recdefs, recdef_str)
     keys = true_models[0].keys()
     false_model = getFalseModelDict(elems, keys, fct_axioms, recdefs_macros,
@@ -200,7 +200,7 @@ def getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
     all_models = true_models + [ false_model ]
     encoding_sol = Solver()
     sygus_model = sygusBigModelEncoding(all_models, encoding_sol, z3_str)
-    with open('test.sy', 'w') as out, open('preamble.sy', 'r') as preamble, open('grammar.sy', 'r') as grammar:
+    with open(out_file, 'w') as out, open(preamble_file, 'r') as preamble, open(grammar_file, 'r') as grammar:
         for line in preamble:
             out.write(line)
         out.write('\n')

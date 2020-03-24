@@ -47,8 +47,6 @@ recdefs_macros = [ulist, dlist]
 def list_fct(x, model):
     if x == -1:
         return True
-    elif model['next'][x] == -1:
-        return True
     else:
         next_val = model['next'][x]
         return model['list'][next_val]

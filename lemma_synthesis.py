@@ -1,4 +1,5 @@
 from z3 import *
+import subprocess
 
 # unfold each recursive definition on x
 def unfold_recdefs(sol, recdefs_macros, x):
@@ -25,13 +26,18 @@ def getFalseModel(fct_axioms, recdefs_macros, deref, const, vc):
     sol.add(Not(vc))
 
     # check satisfiability and print model in format CVC4 can handle 
-    sol.check()
-    m = sol.model()
-    return m
+    if (sol.check() == sat):
+        m = sol.model()
+        return m
+
+    else:
+        print("No model available. Lemma was proved.")
 
 # get false model in dictionary representation
 def getFalseModelDict(elems, keys, fct_axioms, recdefs_macros, deref, const, vc, z3_str):
     false_model = getFalseModel(fct_axioms, recdefs_macros, deref, const, vc)
+    if false_model == None:
+        exit(0)
     false_model_dict = {}
     for key in keys:
         key_dict = {}
@@ -218,3 +224,13 @@ def getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
         out.write(generateAllTrueConstraints(true_models, elems))
         out.write('\n')
         out.write('(check-synth)')
+    proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    cvc4_out, err = proc.communicate()
+    lemma = str(cvc4_out).split('\\n')[1]
+    # z3py_lemma = translateLemma(lemma)
+    return lemma
+
+# translate output of cvc4 into z3py form
+# def translateLemma(lemma):
+#     x = Int('x')
+#     z3py_lemma = ForAll([x], Implies(dlist(x), list(x)))

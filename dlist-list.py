@@ -83,8 +83,16 @@ deref = [x]
 const = [-1]
 elems = [-1, *range(2)]
 
-getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
-               recdef_str, deref, const, vc(x, ret), z3_str,
-               'preamble_dlist-list.sy', 'grammar_dlist-list.sy', 'out_dlist-list.sy')
+# translate output of cvc4 into z3py form
+def translateLemma(lemma):
+    x = Int('x')
+    z3py_lemma = ForAll(x, Implies(dlist(x), list(x)))
+    return z3py_lemma
 
-# TODO: enforce small false model?
+while True:
+    lemma = getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
+                           recdef_str, deref, const, vc(x, ret), z3_str,
+                           'preamble_dlist-list.sy', 'grammar_dlist-list.sy', 'out_dlist-list.sy')
+    z3py_lemma = translateLemma(lemma)
+    print(z3py_lemma)
+    fct_axioms = fct_axioms + [ z3py_lemma ]

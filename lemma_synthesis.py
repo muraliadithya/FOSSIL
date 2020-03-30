@@ -227,10 +227,4 @@ def getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
     proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     cvc4_out, err = proc.communicate()
     lemma = str(cvc4_out).split('\\n')[1]
-    # z3py_lemma = translateLemma(lemma)
     return lemma
-
-# translate output of cvc4 into z3py form
-# def translateLemma(lemma):
-#     x = Int('x')
-#     z3py_lemma = ForAll([x], Implies(dlist(x), list(x)))

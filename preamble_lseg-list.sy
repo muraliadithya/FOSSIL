@@ -1,7 +1,11 @@
+;; TODO: this file should be generated from false model
+
 (set-logic ALL)
 
-;; x = 0, y = 1
+;; x = 0, y = 1, z = 2
 (declare-const x Int)
 (declare-const y Int)
+(declare-const z Int)
 (assert (= x 0))
 (assert (= y 1))
+(assert (= z 2))

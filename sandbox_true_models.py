@@ -1,6 +1,7 @@
 from z3 import *
 from lemsynth_utils import *
 import itertools
+import random
 
 
 # Each true model is a dictionary with keys being names of constants/functions, and values being
@@ -188,14 +189,13 @@ def getNTrueModels(elems, fcts_z3, unfold_recdefs_python, axioms_python,N = 'ful
             filtered_models = filtered_models + [model]
     #print(len(filtered_models))
 
-    if N == 'full':
-        num_final_models = len(filtered_models)
-    elif isinstance(N,int):
-        num_final_models = N if N < len(filtered_models) else len(filtered_models)
+    final_models = []
+    for i in range(len(filtered_models)):
+        final_models = final_models + [addOffset(filtered_models[i], lambda x: x + 50*(i+1))]
+
+    if N == 'full' or (isinstance(N,int) and N > len(final_models)):
+        return final_models
+    elif isinstance(N,int) and N < len(final_models):
+        return random.choices(final_models,k = N)
     else:
         raise ValueError('Must specify either a number of models or \'full\'')
-
-    final_models = []
-    for i in range(num_final_models):
-        final_models = final_models + [addOffset(filtered_models[i], lambda x: x + 50*(i+1))]
-    return final_models

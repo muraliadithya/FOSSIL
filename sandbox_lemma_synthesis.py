@@ -36,6 +36,8 @@ def modelToSolver(model, fcts_z3, sol):
 # Generate single model from a given list of models.
 # Returns the definitions for functions and recdefs.
 # TO DO: consider not using z3 for this and just generating the definitions using python code
+# VERY IMPORTANT: subtle issue here. The true models' entries are actually integers, whereas the false model's entries are Z3 types like IntNumRef, etc.
+## Must fix this during false model dict generation.
 def sygusBigModelEncoding(models, fcts_z3):
     sol = Solver()
     for model in models:
@@ -45,27 +47,40 @@ def sygusBigModelEncoding(models, fcts_z3):
     return m.sexpr()
 
 
-# generate constraints corresponding to false model for SyGuS
-def generateFalseConstraints(model, deref):
-    out = '(constraint (or '
-    for var in deref:
-        out += '(not (lemma ' + str(var) + '))'
-    out += '))'
+# Generate constraints corresponding to false model for SyGuS
+def generateFalseConstraints(model_z3, deref, const):
+    constraints = ''
+    # No post processing on model.eval outputs because only using integers
+    # Must convert result of model.eval using as_string() because returned value is a Z3 type like IntNumRef
+    const_values = ' '.join([model_z3.eval(constant_symbol,model_completion=True).as_string() for constant_symbol in const])
+    for arg in const + deref:
+        # In general, arg will range over the tuples of instantiated terms
+        arg_value = model_z3.eval(arg,model_completion=True)
+        constraints = constraints + '(not (lemma {0} {1}))\n'.format(arg_value,const_values)
+    out = '(constraint (or {0}))'.format(constraints)
     return out
 
-# generate constraints corresponding to one true model for SyGuS
-def generateTrueConstraints(model, elems, f):
-    out = ''
+# Generate constraints corresponding to one true model for SyGuS
+def generateTrueConstraints(model, const):
+    constraints = ''
+    # No post processing on model.eval outputs because only using integers
+    # Must convert result of model.eval using as_string() because returned value is a Z3 type like IntNumRef
+    const_values = ' '.join([str(model[getZ3FctName(constant_symbol)]) for constant_symbol in const])
+    elems = model['elems'] #Possible because true models have an 'elems' entry
     for elem in elems:
-        if elem != -1:
-            out += '(constraint (lemma ' + str(f(elem)) + '))\n'
+        #Only one universally quantified variable in desired lemma for now. Hence only ranging over elements of the model
+        # In general, this will range over all possible tuples of elements since a lemma must be valid everywhere. Signatures will be involved.
+        #No processing done on elem because elem is an integer in the current representation
+        constraints = constraints + '(constraint (lemma {0} {1}))\n'.format(elem,const_values)
+    out = '(constraint (or {0}))\n'.format(constraints)
     return out
+
 
 # generate constraints corresponding to all true models for SyGuS
-def generateAllTrueConstraints(models, elems):
-    out = '(constraint (lemma (- 1)))\n'
-    for i in range(len(models)):
-        out += generateTrueConstraints(models[i], elems, lambda x: x + 50*(i+1))
+def generateAllTrueConstraints(models, const):
+    out = ''
+    for model in models:
+        out = out + generateTrueConstraints(model, const)
     return out
 
 # write output to a file that can be parsed by CVC4 SyGuS
@@ -103,17 +118,18 @@ def getSygusOutput(elems, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, 
         out.write('\n')
         out.write(';; constraints from false model\n')
         false_constraints = generateFalseConstraints(false_model_z3, deref, const)
+        #print(false_constraints)
         out.write(false_constraints)
+        out.write('\n')
+        out.write('\n')
+        out.write(';; constraints from true models\n')
+        true_constraints = generateAllTrueConstraints(true_models, const)
+        print(true_constraints)
+        out.write(true_constraints)
+        out.write('\n')
+        out.write('(check-synth)')
+        out.close()
         return None
-        # out.write('\n')
-        # out.write('\n')
-        # out.write(';; constraints from true models\n')
-        # true_constraints = generateAllTrueConstraints(true_models, const)
-        # out.write(true_constraints)
-        # out.write('\n')
-        # out.write('(check-synth)')
-        # out.close()
-        # return None
 
     # proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # cvc4_out, err = proc.communicate()

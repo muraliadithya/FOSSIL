@@ -1,378 +1,1125 @@
-;; TODO: this file should be generated from false model
-
 (set-logic ALL)
 
 ;; x = 0, y = 1, z = 2
-(declare-const x Int)
-(declare-const y Int)
-(declare-const z Int)
-(assert (= x 0))
-(assert (= y 1))
-(assert (= z 2))
+;(declare-const x Int)
+;(declare-const y Int)
+;(declare-const z Int)
+;(assert (= x 0))
+;(assert (= y 1))
+;(assert (= z 2))
 
 ;; combination of true models and false model
 (define-fun next ((x!0 Int)) Int
+  (ite (= x!0 49) 49
+  (ite (= x!0 50) 50
+  (ite (= x!0 51) 49
+  (ite (= x!0 99) 99
+  (ite (= x!0 100) 100
   (ite (= x!0 101) 100
+  (ite (= x!0 149) 149
+  (ite (= x!0 150) 150
   (ite (= x!0 151) 151
-  (ite (= x!0 251) 250
+  (ite (= x!0 199) 200
+  (ite (= x!0 200) 200
+  (ite (= x!0 201) 199
+  (ite (= x!0 299) 300
+  (ite (= x!0 300) 300
   (ite (= x!0 301) 301
+  (ite (= x!0 349) 351
+  (ite (= x!0 350) 350
+  (ite (= x!0 351) 349
+  (ite (= x!0 399) 401
+  (ite (= x!0 400) 400
   (ite (= x!0 401) 400
+  (ite (= x!0 449) 451
+  (ite (= x!0 450) 450
   (ite (= x!0 451) 451
-  (ite (= x!0 500) 500
+  (ite (= x!0 499) 499
+  (ite (= x!0 500) 499
+  (ite (= x!0 501) 501
+  (ite (= x!0 549) 549
   (ite (= x!0 550) 550
-  (ite (= x!0 551) 550
-  (ite (= x!0 600) 600
+  (ite (= x!0 551) 551
+  (ite (= x!0 599) 599
+  (ite (= x!0 600) 601
   (ite (= x!0 601) 601
-  (ite (= x!0 650) 650
+  (ite (= x!0 649) 650
+  (ite (= x!0 650) 649
+  (ite (= x!0 651) 651
+  (ite (= x!0 699) 700
   (ite (= x!0 700) 700
-  (ite (= x!0 701) 700
-  (ite (= x!0 750) 750
+  (ite (= x!0 701) 701
+  (ite (= x!0 749) 750
+  (ite (= x!0 750) 751
   (ite (= x!0 751) 751
-  (ite (= x!0 800) 800
+  (ite (= x!0 799) 801
+  (ite (= x!0 800) 799
+  (ite (= x!0 801) 801
+  (ite (= x!0 849) 851
   (ite (= x!0 850) 850
-  (ite (= x!0 851) 850
-  (ite (= x!0 900) 900
+  (ite (= x!0 851) 851
+  (ite (= x!0 899) 901
+  (ite (= x!0 900) 901
   (ite (= x!0 901) 901
-  (ite (= x!0 950) 951
-  (ite (= x!0 1000) 1001
+  (ite (= x!0 949) 949
+  (ite (= x!0 950) 950
+  (ite (= x!0 951) 949
+  (ite (= x!0 999) 999
+  (ite (= x!0 1000) 1000
   (ite (= x!0 1001) 1000
-  (ite (= x!0 1050) 1051
+  (ite (= x!0 1049) 1049
+  (ite (= x!0 1050) 1050
   (ite (= x!0 1051) 1051
-  (ite (= x!0 1100) 1101
-  (ite (= x!0 1150) 1151
+  (ite (= x!0 1099) 1100
+  (ite (= x!0 1100) 1100
+  (ite (= x!0 1101) 1099
+  (ite (= x!0 1149) 1150
+  (ite (= x!0 1150) 1150
   (ite (= x!0 1151) 1150
-  (ite (= x!0 1200) 1201
+  (ite (= x!0 1199) 1200
+  (ite (= x!0 1200) 1200
   (ite (= x!0 1201) 1201
-  (ite (= x!0 1250) 1251
-  (ite (= x!0 1300) 1301
+  (ite (= x!0 1249) 1251
+  (ite (= x!0 1250) 1250
+  (ite (= x!0 1251) 1249
+  (ite (= x!0 1299) 1301
+  (ite (= x!0 1300) 1300
   (ite (= x!0 1301) 1300
-  (ite (= x!0 1350) 1351
+  (ite (= x!0 1349) 1351
+  (ite (= x!0 1350) 1350
   (ite (= x!0 1351) 1351
-  (ite (= x!0 1451) 1450
+  (ite (= x!0 1399) 1399
+  (ite (= x!0 1400) 1399
+  (ite (= x!0 1401) 1401
+  (ite (= x!0 1449) 1449
+  (ite (= x!0 1450) 1450
+  (ite (= x!0 1451) 1451
+  (ite (= x!0 1499) 1499
+  (ite (= x!0 1500) 1501
   (ite (= x!0 1501) 1501
-  (ite (= x!0 1601) 1600
+  (ite (= x!0 1549) 1550
+  (ite (= x!0 1550) 1549
+  (ite (= x!0 1551) 1551
+  (ite (= x!0 1599) 1600
+  (ite (= x!0 1600) 1600
+  (ite (= x!0 1601) 1601
+  (ite (= x!0 1649) 1650
+  (ite (= x!0 1650) 1651
   (ite (= x!0 1651) 1651
-  (ite (= x!0 1751) 1750
+  (ite (= x!0 1699) 1701
+  (ite (= x!0 1700) 1699
+  (ite (= x!0 1701) 1701
+  (ite (= x!0 1749) 1751
+  (ite (= x!0 1750) 1750
+  (ite (= x!0 1751) 1751
+  (ite (= x!0 1799) 1801
+  (ite (= x!0 1800) 1801
   (ite (= x!0 1801) 1801
+  (ite (= x!0 1849) 1849
   (ite (= x!0 1850) 1850
+  (ite (= x!0 1851) 1849
+  (ite (= x!0 1899) 1899
   (ite (= x!0 1900) 1900
   (ite (= x!0 1901) 1900
+  (ite (= x!0 1949) 1949
   (ite (= x!0 1950) 1950
   (ite (= x!0 1951) 1951
+  (ite (= x!0 1999) 2000
   (ite (= x!0 2000) 2000
+  (ite (= x!0 2001) 1999
+  (ite (= x!0 2049) 2050
   (ite (= x!0 2050) 2050
   (ite (= x!0 2051) 2050
+  (ite (= x!0 2099) 2100
   (ite (= x!0 2100) 2100
   (ite (= x!0 2101) 2101
+  (ite (= x!0 2149) 2151
   (ite (= x!0 2150) 2150
+  (ite (= x!0 2151) 2149
+  (ite (= x!0 2199) 2201
   (ite (= x!0 2200) 2200
   (ite (= x!0 2201) 2200
+  (ite (= x!0 2249) 2251
   (ite (= x!0 2250) 2250
   (ite (= x!0 2251) 2251
-  (ite (= x!0 2300) 2301
-  (ite (= x!0 2350) 2351
-  (ite (= x!0 2351) 2350
+  (ite (= x!0 2299) 2299
+  (ite (= x!0 2300) 2299
+  (ite (= x!0 2301) 2301
+  (ite (= x!0 2349) 2349
+  (ite (= x!0 2350) 2350
+  (ite (= x!0 2351) 2351
+  (ite (= x!0 2399) 2399
   (ite (= x!0 2400) 2401
   (ite (= x!0 2401) 2401
-  (ite (= x!0 2450) 2451
-  (ite (= x!0 2500) 2501
-  (ite (= x!0 2501) 2500
+  (ite (= x!0 2449) 2450
+  (ite (= x!0 2450) 2449
+  (ite (= x!0 2451) 2451
+  (ite (= x!0 2499) 2500
+  (ite (= x!0 2500) 2500
+  (ite (= x!0 2501) 2501
+  (ite (= x!0 2549) 2550
   (ite (= x!0 2550) 2551
   (ite (= x!0 2551) 2551
-  (ite (= x!0 2600) 2601
-  (ite (= x!0 2650) 2651
-  (ite (= x!0 2651) 2650
+  (ite (= x!0 2599) 2601
+  (ite (= x!0 2600) 2599
+  (ite (= x!0 2601) 2601
+  (ite (= x!0 2649) 2651
+  (ite (= x!0 2650) 2650
+  (ite (= x!0 2651) 2651
+  (ite (= x!0 2699) 2701
   (ite (= x!0 2700) 2701
   (ite (= x!0 2701) 2701
+  (ite (= x!0 2749) 2749
+  (ite (= x!0 2750) 2749
+  (ite (= x!0 2751) 2749
+  (ite (= x!0 2799) 2799
+  (ite (= x!0 2800) 2799
   (ite (= x!0 2801) 2800
+  (ite (= x!0 2849) 2849
+  (ite (= x!0 2850) 2849
   (ite (= x!0 2851) 2851
+  (ite (= x!0 2899) 2899
+  (ite (= x!0 2900) 2900
+  (ite (= x!0 2901) 2899
+  (ite (= x!0 2949) 2949
+  (ite (= x!0 2950) 2950
   (ite (= x!0 2951) 2950
+  (ite (= x!0 2999) 2999
+  (ite (= x!0 3000) 3000
   (ite (= x!0 3001) 3001
+  (ite (= x!0 3049) 3049
+  (ite (= x!0 3050) 3051
+  (ite (= x!0 3051) 3049
+  (ite (= x!0 3099) 3099
+  (ite (= x!0 3100) 3101
   (ite (= x!0 3101) 3100
+  (ite (= x!0 3149) 3149
+  (ite (= x!0 3150) 3151
   (ite (= x!0 3151) 3151
-  (ite (= x!0 3200) 3200
+  (ite (= x!0 3199) 3199
+  (ite (= x!0 3200) 3199
+  (ite (= x!0 3201) 3201
+  (ite (= x!0 3249) 3249
   (ite (= x!0 3250) 3250
-  (ite (= x!0 3251) 3250
-  (ite (= x!0 3300) 3300
+  (ite (= x!0 3251) 3251
+  (ite (= x!0 3299) 3299
+  (ite (= x!0 3300) 3301
   (ite (= x!0 3301) 3301
-  (ite (= x!0 3350) 3350
+  (ite (= x!0 3349) 3350
+  (ite (= x!0 3350) 3349
+  (ite (= x!0 3351) 3351
+  (ite (= x!0 3399) 3400
   (ite (= x!0 3400) 3400
-  (ite (= x!0 3401) 3400
-  (ite (= x!0 3450) 3450
+  (ite (= x!0 3401) 3401
+  (ite (= x!0 3449) 3450
+  (ite (= x!0 3450) 3451
   (ite (= x!0 3451) 3451
-  (ite (= x!0 3500) 3500
+  (ite (= x!0 3499) 3501
+  (ite (= x!0 3500) 3499
+  (ite (= x!0 3501) 3501
+  (ite (= x!0 3549) 3551
   (ite (= x!0 3550) 3550
-  (ite (= x!0 3551) 3550
-  (ite (= x!0 3600) 3600
+  (ite (= x!0 3551) 3551
+  (ite (= x!0 3599) 3601
+  (ite (= x!0 3600) 3601
   (ite (= x!0 3601) 3601
-  (ite (= x!0 3650) 3651
-  (ite (= x!0 3700) 3701
+  (ite (= x!0 3649) 3649
+  (ite (= x!0 3650) 3649
+  (ite (= x!0 3651) 3649
+  (ite (= x!0 3699) 3699
+  (ite (= x!0 3700) 3699
   (ite (= x!0 3701) 3700
-  (ite (= x!0 3750) 3751
+  (ite (= x!0 3749) 3749
+  (ite (= x!0 3750) 3749
   (ite (= x!0 3751) 3751
-  (ite (= x!0 3800) 3801
-  (ite (= x!0 3850) 3851
+  (ite (= x!0 3799) 3799
+  (ite (= x!0 3800) 3800
+  (ite (= x!0 3801) 3799
+  (ite (= x!0 3849) 3849
+  (ite (= x!0 3850) 3850
   (ite (= x!0 3851) 3850
-  (ite (= x!0 3900) 3901
+  (ite (= x!0 3899) 3899
+  (ite (= x!0 3900) 3900
   (ite (= x!0 3901) 3901
+  (ite (= x!0 3949) 3949
   (ite (= x!0 3950) 3951
+  (ite (= x!0 3951) 3949
+  (ite (= x!0 3999) 3999
   (ite (= x!0 4000) 4001
   (ite (= x!0 4001) 4000
+  (ite (= x!0 4049) 4049
   (ite (= x!0 4050) 4051
   (ite (= x!0 4051) 4051
-  (ite (= x!0 0) 3
-    (- 1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+  (ite (= x!0 4099) 4099
+  (ite (= x!0 4100) 4099
+  (ite (= x!0 4101) 4101
+  (ite (= x!0 4149) 4149
+  (ite (= x!0 4150) 4150
+  (ite (= x!0 4151) 4151
+  (ite (= x!0 4199) 4199
+  (ite (= x!0 4200) 4201
+  (ite (= x!0 4201) 4201
+  (ite (= x!0 4249) 4250
+  (ite (= x!0 4250) 4249
+  (ite (= x!0 4251) 4251
+  (ite (= x!0 4299) 4300
+  (ite (= x!0 4300) 4300
+  (ite (= x!0 4301) 4301
+  (ite (= x!0 4349) 4350
+  (ite (= x!0 4350) 4351
+  (ite (= x!0 4351) 4351
+  (ite (= x!0 4399) 4401
+  (ite (= x!0 4400) 4399
+  (ite (= x!0 4401) 4401
+  (ite (= x!0 4449) 4451
+  (ite (= x!0 4450) 4450
+  (ite (= x!0 4451) 4451
+  (ite (= x!0 4499) 4501
+  (ite (= x!0 4500) 4501
+  (ite (= x!0 4501) 4501
+  (ite (= x!0 4549) 4549
+  (ite (= x!0 4550) 4549
+  (ite (= x!0 4551) 4549
+  (ite (= x!0 4599) 4599
+  (ite (= x!0 4600) 4599
+  (ite (= x!0 4601) 4600
+  (ite (= x!0 4649) 4649
+  (ite (= x!0 4650) 4649
+  (ite (= x!0 4651) 4651
+  (ite (= x!0 4699) 4699
+  (ite (= x!0 4700) 4700
+  (ite (= x!0 4701) 4699
+  (ite (= x!0 4749) 4749
+  (ite (= x!0 4750) 4750
+  (ite (= x!0 4751) 4750
+  (ite (= x!0 4799) 4799
+  (ite (= x!0 4800) 4800
+  (ite (= x!0 4801) 4801
+  (ite (= x!0 4849) 4849
+  (ite (= x!0 4850) 4851
+  (ite (= x!0 4851) 4849
+  (ite (= x!0 4899) 4899
+  (ite (= x!0 4900) 4901
+  (ite (= x!0 4901) 4900
+  (ite (= x!0 4949) 4949
+  (ite (= x!0 4950) 4951
+  (ite (= x!0 4951) 4951
+  (ite (= x!0 4999) 4999
+  (ite (= x!0 5000) 4999
+  (ite (= x!0 5001) 5001
+  (ite (= x!0 1) 1
+  (ite (= x!0 0) 1
+    250))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 (define-fun list ((x!0 Int)) Bool
-  (or (= x!0 (- 1))
-      (= x!0 50)
+  (ite (= x!0 49) false
+  (ite (= x!0 51) false
+  (ite (= x!0 99) false
+  (ite (= x!0 149) false
+  (ite (= x!0 151) false
+  (ite (= x!0 301) false
+  (ite (= x!0 349) false
+  (ite (= x!0 351) false
+  (ite (= x!0 449) false
+  (ite (= x!0 451) false
+  (ite (= x!0 499) false
+  (ite (= x!0 500) false
+  (ite (= x!0 549) false
+  (ite (= x!0 550) false
+  (ite (= x!0 599) false
+  (ite (= x!0 649) false
+  (ite (= x!0 650) false
+  (ite (= x!0 699) false
+  (ite (= x!0 700) false
+  (ite (= x!0 850) false
+  (ite (= x!0 949) false
+  (ite (= x!0 951) false
+  (ite (= x!0 999) false
+  (ite (= x!0 1049) false
+  (ite (= x!0 1051) false
+  (ite (= x!0 1201) false
+  (ite (= x!0 1249) false
+  (ite (= x!0 1251) false
+  (ite (= x!0 1349) false
+  (ite (= x!0 1351) false
+  (ite (= x!0 1399) false
+  (ite (= x!0 1400) false
+  (ite (= x!0 1449) false
+  (ite (= x!0 1450) false
+  (ite (= x!0 1499) false
+  (ite (= x!0 1549) false
+  (ite (= x!0 1550) false
+  (ite (= x!0 1599) false
+  (ite (= x!0 1600) false
+  (ite (= x!0 1750) false
+  (ite (= x!0 1849) false
+  (ite (= x!0 1851) false
+  (ite (= x!0 1899) false
+  (ite (= x!0 1949) false
+  (ite (= x!0 1951) false
+  (ite (= x!0 2101) false
+  (ite (= x!0 2149) false
+  (ite (= x!0 2151) false
+  (ite (= x!0 2249) false
+  (ite (= x!0 2251) false
+  (ite (= x!0 2299) false
+  (ite (= x!0 2300) false
+  (ite (= x!0 2349) false
+  (ite (= x!0 2350) false
+  (ite (= x!0 2399) false
+  (ite (= x!0 2449) false
+  (ite (= x!0 2450) false
+  (ite (= x!0 2499) false
+  (ite (= x!0 2500) false
+  (ite (= x!0 2650) false
+  (ite (= x!0 2851) false
+  (ite (= x!0 2900) false
+  (ite (= x!0 2950) false
+  (ite (= x!0 2951) false
+  (ite (= x!0 3000) false
+  (ite (= x!0 3001) false
+  (ite (= x!0 3100) false
+  (ite (= x!0 3101) false
+  (ite (= x!0 3150) false
+  (ite (= x!0 3151) false
+  (ite (= x!0 3199) false
+  (ite (= x!0 3200) false
+  (ite (= x!0 3249) false
+  (ite (= x!0 3250) false
+  (ite (= x!0 3299) false
+  (ite (= x!0 3349) false
+  (ite (= x!0 3350) false
+  (ite (= x!0 3399) false
+  (ite (= x!0 3400) false
+  (ite (= x!0 3550) false
+  (ite (= x!0 3751) false
+  (ite (= x!0 3800) false
+  (ite (= x!0 3850) false
+  (ite (= x!0 3851) false
+  (ite (= x!0 3900) false
+  (ite (= x!0 3901) false
+  (ite (= x!0 4000) false
+  (ite (= x!0 4001) false
+  (ite (= x!0 4050) false
+  (ite (= x!0 4051) false
+  (ite (= x!0 4099) false
+  (ite (= x!0 4100) false
+  (ite (= x!0 4149) false
+  (ite (= x!0 4150) false
+  (ite (= x!0 4199) false
+  (ite (= x!0 4249) false
+  (ite (= x!0 4250) false
+  (ite (= x!0 4299) false
+  (ite (= x!0 4300) false
+  (ite (= x!0 4450) false
+  (ite (= x!0 4651) false
+  (ite (= x!0 4700) false
+  (ite (= x!0 4750) false
+  (ite (= x!0 4751) false
+  (ite (= x!0 4800) false
+  (ite (= x!0 4801) false
+  (ite (= x!0 4900) false
+  (ite (= x!0 4901) false
+  (ite (= x!0 4950) false
+  (ite (= x!0 4951) false
+  (ite (= x!0 4999) false
+  (ite (= x!0 5000) false
+    true)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+(define-fun lsegy ((x!0 Int)) Bool
+  (or (= x!0 0)
+      (= x!0 49)
       (= x!0 51)
-      (= x!0 100)
-      (= x!0 101)
-      (= x!0 150)
-      (= x!0 200)
+      (= x!0 99)
+      (= x!0 149)
+      (= x!0 199)
       (= x!0 201)
-      (= x!0 250)
-      (= x!0 251)
-      (= x!0 300)
-      (= x!0 350)
+      (= x!0 249)
+      (= x!0 299)
+      (= x!0 349)
       (= x!0 351)
-      (= x!0 400)
-      (= x!0 401)
-      (= x!0 450)
-      (= x!0 501)
-      (= x!0 651)
-      (= x!0 801)
+      (= x!0 399)
+      (= x!0 449)
+      (= x!0 499)
+      (= x!0 500)
+      (= x!0 549)
+      (= x!0 599)
+      (= x!0 649)
+      (= x!0 650)
+      (= x!0 699)
+      (= x!0 749)
+      (= x!0 799)
+      (= x!0 800)
+      (= x!0 849)
+      (= x!0 899)
+      (= x!0 949)
       (= x!0 951)
+      (= x!0 999)
+      (= x!0 1049)
+      (= x!0 1099)
       (= x!0 1101)
+      (= x!0 1149)
+      (= x!0 1199)
+      (= x!0 1249)
       (= x!0 1251)
+      (= x!0 1299)
+      (= x!0 1349)
+      (= x!0 1399)
       (= x!0 1400)
-      (= x!0 1401)
-      (= x!0 1450)
-      (= x!0 1451)
-      (= x!0 1500)
+      (= x!0 1449)
+      (= x!0 1499)
+      (= x!0 1549)
       (= x!0 1550)
-      (= x!0 1551)
-      (= x!0 1600)
-      (= x!0 1601)
-      (= x!0 1650)
+      (= x!0 1599)
+      (= x!0 1649)
+      (= x!0 1699)
       (= x!0 1700)
-      (= x!0 1701)
-      (= x!0 1750)
-      (= x!0 1751)
-      (= x!0 1800)
+      (= x!0 1749)
+      (= x!0 1799)
+      (= x!0 1849)
       (= x!0 1851)
+      (= x!0 1899)
+      (= x!0 1949)
+      (= x!0 1999)
       (= x!0 2001)
+      (= x!0 2049)
+      (= x!0 2099)
+      (= x!0 2149)
       (= x!0 2151)
-      (= x!0 2301)
-      (= x!0 2451)
-      (= x!0 2601)
+      (= x!0 2199)
+      (= x!0 2249)
+      (= x!0 2299)
+      (= x!0 2300)
+      (= x!0 2349)
+      (= x!0 2399)
+      (= x!0 2449)
+      (= x!0 2450)
+      (= x!0 2499)
+      (= x!0 2549)
+      (= x!0 2599)
+      (= x!0 2600)
+      (= x!0 2649)
+      (= x!0 2699)
       (= x!0 2750)
-      (= x!0 2751)
       (= x!0 2800)
       (= x!0 2801)
       (= x!0 2850)
       (= x!0 2900)
-      (= x!0 2901)
       (= x!0 2950)
       (= x!0 2951)
       (= x!0 3000)
       (= x!0 3050)
-      (= x!0 3051)
       (= x!0 3100)
       (= x!0 3101)
       (= x!0 3150)
-      (= x!0 3201)
-      (= x!0 3351)
-      (= x!0 3501)
-      (= x!0 3651)
-      (= x!0 3801)
-      (= x!0 3951)
-      (= x!0 1)))
-(define-fun lsegy ((x!0 Int)) Bool
-  (or (= x!0 1) (= x!0 0)))
-(define-fun list_p ((x!0 Int)) Bool
-  (or (= x!0 (- 1))
-      (= x!0 50)
-      (= x!0 51)
-      (= x!0 100)
-      (= x!0 101)
-      (= x!0 150)
-      (= x!0 200)
-      (= x!0 201)
-      (= x!0 250)
-      (= x!0 251)
-      (= x!0 300)
-      (= x!0 350)
-      (= x!0 400)
-      (= x!0 450)
-      (= x!0 501)
-      (= x!0 651)
-      (= x!0 951)
-      (= x!0 1101)
-      (= x!0 1401)
-      (= x!0 1451)
-      (= x!0 1851)
-      (= x!0 2301)
-      (= x!0 2751)
-      (= x!0 2801)
-      (= x!0 3201)
-      (= x!0 3651)
-      (= x!0 151)
-      (= x!0 301)
-      (= x!0 500)
-      (= x!0 550)
-      (= x!0 551)
-      (= x!0 600)
-      (= x!0 601)
-      (= x!0 650)
-      (= x!0 700)
-      (= x!0 701)
-      (= x!0 750)
-      (= x!0 751)
-      (= x!0 800)
-      (= x!0 850)
-      (= x!0 900)
-      (= x!0 950)
-      (= x!0 1000)
-      (= x!0 1001)
-      (= x!0 1050)
-      (= x!0 1051)
-      (= x!0 1100)
-      (= x!0 1150)
-      (= x!0 1151)
-      (= x!0 1200)
-      (= x!0 1201)
-      (= x!0 1250)
-      (= x!0 1300)
-      (= x!0 1350)
-      (= x!0 1501)
-      (= x!0 1901)
-      (= x!0 1951)
-      (= x!0 2351)
-      (= x!0 2401)
-      (= x!0 2851)
-      (= x!0 3251)
-      (= x!0 3301)
+      (= x!0 3200)
+      (= x!0 3250)
+      (= x!0 3300)
+      (= x!0 3349)
+      (= x!0 3350)
+      (= x!0 3399)
+      (= x!0 3400)
+      (= x!0 3449)
+      (= x!0 3450)
+      (= x!0 3500)
+      (= x!0 3550)
+      (= x!0 3600)
+      (= x!0 3650)
+      (= x!0 3700)
       (= x!0 3701)
-      (= x!0 3751)))
+      (= x!0 3750)
+      (= x!0 3800)
+      (= x!0 3850)
+      (= x!0 3851)
+      (= x!0 3900)
+      (= x!0 3950)
+      (= x!0 4000)
+      (= x!0 4001)
+      (= x!0 4050)
+      (= x!0 4100)
+      (= x!0 4150)
+      (= x!0 4200)
+      (= x!0 4249)
+      (= x!0 4250)
+      (= x!0 4299)
+      (= x!0 4300)
+      (= x!0 4349)
+      (= x!0 4350)
+      (= x!0 4400)
+      (= x!0 4450)
+      (= x!0 4500)
+      (= x!0 4550)
+      (= x!0 4600)
+      (= x!0 4601)
+      (= x!0 4650)
+      (= x!0 4700)
+      (= x!0 4750)
+      (= x!0 4751)
+      (= x!0 4800)
+      (= x!0 4850)
+      (= x!0 4900)
+      (= x!0 4901)
+      (= x!0 4950)
+      (= x!0 5000)))
+(define-fun list_p ((x!0 Int)) Bool
+  (ite (= x!0 49) false
+  (ite (= x!0 51) false
+  (ite (= x!0 99) false
+  (ite (= x!0 149) false
+  (ite (= x!0 151) false
+  (ite (= x!0 199) false
+  (ite (= x!0 201) false
+  (ite (= x!0 249) false
+  (ite (= x!0 299) false
+  (ite (= x!0 301) false
+  (ite (= x!0 349) false
+  (ite (= x!0 351) false
+  (ite (= x!0 399) false
+  (ite (= x!0 449) false
+  (ite (= x!0 451) false
+  (ite (= x!0 499) false
+  (ite (= x!0 500) false
+  (ite (= x!0 549) false
+  (ite (= x!0 550) false
+  (ite (= x!0 599) false
+  (ite (= x!0 649) false
+  (ite (= x!0 650) false
+  (ite (= x!0 699) false
+  (ite (= x!0 700) false
+  (ite (= x!0 749) false
+  (ite (= x!0 799) false
+  (ite (= x!0 800) false
+  (ite (= x!0 849) false
+  (ite (= x!0 850) false
+  (ite (= x!0 899) false
+  (ite (= x!0 1051) false
+  (ite (= x!0 1201) false
+  (ite (= x!0 1351) false
+  (ite (= x!0 1399) false
+  (ite (= x!0 1400) false
+  (ite (= x!0 1449) false
+  (ite (= x!0 1450) false
+  (ite (= x!0 1549) false
+  (ite (= x!0 1550) false
+  (ite (= x!0 1599) false
+  (ite (= x!0 1600) false
+  (ite (= x!0 1699) false
+  (ite (= x!0 1700) false
+  (ite (= x!0 1749) false
+  (ite (= x!0 1750) false
+  (ite (= x!0 1849) false
+  (ite (= x!0 1851) false
+  (ite (= x!0 1949) false
+  (ite (= x!0 1951) false
+  (ite (= x!0 1999) false
+  (ite (= x!0 2001) false
+  (ite (= x!0 2099) false
+  (ite (= x!0 2101) false
+  (ite (= x!0 2149) false
+  (ite (= x!0 2151) false
+  (ite (= x!0 2249) false
+  (ite (= x!0 2251) false
+  (ite (= x!0 2350) false
+  (ite (= x!0 2500) false
+  (ite (= x!0 2650) false
+  (ite (= x!0 2851) false
+  (ite (= x!0 3001) false
+  (ite (= x!0 3151) false
+  (ite (= x!0 3199) false
+  (ite (= x!0 3200) false
+  (ite (= x!0 3249) false
+  (ite (= x!0 3250) false
+  (ite (= x!0 3299) false
+  (ite (= x!0 3300) false
+  (ite (= x!0 3349) false
+  (ite (= x!0 3350) false
+  (ite (= x!0 3399) false
+  (ite (= x!0 3400) false
+  (ite (= x!0 3449) false
+  (ite (= x!0 3450) false
+  (ite (= x!0 3650) false
+  (ite (= x!0 3700) false
+  (ite (= x!0 3701) false
+  (ite (= x!0 3750) false
+  (ite (= x!0 3751) false
+  (ite (= x!0 3800) false
+  (ite (= x!0 3850) false
+  (ite (= x!0 3851) false
+  (ite (= x!0 3900) false
+  (ite (= x!0 3901) false
+  (ite (= x!0 3950) false
+  (ite (= x!0 4000) false
+  (ite (= x!0 4001) false
+  (ite (= x!0 4050) false
+  (ite (= x!0 4051) false
+  (ite (= x!0 4099) false
+  (ite (= x!0 4100) false
+  (ite (= x!0 4149) false
+  (ite (= x!0 4150) false
+  (ite (= x!0 4199) false
+  (ite (= x!0 4200) false
+  (ite (= x!0 4249) false
+  (ite (= x!0 4250) false
+  (ite (= x!0 4299) false
+  (ite (= x!0 4300) false
+  (ite (= x!0 4349) false
+  (ite (= x!0 4350) false
+  (ite (= x!0 4400) false
+  (ite (= x!0 4450) false
+  (ite (= x!0 4500) false
+  (ite (= x!0 4600) false
+  (ite (= x!0 4601) false
+  (ite (= x!0 4650) false
+  (ite (= x!0 4651) false
+  (ite (= x!0 4750) false
+  (ite (= x!0 4751) false
+  (ite (= x!0 4800) false
+  (ite (= x!0 4801) false
+  (ite (= x!0 4900) false
+  (ite (= x!0 4901) false
+  (ite (= x!0 4950) false
+  (ite (= x!0 4951) false
+  (ite (= x!0 4999) false
+  (ite (= x!0 0) false
+    true))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 (define-fun next_p ((x!0 Int)) Int
-  (ite (= x!0 201) 200
+  (ite (= x!0 49) 49
+  (ite (= x!0 50) 50
+  (ite (= x!0 51) 49
+  (ite (= x!0 99) 99
+  (ite (= x!0 100) 100
+  (ite (= x!0 101) 100
+  (ite (= x!0 149) 149
+  (ite (= x!0 150) 150
+  (ite (= x!0 151) 151
+  (ite (= x!0 199) 199
+  (ite (= x!0 200) 200
+  (ite (= x!0 201) 199
+  (ite (= x!0 249) 249
+  (ite (= x!0 250) 250
   (ite (= x!0 251) 250
-  (ite (= x!0 301) 300
-  (ite (= x!0 351) 351
-  (ite (= x!0 401) 401
+  (ite (= x!0 299) 299
+  (ite (= x!0 300) 300
+  (ite (= x!0 301) 301
+  (ite (= x!0 349) 349
+  (ite (= x!0 350) 350
+  (ite (= x!0 351) 349
+  (ite (= x!0 399) 399
+  (ite (= x!0 400) 400
+  (ite (= x!0 401) 400
+  (ite (= x!0 449) 449
+  (ite (= x!0 450) 450
   (ite (= x!0 451) 451
-  (ite (= x!0 651) 650
-  (ite (= x!0 701) 700
-  (ite (= x!0 751) 750
+  (ite (= x!0 499) 499
+  (ite (= x!0 500) 499
+  (ite (= x!0 501) 501
+  (ite (= x!0 549) 549
+  (ite (= x!0 550) 550
+  (ite (= x!0 551) 551
+  (ite (= x!0 599) 599
+  (ite (= x!0 600) 601
+  (ite (= x!0 601) 601
+  (ite (= x!0 649) 649
+  (ite (= x!0 650) 649
+  (ite (= x!0 651) 651
+  (ite (= x!0 699) 699
+  (ite (= x!0 700) 700
+  (ite (= x!0 701) 701
+  (ite (= x!0 749) 749
+  (ite (= x!0 750) 751
+  (ite (= x!0 751) 751
+  (ite (= x!0 799) 799
+  (ite (= x!0 800) 799
   (ite (= x!0 801) 801
+  (ite (= x!0 849) 849
+  (ite (= x!0 850) 850
   (ite (= x!0 851) 851
+  (ite (= x!0 899) 899
+  (ite (= x!0 900) 901
   (ite (= x!0 901) 901
-  (ite (= x!0 1101) 1100
+  (ite (= x!0 949) 950
+  (ite (= x!0 950) 950
+  (ite (= x!0 951) 949
+  (ite (= x!0 1049) 1050
+  (ite (= x!0 1050) 1050
+  (ite (= x!0 1051) 1051
+  (ite (= x!0 1099) 1100
+  (ite (= x!0 1100) 1100
+  (ite (= x!0 1101) 1099
+  (ite (= x!0 1149) 1150
+  (ite (= x!0 1150) 1150
   (ite (= x!0 1151) 1150
-  (ite (= x!0 1201) 1200
-  (ite (= x!0 1251) 1251
-  (ite (= x!0 1301) 1301
+  (ite (= x!0 1199) 1200
+  (ite (= x!0 1200) 1200
+  (ite (= x!0 1201) 1201
+  (ite (= x!0 1249) 1250
+  (ite (= x!0 1250) 1250
+  (ite (= x!0 1251) 1249
+  (ite (= x!0 1299) 1300
+  (ite (= x!0 1300) 1300
+  (ite (= x!0 1301) 1300
+  (ite (= x!0 1349) 1350
+  (ite (= x!0 1350) 1350
   (ite (= x!0 1351) 1351
-  (ite (= x!0 1400) 1400
+  (ite (= x!0 1399) 1400
+  (ite (= x!0 1400) 1399
+  (ite (= x!0 1401) 1401
+  (ite (= x!0 1449) 1450
   (ite (= x!0 1450) 1450
-  (ite (= x!0 1500) 1500
-  (ite (= x!0 1550) 1550
-  (ite (= x!0 1551) 1550
+  (ite (= x!0 1451) 1451
+  (ite (= x!0 1499) 1500
+  (ite (= x!0 1500) 1501
+  (ite (= x!0 1501) 1501
+  (ite (= x!0 1549) 1550
+  (ite (= x!0 1550) 1549
+  (ite (= x!0 1551) 1551
+  (ite (= x!0 1599) 1600
   (ite (= x!0 1600) 1600
-  (ite (= x!0 1601) 1600
-  (ite (= x!0 1650) 1650
-  (ite (= x!0 1651) 1650
-  (ite (= x!0 1700) 1700
+  (ite (= x!0 1601) 1601
+  (ite (= x!0 1649) 1650
+  (ite (= x!0 1650) 1651
+  (ite (= x!0 1651) 1651
+  (ite (= x!0 1699) 1700
+  (ite (= x!0 1700) 1699
   (ite (= x!0 1701) 1701
+  (ite (= x!0 1749) 1750
   (ite (= x!0 1750) 1750
   (ite (= x!0 1751) 1751
-  (ite (= x!0 1800) 1800
+  (ite (= x!0 1799) 1800
+  (ite (= x!0 1800) 1801
   (ite (= x!0 1801) 1801
+  (ite (= x!0 1849) 1851
   (ite (= x!0 1850) 1850
+  (ite (= x!0 1851) 1849
+  (ite (= x!0 1899) 1901
   (ite (= x!0 1900) 1900
+  (ite (= x!0 1901) 1900
+  (ite (= x!0 1949) 1951
   (ite (= x!0 1950) 1950
+  (ite (= x!0 1951) 1951
+  (ite (= x!0 1999) 2001
   (ite (= x!0 2000) 2000
-  (ite (= x!0 2001) 2000
+  (ite (= x!0 2001) 1999
+  (ite (= x!0 2049) 2051
   (ite (= x!0 2050) 2050
   (ite (= x!0 2051) 2050
+  (ite (= x!0 2099) 2101
   (ite (= x!0 2100) 2100
-  (ite (= x!0 2101) 2100
+  (ite (= x!0 2101) 2101
+  (ite (= x!0 2149) 2151
   (ite (= x!0 2150) 2150
-  (ite (= x!0 2151) 2151
+  (ite (= x!0 2151) 2149
+  (ite (= x!0 2199) 2201
   (ite (= x!0 2200) 2200
-  (ite (= x!0 2201) 2201
+  (ite (= x!0 2201) 2200
+  (ite (= x!0 2249) 2251
   (ite (= x!0 2250) 2250
   (ite (= x!0 2251) 2251
-  (ite (= x!0 2300) 2300
+  (ite (= x!0 2299) 2301
+  (ite (= x!0 2300) 2299
+  (ite (= x!0 2301) 2301
+  (ite (= x!0 2349) 2351
   (ite (= x!0 2350) 2350
-  (ite (= x!0 2400) 2400
-  (ite (= x!0 2450) 2450
-  (ite (= x!0 2451) 2450
+  (ite (= x!0 2351) 2351
+  (ite (= x!0 2399) 2401
+  (ite (= x!0 2400) 2401
+  (ite (= x!0 2401) 2401
+  (ite (= x!0 2449) 2451
+  (ite (= x!0 2450) 2449
+  (ite (= x!0 2451) 2451
+  (ite (= x!0 2499) 2501
   (ite (= x!0 2500) 2500
-  (ite (= x!0 2501) 2500
-  (ite (= x!0 2550) 2550
-  (ite (= x!0 2551) 2550
-  (ite (= x!0 2600) 2600
+  (ite (= x!0 2501) 2501
+  (ite (= x!0 2549) 2551
+  (ite (= x!0 2550) 2551
+  (ite (= x!0 2551) 2551
+  (ite (= x!0 2599) 2601
+  (ite (= x!0 2600) 2599
   (ite (= x!0 2601) 2601
+  (ite (= x!0 2649) 2651
   (ite (= x!0 2650) 2650
   (ite (= x!0 2651) 2651
-  (ite (= x!0 2700) 2700
+  (ite (= x!0 2699) 2701
+  (ite (= x!0 2700) 2701
   (ite (= x!0 2701) 2701
-  (ite (= x!0 2750) 2751
-  (ite (= x!0 2800) 2801
-  (ite (= x!0 2850) 2851
-  (ite (= x!0 2900) 2901
-  (ite (= x!0 2901) 2900
-  (ite (= x!0 2950) 2951
+  (ite (= x!0 2749) 2749
+  (ite (= x!0 2750) 2749
+  (ite (= x!0 2751) 2749
+  (ite (= x!0 2799) 2799
+  (ite (= x!0 2800) 2799
+  (ite (= x!0 2801) 2800
+  (ite (= x!0 2849) 2849
+  (ite (= x!0 2850) 2849
+  (ite (= x!0 2851) 2851
+  (ite (= x!0 2899) 2899
+  (ite (= x!0 2900) 2899
+  (ite (= x!0 2901) 2899
+  (ite (= x!0 2949) 2949
+  (ite (= x!0 2950) 2949
   (ite (= x!0 2951) 2950
-  (ite (= x!0 3000) 3001
-  (ite (= x!0 3001) 3000
-  (ite (= x!0 3050) 3051
-  (ite (= x!0 3051) 3051
-  (ite (= x!0 3100) 3101
-  (ite (= x!0 3101) 3101
-  (ite (= x!0 3150) 3151
+  (ite (= x!0 2999) 2999
+  (ite (= x!0 3000) 2999
+  (ite (= x!0 3001) 3001
+  (ite (= x!0 3049) 3049
+  (ite (= x!0 3050) 3049
+  (ite (= x!0 3051) 3049
+  (ite (= x!0 3099) 3099
+  (ite (= x!0 3100) 3099
+  (ite (= x!0 3101) 3100
+  (ite (= x!0 3149) 3149
+  (ite (= x!0 3150) 3149
   (ite (= x!0 3151) 3151
-  (ite (= x!0 3200) 3201
-  (ite (= x!0 3250) 3251
-  (ite (= x!0 3300) 3301
-  (ite (= x!0 3350) 3351
-  (ite (= x!0 3351) 3350
-  (ite (= x!0 3400) 3401
-  (ite (= x!0 3401) 3400
-  (ite (= x!0 3450) 3451
-  (ite (= x!0 3451) 3450
-  (ite (= x!0 3500) 3501
+  (ite (= x!0 3199) 3199
+  (ite (= x!0 3200) 3199
+  (ite (= x!0 3201) 3201
+  (ite (= x!0 3249) 3249
+  (ite (= x!0 3250) 3249
+  (ite (= x!0 3251) 3251
+  (ite (= x!0 3299) 3299
+  (ite (= x!0 3300) 3299
+  (ite (= x!0 3301) 3301
+  (ite (= x!0 3349) 3350
+  (ite (= x!0 3350) 3349
+  (ite (= x!0 3351) 3351
+  (ite (= x!0 3399) 3400
+  (ite (= x!0 3400) 3399
+  (ite (= x!0 3401) 3401
+  (ite (= x!0 3449) 3450
+  (ite (= x!0 3450) 3449
+  (ite (= x!0 3451) 3451
+  (ite (= x!0 3499) 3501
+  (ite (= x!0 3500) 3499
   (ite (= x!0 3501) 3501
-  (ite (= x!0 3550) 3551
+  (ite (= x!0 3549) 3551
+  (ite (= x!0 3550) 3549
   (ite (= x!0 3551) 3551
-  (ite (= x!0 3600) 3601
+  (ite (= x!0 3599) 3601
+  (ite (= x!0 3600) 3599
   (ite (= x!0 3601) 3601
-  (ite (= x!0 3650) 3651
-  (ite (= x!0 3700) 3701
-  (ite (= x!0 3750) 3751
-  (ite (= x!0 3800) 3801
-  (ite (= x!0 3801) 3800
-  (ite (= x!0 3850) 3851
+  (ite (= x!0 3649) 3649
+  (ite (= x!0 3650) 3650
+  (ite (= x!0 3651) 3649
+  (ite (= x!0 3699) 3699
+  (ite (= x!0 3700) 3700
+  (ite (= x!0 3701) 3700
+  (ite (= x!0 3749) 3749
+  (ite (= x!0 3750) 3750
+  (ite (= x!0 3751) 3751
+  (ite (= x!0 3799) 3799
+  (ite (= x!0 3800) 3800
+  (ite (= x!0 3801) 3799
+  (ite (= x!0 3849) 3849
+  (ite (= x!0 3850) 3850
   (ite (= x!0 3851) 3850
-  (ite (= x!0 3900) 3901
-  (ite (= x!0 3901) 3900
-  (ite (= x!0 3950) 3951
-  (ite (= x!0 3951) 3951
-  (ite (= x!0 4000) 4001
-  (ite (= x!0 4001) 4001
-  (ite (= x!0 4050) 4051
+  (ite (= x!0 3899) 3899
+  (ite (= x!0 3900) 3900
+  (ite (= x!0 3901) 3901
+  (ite (= x!0 3949) 3949
+  (ite (= x!0 3950) 3950
+  (ite (= x!0 3951) 3949
+  (ite (= x!0 3999) 3999
+  (ite (= x!0 4000) 4000
+  (ite (= x!0 4001) 4000
+  (ite (= x!0 4049) 4049
+  (ite (= x!0 4050) 4050
   (ite (= x!0 4051) 4051
-  (ite (= x!0 0) 3
-  (ite (= x!0 1) 2
-    (- 1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+  (ite (= x!0 4099) 4099
+  (ite (= x!0 4100) 4100
+  (ite (= x!0 4101) 4101
+  (ite (= x!0 4149) 4149
+  (ite (= x!0 4150) 4150
+  (ite (= x!0 4151) 4151
+  (ite (= x!0 4199) 4199
+  (ite (= x!0 4200) 4200
+  (ite (= x!0 4201) 4201
+  (ite (= x!0 4249) 4250
+  (ite (= x!0 4250) 4250
+  (ite (= x!0 4251) 4251
+  (ite (= x!0 4299) 4300
+  (ite (= x!0 4300) 4300
+  (ite (= x!0 4301) 4301
+  (ite (= x!0 4349) 4350
+  (ite (= x!0 4350) 4350
+  (ite (= x!0 4351) 4351
+  (ite (= x!0 4399) 4401
+  (ite (= x!0 4400) 4400
+  (ite (= x!0 4401) 4401
+  (ite (= x!0 4449) 4451
+  (ite (= x!0 4450) 4450
+  (ite (= x!0 4451) 4451
+  (ite (= x!0 4499) 4501
+  (ite (= x!0 4500) 4500
+  (ite (= x!0 4501) 4501
+  (ite (= x!0 4549) 4549
+  (ite (= x!0 4550) 4551
+  (ite (= x!0 4551) 4549
+  (ite (= x!0 4599) 4599
+  (ite (= x!0 4600) 4601
+  (ite (= x!0 4601) 4600
+  (ite (= x!0 4649) 4649
+  (ite (= x!0 4650) 4651
+  (ite (= x!0 4651) 4651
+  (ite (= x!0 4699) 4699
+  (ite (= x!0 4700) 4701
+  (ite (= x!0 4701) 4699
+  (ite (= x!0 4749) 4749
+  (ite (= x!0 4750) 4751
+  (ite (= x!0 4751) 4750
+  (ite (= x!0 4799) 4799
+  (ite (= x!0 4800) 4801
+  (ite (= x!0 4801) 4801
+  (ite (= x!0 4849) 4849
+  (ite (= x!0 4850) 4851
+  (ite (= x!0 4851) 4849
+  (ite (= x!0 4899) 4899
+  (ite (= x!0 4900) 4901
+  (ite (= x!0 4901) 4900
+  (ite (= x!0 4949) 4949
+  (ite (= x!0 4950) 4951
+  (ite (= x!0 4951) 4951
+  (ite (= x!0 4999) 4999
+  (ite (= x!0 5000) 5001
+  (ite (= x!0 5001) 5001
+  (ite (= x!0 1) 1
+  (ite (= x!0 0) 2
+    1000))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 (define-fun lsegy_p ((x!0 Int)) Bool
-  (= x!0 1))
+  (or (= x!0 0)
+      (= x!0 49)
+      (= x!0 51)
+      (= x!0 99)
+      (= x!0 149)
+      (= x!0 199)
+      (= x!0 201)
+      (= x!0 249)
+      (= x!0 299)
+      (= x!0 349)
+      (= x!0 351)
+      (= x!0 399)
+      (= x!0 449)
+      (= x!0 499)
+      (= x!0 500)
+      (= x!0 549)
+      (= x!0 599)
+      (= x!0 649)
+      (= x!0 650)
+      (= x!0 699)
+      (= x!0 749)
+      (= x!0 799)
+      (= x!0 800)
+      (= x!0 849)
+      (= x!0 899)
+      (= x!0 949)
+      (= x!0 951)
+      (= x!0 999)
+      (= x!0 1049)
+      (= x!0 1099)
+      (= x!0 1101)
+      (= x!0 1149)
+      (= x!0 1199)
+      (= x!0 1249)
+      (= x!0 1251)
+      (= x!0 1299)
+      (= x!0 1349)
+      (= x!0 1399)
+      (= x!0 1400)
+      (= x!0 1449)
+      (= x!0 1499)
+      (= x!0 1549)
+      (= x!0 1550)
+      (= x!0 1599)
+      (= x!0 1649)
+      (= x!0 1699)
+      (= x!0 1700)
+      (= x!0 1749)
+      (= x!0 1799)
+      (= x!0 1849)
+      (= x!0 1851)
+      (= x!0 1899)
+      (= x!0 1949)
+      (= x!0 1999)
+      (= x!0 2001)
+      (= x!0 2049)
+      (= x!0 2099)
+      (= x!0 2149)
+      (= x!0 2151)
+      (= x!0 2199)
+      (= x!0 2249)
+      (= x!0 2299)
+      (= x!0 2300)
+      (= x!0 2349)
+      (= x!0 2399)
+      (= x!0 2449)
+      (= x!0 2450)
+      (= x!0 2499)
+      (= x!0 2549)
+      (= x!0 2599)
+      (= x!0 2600)
+      (= x!0 2649)
+      (= x!0 2699)
+      (= x!0 2750)
+      (= x!0 2800)
+      (= x!0 2801)
+      (= x!0 2850)
+      (= x!0 2900)
+      (= x!0 2950)
+      (= x!0 2951)
+      (= x!0 3000)
+      (= x!0 3050)
+      (= x!0 3100)
+      (= x!0 3101)
+      (= x!0 3150)
+      (= x!0 3200)
+      (= x!0 3250)
+      (= x!0 3300)
+      (= x!0 3349)
+      (= x!0 3350)
+      (= x!0 3399)
+      (= x!0 3400)
+      (= x!0 3449)
+      (= x!0 3450)
+      (= x!0 3500)
+      (= x!0 3550)
+      (= x!0 3600)
+      (= x!0 3650)
+      (= x!0 3700)
+      (= x!0 3701)
+      (= x!0 3750)
+      (= x!0 3800)
+      (= x!0 3850)
+      (= x!0 3851)
+      (= x!0 3900)
+      (= x!0 3950)
+      (= x!0 4000)
+      (= x!0 4001)
+      (= x!0 4050)
+      (= x!0 4100)
+      (= x!0 4150)
+      (= x!0 4200)
+      (= x!0 4249)
+      (= x!0 4250)
+      (= x!0 4299)
+      (= x!0 4300)
+      (= x!0 4349)
+      (= x!0 4350)
+      (= x!0 4400)
+      (= x!0 4450)
+      (= x!0 4500)
+      (= x!0 4550)
+      (= x!0 4600)
+      (= x!0 4601)
+      (= x!0 4650)
+      (= x!0 4700)
+      (= x!0 4750)
+      (= x!0 4751)
+      (= x!0 4800)
+      (= x!0 4850)
+      (= x!0 4900)
+      (= x!0 4901)
+      (= x!0 4950)
+      (= x!0 5000)))
 
+;; TODO: this should be generated from the problem parameters
 ;; lemma to synthesize
-(synth-fun lemma ((x Int)) Bool
-
+(synth-fun lemma ((x Int) (nil Int) (y Int)) Bool
            ((Start Bool) (Rec Bool) (B Bool) (I Int))
 
            ((Start Bool
@@ -385,177 +1132,416 @@
                    (or B B)
                    (not B)
                    (list I) (lsegy I) (list_p I) (lsegy_p I)))
-            (I Int (x y z (- 1)
+            (I Int (x nil y
                    (next I))))
-
 )
 
 ;; constraints from false model
-(constraint (or (not (lemma x))))
+(constraint (or (not (lemma 1 1 0))
+(not (lemma 0 1 0))
+(not (lemma 0 1 0))
+))
 
 ;; constraints from true models
-(constraint (lemma (- 1)))
-(constraint (lemma 50))
-(constraint (lemma 51))
-(constraint (lemma 100))
-(constraint (lemma 101))
-(constraint (lemma 150))
-(constraint (lemma 151))
-(constraint (lemma 200))
-(constraint (lemma 201))
-(constraint (lemma 250))
-(constraint (lemma 251))
-(constraint (lemma 300))
-(constraint (lemma 301))
-(constraint (lemma 350))
-(constraint (lemma 351))
-(constraint (lemma 400))
-(constraint (lemma 401))
-(constraint (lemma 450))
-(constraint (lemma 451))
-(constraint (lemma 500))
-(constraint (lemma 501))
-(constraint (lemma 550))
-(constraint (lemma 551))
-(constraint (lemma 600))
-(constraint (lemma 601))
-(constraint (lemma 650))
-(constraint (lemma 651))
-(constraint (lemma 700))
-(constraint (lemma 701))
-(constraint (lemma 750))
-(constraint (lemma 751))
-(constraint (lemma 800))
-(constraint (lemma 801))
-(constraint (lemma 850))
-(constraint (lemma 851))
-(constraint (lemma 900))
-(constraint (lemma 901))
-(constraint (lemma 950))
-(constraint (lemma 951))
-(constraint (lemma 1000))
-(constraint (lemma 1001))
-(constraint (lemma 1050))
-(constraint (lemma 1051))
-(constraint (lemma 1100))
-(constraint (lemma 1101))
-(constraint (lemma 1150))
-(constraint (lemma 1151))
-(constraint (lemma 1200))
-(constraint (lemma 1201))
-(constraint (lemma 1250))
-(constraint (lemma 1251))
-(constraint (lemma 1300))
-(constraint (lemma 1301))
-(constraint (lemma 1350))
-(constraint (lemma 1351))
-(constraint (lemma 1400))
-(constraint (lemma 1401))
-(constraint (lemma 1450))
-(constraint (lemma 1451))
-(constraint (lemma 1500))
-(constraint (lemma 1501))
-(constraint (lemma 1550))
-(constraint (lemma 1551))
-(constraint (lemma 1600))
-(constraint (lemma 1601))
-(constraint (lemma 1650))
-(constraint (lemma 1651))
-(constraint (lemma 1700))
-(constraint (lemma 1701))
-(constraint (lemma 1750))
-(constraint (lemma 1751))
-(constraint (lemma 1800))
-(constraint (lemma 1801))
-(constraint (lemma 1850))
-(constraint (lemma 1851))
-(constraint (lemma 1900))
-(constraint (lemma 1901))
-(constraint (lemma 1950))
-(constraint (lemma 1951))
-(constraint (lemma 2000))
-(constraint (lemma 2001))
-(constraint (lemma 2050))
-(constraint (lemma 2051))
-(constraint (lemma 2100))
-(constraint (lemma 2101))
-(constraint (lemma 2150))
-(constraint (lemma 2151))
-(constraint (lemma 2200))
-(constraint (lemma 2201))
-(constraint (lemma 2250))
-(constraint (lemma 2251))
-(constraint (lemma 2300))
-(constraint (lemma 2301))
-(constraint (lemma 2350))
-(constraint (lemma 2351))
-(constraint (lemma 2400))
-(constraint (lemma 2401))
-(constraint (lemma 2450))
-(constraint (lemma 2451))
-(constraint (lemma 2500))
-(constraint (lemma 2501))
-(constraint (lemma 2550))
-(constraint (lemma 2551))
-(constraint (lemma 2600))
-(constraint (lemma 2601))
-(constraint (lemma 2650))
-(constraint (lemma 2651))
-(constraint (lemma 2700))
-(constraint (lemma 2701))
-(constraint (lemma 2750))
-(constraint (lemma 2751))
-(constraint (lemma 2800))
-(constraint (lemma 2801))
-(constraint (lemma 2850))
-(constraint (lemma 2851))
-(constraint (lemma 2900))
-(constraint (lemma 2901))
-(constraint (lemma 2950))
-(constraint (lemma 2951))
-(constraint (lemma 3000))
-(constraint (lemma 3001))
-(constraint (lemma 3050))
-(constraint (lemma 3051))
-(constraint (lemma 3100))
-(constraint (lemma 3101))
-(constraint (lemma 3150))
-(constraint (lemma 3151))
-(constraint (lemma 3200))
-(constraint (lemma 3201))
-(constraint (lemma 3250))
-(constraint (lemma 3251))
-(constraint (lemma 3300))
-(constraint (lemma 3301))
-(constraint (lemma 3350))
-(constraint (lemma 3351))
-(constraint (lemma 3400))
-(constraint (lemma 3401))
-(constraint (lemma 3450))
-(constraint (lemma 3451))
-(constraint (lemma 3500))
-(constraint (lemma 3501))
-(constraint (lemma 3550))
-(constraint (lemma 3551))
-(constraint (lemma 3600))
-(constraint (lemma 3601))
-(constraint (lemma 3650))
-(constraint (lemma 3651))
-(constraint (lemma 3700))
-(constraint (lemma 3701))
-(constraint (lemma 3750))
-(constraint (lemma 3751))
-(constraint (lemma 3800))
-(constraint (lemma 3801))
-(constraint (lemma 3850))
-(constraint (lemma 3851))
-(constraint (lemma 3900))
-(constraint (lemma 3901))
-(constraint (lemma 3950))
-(constraint (lemma 3951))
-(constraint (lemma 4000))
-(constraint (lemma 4001))
-(constraint (lemma 4050))
-(constraint (lemma 4051))
+(constraint (or (constraint (lemma 49 50 49))
+(constraint (lemma 50 50 49))
+(constraint (lemma 51 50 49))
+))
+(constraint (or (constraint (lemma 99 100 99))
+(constraint (lemma 100 100 99))
+(constraint (lemma 101 100 99))
+))
+(constraint (or (constraint (lemma 149 150 149))
+(constraint (lemma 150 150 149))
+(constraint (lemma 151 150 149))
+))
+(constraint (or (constraint (lemma 199 200 199))
+(constraint (lemma 200 200 199))
+(constraint (lemma 201 200 199))
+))
+(constraint (or (constraint (lemma 249 250 249))
+(constraint (lemma 250 250 249))
+(constraint (lemma 251 250 249))
+))
+(constraint (or (constraint (lemma 299 300 299))
+(constraint (lemma 300 300 299))
+(constraint (lemma 301 300 299))
+))
+(constraint (or (constraint (lemma 349 350 349))
+(constraint (lemma 350 350 349))
+(constraint (lemma 351 350 349))
+))
+(constraint (or (constraint (lemma 399 400 399))
+(constraint (lemma 400 400 399))
+(constraint (lemma 401 400 399))
+))
+(constraint (or (constraint (lemma 449 450 449))
+(constraint (lemma 450 450 449))
+(constraint (lemma 451 450 449))
+))
+(constraint (or (constraint (lemma 499 501 499))
+(constraint (lemma 500 501 499))
+(constraint (lemma 501 501 499))
+))
+(constraint (or (constraint (lemma 549 551 549))
+(constraint (lemma 550 551 549))
+(constraint (lemma 551 551 549))
+))
+(constraint (or (constraint (lemma 599 601 599))
+(constraint (lemma 600 601 599))
+(constraint (lemma 601 601 599))
+))
+(constraint (or (constraint (lemma 649 651 649))
+(constraint (lemma 650 651 649))
+(constraint (lemma 651 651 649))
+))
+(constraint (or (constraint (lemma 699 701 699))
+(constraint (lemma 700 701 699))
+(constraint (lemma 701 701 699))
+))
+(constraint (or (constraint (lemma 749 751 749))
+(constraint (lemma 750 751 749))
+(constraint (lemma 751 751 749))
+))
+(constraint (or (constraint (lemma 799 801 799))
+(constraint (lemma 800 801 799))
+(constraint (lemma 801 801 799))
+))
+(constraint (or (constraint (lemma 849 851 849))
+(constraint (lemma 850 851 849))
+(constraint (lemma 851 851 849))
+))
+(constraint (or (constraint (lemma 899 901 899))
+(constraint (lemma 900 901 899))
+(constraint (lemma 901 901 899))
+))
+(constraint (or (constraint (lemma 949 950 949))
+(constraint (lemma 950 950 949))
+(constraint (lemma 951 950 949))
+))
+(constraint (or (constraint (lemma 999 1000 999))
+(constraint (lemma 1000 1000 999))
+(constraint (lemma 1001 1000 999))
+))
+(constraint (or (constraint (lemma 1049 1050 1049))
+(constraint (lemma 1050 1050 1049))
+(constraint (lemma 1051 1050 1049))
+))
+(constraint (or (constraint (lemma 1099 1100 1099))
+(constraint (lemma 1100 1100 1099))
+(constraint (lemma 1101 1100 1099))
+))
+(constraint (or (constraint (lemma 1149 1150 1149))
+(constraint (lemma 1150 1150 1149))
+(constraint (lemma 1151 1150 1149))
+))
+(constraint (or (constraint (lemma 1199 1200 1199))
+(constraint (lemma 1200 1200 1199))
+(constraint (lemma 1201 1200 1199))
+))
+(constraint (or (constraint (lemma 1249 1250 1249))
+(constraint (lemma 1250 1250 1249))
+(constraint (lemma 1251 1250 1249))
+))
+(constraint (or (constraint (lemma 1299 1300 1299))
+(constraint (lemma 1300 1300 1299))
+(constraint (lemma 1301 1300 1299))
+))
+(constraint (or (constraint (lemma 1349 1350 1349))
+(constraint (lemma 1350 1350 1349))
+(constraint (lemma 1351 1350 1349))
+))
+(constraint (or (constraint (lemma 1399 1401 1399))
+(constraint (lemma 1400 1401 1399))
+(constraint (lemma 1401 1401 1399))
+))
+(constraint (or (constraint (lemma 1449 1451 1449))
+(constraint (lemma 1450 1451 1449))
+(constraint (lemma 1451 1451 1449))
+))
+(constraint (or (constraint (lemma 1499 1501 1499))
+(constraint (lemma 1500 1501 1499))
+(constraint (lemma 1501 1501 1499))
+))
+(constraint (or (constraint (lemma 1549 1551 1549))
+(constraint (lemma 1550 1551 1549))
+(constraint (lemma 1551 1551 1549))
+))
+(constraint (or (constraint (lemma 1599 1601 1599))
+(constraint (lemma 1600 1601 1599))
+(constraint (lemma 1601 1601 1599))
+))
+(constraint (or (constraint (lemma 1649 1651 1649))
+(constraint (lemma 1650 1651 1649))
+(constraint (lemma 1651 1651 1649))
+))
+(constraint (or (constraint (lemma 1699 1701 1699))
+(constraint (lemma 1700 1701 1699))
+(constraint (lemma 1701 1701 1699))
+))
+(constraint (or (constraint (lemma 1749 1751 1749))
+(constraint (lemma 1750 1751 1749))
+(constraint (lemma 1751 1751 1749))
+))
+(constraint (or (constraint (lemma 1799 1801 1799))
+(constraint (lemma 1800 1801 1799))
+(constraint (lemma 1801 1801 1799))
+))
+(constraint (or (constraint (lemma 1849 1850 1849))
+(constraint (lemma 1850 1850 1849))
+(constraint (lemma 1851 1850 1849))
+))
+(constraint (or (constraint (lemma 1899 1900 1899))
+(constraint (lemma 1900 1900 1899))
+(constraint (lemma 1901 1900 1899))
+))
+(constraint (or (constraint (lemma 1949 1950 1949))
+(constraint (lemma 1950 1950 1949))
+(constraint (lemma 1951 1950 1949))
+))
+(constraint (or (constraint (lemma 1999 2000 1999))
+(constraint (lemma 2000 2000 1999))
+(constraint (lemma 2001 2000 1999))
+))
+(constraint (or (constraint (lemma 2049 2050 2049))
+(constraint (lemma 2050 2050 2049))
+(constraint (lemma 2051 2050 2049))
+))
+(constraint (or (constraint (lemma 2099 2100 2099))
+(constraint (lemma 2100 2100 2099))
+(constraint (lemma 2101 2100 2099))
+))
+(constraint (or (constraint (lemma 2149 2150 2149))
+(constraint (lemma 2150 2150 2149))
+(constraint (lemma 2151 2150 2149))
+))
+(constraint (or (constraint (lemma 2199 2200 2199))
+(constraint (lemma 2200 2200 2199))
+(constraint (lemma 2201 2200 2199))
+))
+(constraint (or (constraint (lemma 2249 2250 2249))
+(constraint (lemma 2250 2250 2249))
+(constraint (lemma 2251 2250 2249))
+))
+(constraint (or (constraint (lemma 2299 2301 2299))
+(constraint (lemma 2300 2301 2299))
+(constraint (lemma 2301 2301 2299))
+))
+(constraint (or (constraint (lemma 2349 2351 2349))
+(constraint (lemma 2350 2351 2349))
+(constraint (lemma 2351 2351 2349))
+))
+(constraint (or (constraint (lemma 2399 2401 2399))
+(constraint (lemma 2400 2401 2399))
+(constraint (lemma 2401 2401 2399))
+))
+(constraint (or (constraint (lemma 2449 2451 2449))
+(constraint (lemma 2450 2451 2449))
+(constraint (lemma 2451 2451 2449))
+))
+(constraint (or (constraint (lemma 2499 2501 2499))
+(constraint (lemma 2500 2501 2499))
+(constraint (lemma 2501 2501 2499))
+))
+(constraint (or (constraint (lemma 2549 2551 2549))
+(constraint (lemma 2550 2551 2549))
+(constraint (lemma 2551 2551 2549))
+))
+(constraint (or (constraint (lemma 2599 2601 2599))
+(constraint (lemma 2600 2601 2599))
+(constraint (lemma 2601 2601 2599))
+))
+(constraint (or (constraint (lemma 2649 2651 2649))
+(constraint (lemma 2650 2651 2649))
+(constraint (lemma 2651 2651 2649))
+))
+(constraint (or (constraint (lemma 2699 2701 2699))
+(constraint (lemma 2700 2701 2699))
+(constraint (lemma 2701 2701 2699))
+))
+(constraint (or (constraint (lemma 2749 2749 2750))
+(constraint (lemma 2750 2749 2750))
+(constraint (lemma 2751 2749 2750))
+))
+(constraint (or (constraint (lemma 2799 2799 2800))
+(constraint (lemma 2800 2799 2800))
+(constraint (lemma 2801 2799 2800))
+))
+(constraint (or (constraint (lemma 2849 2849 2850))
+(constraint (lemma 2850 2849 2850))
+(constraint (lemma 2851 2849 2850))
+))
+(constraint (or (constraint (lemma 2899 2899 2900))
+(constraint (lemma 2900 2899 2900))
+(constraint (lemma 2901 2899 2900))
+))
+(constraint (or (constraint (lemma 2949 2949 2950))
+(constraint (lemma 2950 2949 2950))
+(constraint (lemma 2951 2949 2950))
+))
+(constraint (or (constraint (lemma 2999 2999 3000))
+(constraint (lemma 3000 2999 3000))
+(constraint (lemma 3001 2999 3000))
+))
+(constraint (or (constraint (lemma 3049 3049 3050))
+(constraint (lemma 3050 3049 3050))
+(constraint (lemma 3051 3049 3050))
+))
+(constraint (or (constraint (lemma 3099 3099 3100))
+(constraint (lemma 3100 3099 3100))
+(constraint (lemma 3101 3099 3100))
+))
+(constraint (or (constraint (lemma 3149 3149 3150))
+(constraint (lemma 3150 3149 3150))
+(constraint (lemma 3151 3149 3150))
+))
+(constraint (or (constraint (lemma 3199 3201 3200))
+(constraint (lemma 3200 3201 3200))
+(constraint (lemma 3201 3201 3200))
+))
+(constraint (or (constraint (lemma 3249 3251 3250))
+(constraint (lemma 3250 3251 3250))
+(constraint (lemma 3251 3251 3250))
+))
+(constraint (or (constraint (lemma 3299 3301 3300))
+(constraint (lemma 3300 3301 3300))
+(constraint (lemma 3301 3301 3300))
+))
+(constraint (or (constraint (lemma 3349 3351 3350))
+(constraint (lemma 3350 3351 3350))
+(constraint (lemma 3351 3351 3350))
+))
+(constraint (or (constraint (lemma 3399 3401 3400))
+(constraint (lemma 3400 3401 3400))
+(constraint (lemma 3401 3401 3400))
+))
+(constraint (or (constraint (lemma 3449 3451 3450))
+(constraint (lemma 3450 3451 3450))
+(constraint (lemma 3451 3451 3450))
+))
+(constraint (or (constraint (lemma 3499 3501 3500))
+(constraint (lemma 3500 3501 3500))
+(constraint (lemma 3501 3501 3500))
+))
+(constraint (or (constraint (lemma 3549 3551 3550))
+(constraint (lemma 3550 3551 3550))
+(constraint (lemma 3551 3551 3550))
+))
+(constraint (or (constraint (lemma 3599 3601 3600))
+(constraint (lemma 3600 3601 3600))
+(constraint (lemma 3601 3601 3600))
+))
+(constraint (or (constraint (lemma 3649 3649 3650))
+(constraint (lemma 3650 3649 3650))
+(constraint (lemma 3651 3649 3650))
+))
+(constraint (or (constraint (lemma 3699 3699 3700))
+(constraint (lemma 3700 3699 3700))
+(constraint (lemma 3701 3699 3700))
+))
+(constraint (or (constraint (lemma 3749 3749 3750))
+(constraint (lemma 3750 3749 3750))
+(constraint (lemma 3751 3749 3750))
+))
+(constraint (or (constraint (lemma 3799 3799 3800))
+(constraint (lemma 3800 3799 3800))
+(constraint (lemma 3801 3799 3800))
+))
+(constraint (or (constraint (lemma 3849 3849 3850))
+(constraint (lemma 3850 3849 3850))
+(constraint (lemma 3851 3849 3850))
+))
+(constraint (or (constraint (lemma 3899 3899 3900))
+(constraint (lemma 3900 3899 3900))
+(constraint (lemma 3901 3899 3900))
+))
+(constraint (or (constraint (lemma 3949 3949 3950))
+(constraint (lemma 3950 3949 3950))
+(constraint (lemma 3951 3949 3950))
+))
+(constraint (or (constraint (lemma 3999 3999 4000))
+(constraint (lemma 4000 3999 4000))
+(constraint (lemma 4001 3999 4000))
+))
+(constraint (or (constraint (lemma 4049 4049 4050))
+(constraint (lemma 4050 4049 4050))
+(constraint (lemma 4051 4049 4050))
+))
+(constraint (or (constraint (lemma 4099 4101 4100))
+(constraint (lemma 4100 4101 4100))
+(constraint (lemma 4101 4101 4100))
+))
+(constraint (or (constraint (lemma 4149 4151 4150))
+(constraint (lemma 4150 4151 4150))
+(constraint (lemma 4151 4151 4150))
+))
+(constraint (or (constraint (lemma 4199 4201 4200))
+(constraint (lemma 4200 4201 4200))
+(constraint (lemma 4201 4201 4200))
+))
+(constraint (or (constraint (lemma 4249 4251 4250))
+(constraint (lemma 4250 4251 4250))
+(constraint (lemma 4251 4251 4250))
+))
+(constraint (or (constraint (lemma 4299 4301 4300))
+(constraint (lemma 4300 4301 4300))
+(constraint (lemma 4301 4301 4300))
+))
+(constraint (or (constraint (lemma 4349 4351 4350))
+(constraint (lemma 4350 4351 4350))
+(constraint (lemma 4351 4351 4350))
+))
+(constraint (or (constraint (lemma 4399 4401 4400))
+(constraint (lemma 4400 4401 4400))
+(constraint (lemma 4401 4401 4400))
+))
+(constraint (or (constraint (lemma 4449 4451 4450))
+(constraint (lemma 4450 4451 4450))
+(constraint (lemma 4451 4451 4450))
+))
+(constraint (or (constraint (lemma 4499 4501 4500))
+(constraint (lemma 4500 4501 4500))
+(constraint (lemma 4501 4501 4500))
+))
+(constraint (or (constraint (lemma 4549 4549 4550))
+(constraint (lemma 4550 4549 4550))
+(constraint (lemma 4551 4549 4550))
+))
+(constraint (or (constraint (lemma 4599 4599 4600))
+(constraint (lemma 4600 4599 4600))
+(constraint (lemma 4601 4599 4600))
+))
+(constraint (or (constraint (lemma 4649 4649 4650))
+(constraint (lemma 4650 4649 4650))
+(constraint (lemma 4651 4649 4650))
+))
+(constraint (or (constraint (lemma 4699 4699 4700))
+(constraint (lemma 4700 4699 4700))
+(constraint (lemma 4701 4699 4700))
+))
+(constraint (or (constraint (lemma 4749 4749 4750))
+(constraint (lemma 4750 4749 4750))
+(constraint (lemma 4751 4749 4750))
+))
+(constraint (or (constraint (lemma 4799 4799 4800))
+(constraint (lemma 4800 4799 4800))
+(constraint (lemma 4801 4799 4800))
+))
+(constraint (or (constraint (lemma 4849 4849 4850))
+(constraint (lemma 4850 4849 4850))
+(constraint (lemma 4851 4849 4850))
+))
+(constraint (or (constraint (lemma 4899 4899 4900))
+(constraint (lemma 4900 4899 4900))
+(constraint (lemma 4901 4899 4900))
+))
+(constraint (or (constraint (lemma 4949 4949 4950))
+(constraint (lemma 4950 4949 4950))
+(constraint (lemma 4951 4949 4950))
+))
+(constraint (or (constraint (lemma 4999 5001 5000))
+(constraint (lemma 5000 5001 5000))
+(constraint (lemma 5001 5001 5000))
+))
 
 (check-synth)

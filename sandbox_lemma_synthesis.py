@@ -71,7 +71,7 @@ def generateTrueConstraints(model, const):
         #Only one universally quantified variable in desired lemma for now. Hence only ranging over elements of the model
         # In general, this will range over all possible tuples of elements since a lemma must be valid everywhere. Signatures will be involved.
         #No processing done on elem because elem is an integer in the current representation
-        constraints = constraints + '(constraint (lemma {0} {1}))\n'.format(elem,const_values)
+        constraints = constraints + '(lemma {0} {1})\n'.format(elem,const_values)
     out = '(constraint (or {0}))\n'.format(constraints)
     return out
 
@@ -124,7 +124,7 @@ def getSygusOutput(elems, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, 
         out.write('\n')
         out.write(';; constraints from true models\n')
         true_constraints = generateAllTrueConstraints(true_models, const)
-        print(true_constraints)
+        #print(true_constraints)
         out.write(true_constraints)
         out.write('\n')
         out.write('(check-synth)')

@@ -152,7 +152,7 @@ def vc(x, y, z):
     return Implies( pgm(x, y, z), list_p(x) )
 
 
-deref = [x]
+deref = [x,next(x),next_p(x)]
 const = [nil, y]
 elems = [-1, *range(2)]
 

@@ -1,0 +1,7 @@
+(set-logic ALL)
+
+;; x = 0, ret = 1
+(declare-const x Int)
+(declare-const ret Int)
+(assert (= x 0))
+(assert (= ret 1))

@@ -131,75 +131,75 @@
 
 ;; TODO: this should be generated from the problem parameters
 ;; lemma to synthesize
-(synth-fun lemma ((x Int) (nil Int) (y Int)) Bool
-           ((Start Bool) (Rec Bool) (B Bool) (B1 Bool) (B2 Bool) (I Int))
+;(synth-fun lemma ((x Int) (nil Int) (y Int)) Bool
+;           ((Start Bool) (Rec Bool) (B Bool) (I Int))
+;
+;           ((Start Bool
+;                  ((=> Rec B)))
+;           (Rec Bool
+;                  ((list I) (lsegy I) (list_p I) (lsegy_p I)))
+;           (B Bool
+;                  ((=> B B)
+;                   (and B B)
+;                   (or B B)
+;                   (not B)
+;                   (list I) (lsegy I) (list_p I) (lsegy_p I)))
+;            (I Int (x nil y
+;                   (next I))))
+;)
 
-           ((Start Bool
-                  ((=> Rec B)))
-           (Rec Bool
-                  ((list I) (lsegy I) (list_p I) (lsegy_p I)))
-           (B Bool
-                  ((=> B1 B2)
-                   ;(and B B)
-                   ;(or B B)
-                   ;(not B)
-                   (list I) (lsegy I) (list_p I) (lsegy_p I)))
-            (B1 Bool
-                  ((list I) (lsegy I) (list_p I) (lsegy_p I)))
-            (B2 Bool
-                  ((list I) (lsegy I) (list_p I) (lsegy_p I)))      
-            (I Int (x nil y
-                   (next I))))
+(define-fun lemma ((x Int)(nil Int)(y Int)) Bool
+(=> (and (lsegy x) (list y)) (list x))
 )
 
-;; constraints from false model
-(constraint (or (not (lemma 1 1 0))
+;; asserts from false model
+(assert (or (not (lemma 1 1 0))
 (not (lemma 0 1 0))
 (not (lemma 2 1 0))
 (not (lemma 4 1 0))
 (not (lemma 4 1 0))
 ))
 
-;; constraints from true models
-(constraint (or (lemma 8199 8200 8199)
+;; asserts from true models
+(assert (or (lemma 8199 8200 8199)
 (lemma 8200 8200 8199)
 (lemma 8201 8200 8199)
 ))
-(constraint (or (lemma 3199 3201 3200)
+(assert (or (lemma 3199 3201 3200)
 (lemma 3200 3201 3200)
 (lemma 3201 3201 3200)
 ))
-(constraint (or (lemma 12649 12649 12650)
+(assert (or (lemma 12649 12649 12650)
 (lemma 12650 12649 12650)
 (lemma 12651 12649 12650)
 ))
-(constraint (or (lemma 21199 21201 21200)
+(assert (or (lemma 21199 21201 21200)
 (lemma 21200 21201 21200)
 (lemma 21201 21201 21200)
 ))
-(constraint (or (lemma 8349 8350 8349)
+(assert (or (lemma 8349 8350 8349)
 (lemma 8350 8350 8349)
 (lemma 8351 8350 8349)
 ))
-(constraint (or (lemma 3649 3649 3650)
+(assert (or (lemma 3649 3649 3650)
 (lemma 3650 3649 3650)
 (lemma 3651 3649 3650)
 ))
-(constraint (or (lemma 1499 1501 1499)
+(assert (or (lemma 1499 1501 1499)
 (lemma 1500 1501 1499)
 (lemma 1501 1501 1499)
 ))
-(constraint (or (lemma 10849 10849 10850)
+(assert (or (lemma 10849 10849 10850)
 (lemma 10850 10849 10850)
 (lemma 10851 10849 10850)
 ))
-(constraint (or (lemma 21399 21401 21400)
+(assert (or (lemma 21399 21401 21400)
 (lemma 21400 21401 21400)
 (lemma 21401 21401 21400)
 ))
-(constraint (or (lemma 19999 19999 20000)
+(assert (or (lemma 19999 19999 20000)
 (lemma 20000 19999 20000)
 (lemma 20001 19999 20000)
 ))
 
-(check-synth)
+(check-sat)

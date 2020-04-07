@@ -89,12 +89,12 @@ def generateAllTrueConstraints(models, const):
 #vc_axioms -> axioms_python
 #fct_axioms -> axioms_z3
 
-def getSygusOutput(elems, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc, problem_instance_name):
+def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc, problem_instance_name):
     preamble_file = 'preamble_{0}.sy'.format(problem_instance_name)
     grammar_file = 'grammar_{0}.sy'.format(problem_instance_name)
     out_file = 'out_{0}.sy'.format(problem_instance_name)
 
-    true_models = getNTrueModels(elems, fcts_z3, unfold_recdefs_python, axioms_python,10)
+    true_models = getNTrueModels(elems, fcts_z3, unfold_recdefs_python, axioms_python,num_true_models)
     # To fix: false model currently does not have an 'elems' entry. It is not complete either.
     ## However, it works because we only need the false model to provide us with valuations of the dereferenced terms.
     ## Also works because the lemma for the current class of examples is not going to use any terms that have not already been explicitly computed.

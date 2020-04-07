@@ -152,9 +152,10 @@ def vc(x, y, z):
     return Implies( pgm(x, y, z), list_p(x) )
 
 
-deref = [x,next(x),next_p(x)]
+deref = [x,next(x)]
 const = [nil, y]
-elems = [-1, *range(2)]
+elems = [*range(3)]
+num_true_models = 5
 
 
 # for i in deref + const:
@@ -166,7 +167,7 @@ elems = [-1, *range(2)]
 #vc_axioms -> axioms_python
 #fct_axioms -> axioms_z3
 
-lemma = getSygusOutput(elems, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc(x,y,z), 'lseg-list')
+lemma = getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc(x,y,z), 'lseg-list')
 
 #print(lemma)
 

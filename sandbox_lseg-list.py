@@ -1,5 +1,5 @@
 from z3 import *
-from lemma_synthesis import *
+from sandbox_lemma_synthesis import *
 from sandbox_true_models import *
 
 # some general FOL macros
@@ -29,27 +29,21 @@ next_p = Function('next_p', IntSort(), IntSort())
 def next_p_fct_axiom_z3(w):
     return IteBool(w == y, next_p(w) == z, next_p(w) == next(w))
 #Python version for the above axiom for true model generation
-def next_p_fct_axiom_python(model):
-    elems = model['elems']
-    for w in elems:
-        if w == model['y']:
-            if model['next_p'][w] != model['z']:
-                return False
-        else:
-            if model['next_p'][w] != model['next'][w]:
-                return False
-    #Defaul case. All elements satisfy axiom
-    return True
+def next_p_fct_axiom_python(w,model):
+    if w == model['y']:
+        return model['next_p'][w] == model['z']
+    else:
+        return model['next_p'][w] == model['next'][w]
 
 # axioms for next and prev of nil equals nil as python functions -
-axiomNextNil_z3 = next(-1) == -1
-axiomNextpNil_z3 = next_p(-1) == -1
+axiomNextNil_z3 = next(nil) == nil
+axiomNextpNil_z3 = next_p(nil) == nil
 # Python version for the axioms above
 def axiomNextNil_python(model):
-    return model['next'][-1] == -1
+    return model['next'][model['nil']] == model['nil']
 
 def axiomNextpNil_python(model):
-    return model['next_p'][-1] == -1
+    return model['next_p'][model['nil']] == model['nil']
 
 #Updating fcts and fct_Axioms for next and next_p
 #Use dict.setdefault to be able to update the dictionary in multiple stages
@@ -57,10 +51,10 @@ def axiomNextpNil_python(model):
 fcts_z3['1_int_int'] = [next, next_p]
 axioms_z3['0'] = [axiomNextNil_z3, axiomNextpNil_z3]
 axioms_z3['1_int'] = [next_p_fct_axiom_z3]
-axioms_python = [axiomNextNil_python, axiomNextpNil_python]
-axioms_python = axioms_python + [next_p_fct_axiom_python]
-# axioms_python['0'] = [axiomNextNil_python, axiomNextpNil_python]
-# axioms_python['1_int'] = [next_p_fct_axiom_python]
+#axioms_python = [axiomNextNil_python, axiomNextpNil_python]
+#axioms_python = axioms_python + [next_p_fct_axiom_python]
+axioms_python['0'] = [axiomNextNil_python, axiomNextpNil_python]
+axioms_python['1_int'] = [next_p_fct_axiom_python]
 
 ########Section 3
 ## Recursive definitions
@@ -73,17 +67,17 @@ list_p = Function('list_p', IntSort(), BoolSort())
 lsegy_p = Function('lsegy_p', IntSort(), BoolSort())
 
 #Axioms about recdefs
-axiomLsegyNil_z3 = lsegy(-1) == False
-axiomLsegypNil_z3 = lsegy_p(-1) == False
+axiomLsegyNil_z3 = lsegy(nil) == False
+axiomLsegypNil_z3 = lsegy_p(nil) == False
 #Python versions of axioms
 def axiomLsegyNil_python(model):
-    return model['lsegy'][-1] == False
+    return model['lsegy'][model['nil']] == False
 def axiomLsegypNil_python(model):
-    return model['lsegy_p'][-1] == False
+    return model['lsegy_p'][model['nil']] == False
 
 axioms_z3['0'] = axioms_z3['0'] + [axiomLsegyNil_z3,axiomLsegypNil_z3]
-axioms_python = axioms_python + [axiomLsegyNil_python,axiomLsegypNil_python]
-#axioms_python['0'] = axioms_python['0'] + [axiomLsegyNil_python,axiomLsegypNil_python]
+#axioms_python = axioms_python + [axiomLsegyNil_python,axiomLsegypNil_python]
+axioms_python['0'] = axioms_python['0'] + [axiomLsegyNil_python,axiomLsegypNil_python]
 
 #vc_axioms  = [axiomNextNil, axiomPrevNil, axiomLsegNil]
 
@@ -93,20 +87,20 @@ axioms_python = axioms_python + [axiomLsegyNil_python,axiomLsegypNil_python]
 
 # macros for unfolding recursive definitions
 def ulist_z3(x):
-    return Iff( list(x), IteBool(x == -1, True, list(next(x))) )
+    return Iff( list(x), IteBool(x == nil, True, list(next(x))) )
 
 def ulsegy_z3(x):
     return Iff( lsegy(x), IteBool(x == y, True, lsegy(next(x))) )
 
 def ulist_p_z3(x):
-    return Iff( list_p(x), IteBool(x == -1, True, list_p(next_p(x))) )
+    return Iff( list_p(x), IteBool(x == nil, True, list_p(next_p(x))) )
 
 def ulsegy_p_z3(x):
     return Iff( lsegy_p(x), IteBool(x == y, True, lsegy_p(next_p(x))) )
 
 #Python versions for finding valuation on true models
 def ulist_python(x, model):
-    if x == -1:
+    if x == model['nil']:
         return True
     else:
         next_val = model['next'][x]
@@ -120,7 +114,7 @@ def ulsegy_python(x, model):
         return model['lsegy'][next_val]
 
 def ulist_p_python(x, model):
-    if x == -1:
+    if x == model['nil']:
         return True
     else:
         next_val = model['next_p'][x]
@@ -146,37 +140,39 @@ unfold_recdefs_python = [ulist_python, ulsegy_python, ulist_p_python, ulsegy_p_p
 
 # Recursive predicates are only unary, so there's no signature apart from the fact that
 ## they are predicates on the loc sort
-fcts_z3['recpreds_loc'] = [list,lsegy,list_p,lsegy_p]
+fcts_z3['recpreds-loc_1_int_bool'] = [list,lsegy,list_p,lsegy_p]
 
+#############Section 5
+# Program, VC and Instantiation
 
-# VC
 def pgm(x, y, z):
-    return And( lsegy(x), next(y) == -1, list(z) )
+    return And( lsegy(x), next(y) == nil, list(z) )
 
 def vc(x, y, z):
     return Implies( pgm(x, y, z), list_p(x) )
 
 
 deref = [x]
-const = [-1, z, y]
+const = [nil, y]
 elems = [-1, *range(2)]
 
-#for i in deref + const:
-#    fct_axioms = fct_axioms [ next_p_fct_axiom(i) ]
+
+# for i in deref + const:
+#     fct_axioms = fct_axioms [ next_p_fct_axiom(i) ]
+
+
 
 #fcts -> fcts_z3
 #vc_axioms -> axioms_python
 #fct_axioms -> axioms_z3
 
-#lemma = getSygusOutput(elems, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc(x, y, z),\
-#                       'preamble_lseg-list.sy', 'grammar_lseg-list.sy', 'out_lseg-list.sy')
+lemma = getSygusOutput(elems, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc(x,y,z), 'lseg-list')
 
 #print(lemma)
 
 # TODO: enforce small false model?
 
-# models = getTrueModelsOffsets(elems, fcts_z3, unfold_recdefs_python, axioms_python)
+# models = getNTrueModels(elems, fcts_z3, unfold_recdefs_python, axioms_python,100)
 # print(len(models))
-# ls = [10,40,100]
-# for i in ls:
-#     print(models[i])
+# for model in models:
+#       print(model)

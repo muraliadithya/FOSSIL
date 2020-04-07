@@ -1,6 +1,6 @@
+;; TODO: this should be generated from the problem parameters
 ;; lemma to synthesize
-(synth-fun lemma ((x Int)) Bool
-
+(synth-fun lemma ((x Int) (nil Int) (y Int)) Bool
            ((Start Bool) (Rec Bool) (B Bool) (I Int))
 
            ((Start Bool
@@ -13,7 +13,6 @@
                    (or B B)
                    (not B)
                    (list I) (lsegy I) (list_p I) (lsegy_p I)))
-            (I Int (x y z (- 1)
+            (I Int (x nil y
                    (next I))))
-
 )

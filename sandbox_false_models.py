@@ -51,6 +51,7 @@ def getFalseModel(axioms_z3, unfold_recdefs_z3, deref, const, vc):
 
 # Get false model in dictionary representation
 # Only need to get values of dereferenced variables and constants. Nothing else will be used in SyGuS file generation
+## VERY IMPORTANT: the dictioaries' entries are not integers, but Z3 types like IntNumRef and such. Must fix to avoid subtle issues
 def getFalseModelDict(fcts_z3, axioms_z3, unfold_recdefs_z3, deref, const, vc):
     false_model_z3 = getFalseModel(axioms_z3, unfold_recdefs_z3, deref, const, vc)
     if false_model_z3 == None:
@@ -66,6 +67,7 @@ def getFalseModelDict(fcts_z3, axioms_z3, unfold_recdefs_z3, deref, const, vc):
             for fct in fcts_z3[key]:
                 fct_name = getZ3FctName(fct)
                 false_model_dict[fct_name] = false_model_z3.eval(fct,model_completion=True)
+                #print(type(false_model_z3.eval(fct,model_completion=True)))
         else:
             # Currently only supporting unary functions/recursive definitions
             for fct in fcts_z3[key]:

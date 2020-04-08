@@ -13,6 +13,7 @@ def deepcopyModel(model):
 
 
 # Cartesian product of two lists of elements, with a given function applied to the pair
+# Default is a + function which will work if defined for the sort of list elements
 def listProduct(ll1, ll2, combine_func = lambda x,y: x + y):
     return [ combine_func(x,y) for x in ll1 for y in ll2 ]
 

@@ -155,7 +155,7 @@ def vc(x, y, z):
 deref = [x,next(x)]
 const = [nil, y]
 elems = [*range(3)]
-num_true_models = 5
+num_true_models = 10
 
 
 # for i in deref + const:

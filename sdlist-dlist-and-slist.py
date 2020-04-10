@@ -118,9 +118,9 @@ elems = [-1, *range(2)]
 
 # translate output of cvc4 into z3py form
 def translateLemma(lemma):
-    x = Int('x')
-    z3py_lemma = ForAll(x, Implies(sdlist(x), dlist(x)))
-    print(lemma)
+    smt_string = lemma + ' (assert (forall ((x Int)) (lemma x)))'
+    z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
+    # TODO: check if lemma is valid/provable
     return z3py_lemma
 
 while True:

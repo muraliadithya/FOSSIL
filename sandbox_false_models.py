@@ -32,9 +32,14 @@ def getFalseModel(axioms_z3, unfold_recdefs_z3, deref, const, vc):
                     sol.add(ax(inst))
 
     # unfold recursive definitions on instantiations
-    for recdef in unfold_recdefs_z3:
-        for inst in instantiations:
-            sol.add(recdef(inst))
+    for key in unfold_recdefs_z3:
+        if key != '1_int_bool':
+            raise ValueError('Cannot currently handle anything except unary recursive predicates on the foreground sort.')
+        else:
+            recdefs = unfold_recdefs_z3[key]
+            for recdef in recdefs:
+                for inst in instantiations:
+                    sol.add(recdef(inst))
 
     # negate VC
     sol.add(Not(vc))

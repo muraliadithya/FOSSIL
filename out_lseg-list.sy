@@ -10,137 +10,127 @@
 
 ;; combination of true models and false model
 (define-fun next ((x!0 Int)) Int
-  (ite (= x!0 20550) 20551
-  (ite (= x!0 20551) 20552
-  (ite (= x!0 20552) 20552
-  (ite (= x!0 23850) 23850
-  (ite (= x!0 23851) 23852
-  (ite (= x!0 23852) 23852
-  (ite (= x!0 1000) 1000
-  (ite (= x!0 1001) 1001
-  (ite (= x!0 1002) 1001
-  (ite (= x!0 21450) 21451
-  (ite (= x!0 21451) 21452
-  (ite (= x!0 21452) 21452
-  (ite (= x!0 17300) 17301
-  (ite (= x!0 17301) 17301
-  (ite (= x!0 17302) 17300
-  (ite (= x!0 8250) 8250
-  (ite (= x!0 8251) 8251
-  (ite (= x!0 8252) 8252
-  (ite (= x!0 20050) 20050
-  (ite (= x!0 20051) 20051
-  (ite (= x!0 20052) 20051
-  (ite (= x!0 16750) 16750
-  (ite (= x!0 16751) 16751
-  (ite (= x!0 16752) 16752
-  (ite (= x!0 2300) 2300
-  (ite (= x!0 2301) 2300
-  (ite (= x!0 2302) 2302
+  (ite (= x!0 23800) 23800
+  (ite (= x!0 23801) 23802
+  (ite (= x!0 23802) 23801
+  (ite (= x!0 15250) 15252
+  (ite (= x!0 15251) 15251
+  (ite (= x!0 15252) 15251
+  (ite (= x!0 11600) 11602
+  (ite (= x!0 11601) 11600
+  (ite (= x!0 11602) 11602
+  (ite (= x!0 10000) 10000
+  (ite (= x!0 10001) 10001
+  (ite (= x!0 10002) 10001
+  (ite (= x!0 11150) 11150
+  (ite (= x!0 11151) 11152
+  (ite (= x!0 11152) 11150
+  (ite (= x!0 12250) 12250
+  (ite (= x!0 12251) 12251
+  (ite (= x!0 12252) 12252
+  (ite (= x!0 21050) 21050
+  (ite (= x!0 21051) 21052
+  (ite (= x!0 21052) 21050
+  (ite (= x!0 16200) 16202
+  (ite (= x!0 16201) 16201
+  (ite (= x!0 16202) 16202
+  (ite (= x!0 2850) 2850
+  (ite (= x!0 2851) 2850
+  (ite (= x!0 2852) 2852
   (ite (= x!0 1) 1
   (ite (= x!0 0) 1
   (ite (= x!0 2) 4
   (ite (= x!0 4) 5
-    21650))))))))))))))))))))))))))))))))
+    19802))))))))))))))))))))))))))))))))
 (define-fun list ((x!0 Int)) Bool
-  (ite (= x!0 23851) false
-  (ite (= x!0 23852) false
-  (ite (= x!0 1000) false
-  (ite (= x!0 8250) false
-  (ite (= x!0 8252) false
-  (ite (= x!0 20051) false
-  (ite (= x!0 20052) false
-  (ite (= x!0 16750) false
-  (ite (= x!0 16751) false
-  (ite (= x!0 2300) false
-  (ite (= x!0 2301) false
+  (ite (= x!0 23801) false
+  (ite (= x!0 23802) false
+  (ite (= x!0 10000) false
+  (ite (= x!0 12250) false
+  (ite (= x!0 12251) false
+  (ite (= x!0 16200) false
+  (ite (= x!0 16202) false
+  (ite (= x!0 2852) false
   (ite (= x!0 2) false
   (ite (= x!0 4) false
-    true))))))))))))))
+    true)))))))))))
 (define-fun lsegy ((x!0 Int)) Bool
-  (ite (= x!0 20552) false
-  (ite (= x!0 23850) false
-  (ite (= x!0 1001) false
-  (ite (= x!0 1002) false
-  (ite (= x!0 21452) false
-  (ite (= x!0 17301) false
-  (ite (= x!0 8251) false
-  (ite (= x!0 8252) false
-  (ite (= x!0 20050) false
-  (ite (= x!0 21650) false
-  (ite (= x!0 21651) false
-  (ite (= x!0 16751) false
-  (ite (= x!0 16752) false
-  (ite (= x!0 2302) false
-  (ite (= x!0 1) false
-    true))))))))))))))))
+  (or (= x!0 4)
+      (= x!0 2)
+      (= x!0 0)
+      (= x!0 23801)
+      (= x!0 23802)
+      (= x!0 15250)
+      (= x!0 15252)
+      (= x!0 11601)
+      (= x!0 10000)
+      (= x!0 11151)
+      (= x!0 12251)
+      (= x!0 21051)
+      (= x!0 16200)
+      (= x!0 16202)
+      (= x!0 2851)
+      (= x!0 19801)))
 (define-fun list_p ((x!0 Int)) Bool
-  (ite (= x!0 20550) false
-  (ite (= x!0 20551) false
-  (ite (= x!0 23851) false
-  (ite (= x!0 23852) false
-  (ite (= x!0 8250) false
-  (ite (= x!0 8252) false
-  (ite (= x!0 20051) false
-  (ite (= x!0 20052) false
-  (ite (= x!0 16750) false
-  (ite (= x!0 16751) false
+  (ite (= x!0 23801) false
+  (ite (= x!0 23802) false
+  (ite (= x!0 12250) false
+  (ite (= x!0 12251) false
+  (ite (= x!0 16200) false
+  (ite (= x!0 16202) false
+  (ite (= x!0 2852) false
   (ite (= x!0 0) false
   (ite (= x!0 2) false
   (ite (= x!0 4) false
-    true))))))))))))))
+    true)))))))))))
 (define-fun next_p ((x!0 Int)) Int
-  (ite (= x!0 20550) 20551
-  (ite (= x!0 20551) 20551
-  (ite (= x!0 20552) 20552
-  (ite (= x!0 23850) 23850
-  (ite (= x!0 23851) 23852
-  (ite (= x!0 23852) 23852
-  (ite (= x!0 21450) 21451
-  (ite (= x!0 21451) 21452
-  (ite (= x!0 21452) 21452
-  (ite (= x!0 17300) 17301
-  (ite (= x!0 17301) 17301
-  (ite (= x!0 17302) 17300
-  (ite (= x!0 8250) 8250
-  (ite (= x!0 8251) 8251
-  (ite (= x!0 8252) 8252
-  (ite (= x!0 20050) 20050
-  (ite (= x!0 20051) 20051
-  (ite (= x!0 20052) 20051
-  (ite (= x!0 21650) 21650
-  (ite (= x!0 21651) 21650
-  (ite (= x!0 21652) 21650
-  (ite (= x!0 16750) 16750
-  (ite (= x!0 16751) 16751
-  (ite (= x!0 16752) 16752
-  (ite (= x!0 2300) 2302
-  (ite (= x!0 2301) 2300
-  (ite (= x!0 2302) 2302
+  (ite (= x!0 23800) 23800
+  (ite (= x!0 23801) 23802
+  (ite (= x!0 23802) 23802
+  (ite (= x!0 15250) 15252
+  (ite (= x!0 15251) 15251
+  (ite (= x!0 15252) 15251
+  (ite (= x!0 11600) 11602
+  (ite (= x!0 11601) 11600
+  (ite (= x!0 11602) 11602
+  (ite (= x!0 10000) 10002
+  (ite (= x!0 10001) 10001
+  (ite (= x!0 10002) 10001
+  (ite (= x!0 12250) 12250
+  (ite (= x!0 12251) 12251
+  (ite (= x!0 12252) 12252
+  (ite (= x!0 21050) 21050
+  (ite (= x!0 21051) 21052
+  (ite (= x!0 21052) 21050
+  (ite (= x!0 16200) 16202
+  (ite (= x!0 16201) 16201
+  (ite (= x!0 16202) 16202
+  (ite (= x!0 2850) 2850
+  (ite (= x!0 2851) 2850
+  (ite (= x!0 2852) 2852
+  (ite (= x!0 19800) 19802
+  (ite (= x!0 19801) 19800
+  (ite (= x!0 19802) 19802
   (ite (= x!0 1) 1
   (ite (= x!0 0) 3
   (ite (= x!0 2) 4
   (ite (= x!0 4) 5
-    1001))))))))))))))))))))))))))))))))
+    11150))))))))))))))))))))))))))))))))
 (define-fun lsegy_p ((x!0 Int)) Bool
-  (ite (= x!0 20552) false
-  (ite (= x!0 23850) false
-  (ite (= x!0 1001) false
-  (ite (= x!0 1002) false
-  (ite (= x!0 21452) false
-  (ite (= x!0 17301) false
-  (ite (= x!0 8251) false
-  (ite (= x!0 8252) false
-  (ite (= x!0 20050) false
-  (ite (= x!0 21650) false
-  (ite (= x!0 21651) false
-  (ite (= x!0 16751) false
-  (ite (= x!0 16752) false
-  (ite (= x!0 2302) false
-  (ite (= x!0 1) false
-  (ite (= x!0 2) false
-  (ite (= x!0 4) false
-    true))))))))))))))))))
+  (or (= x!0 0)
+      (= x!0 23801)
+      (= x!0 23802)
+      (= x!0 15250)
+      (= x!0 15252)
+      (= x!0 11601)
+      (= x!0 10000)
+      (= x!0 11151)
+      (= x!0 12251)
+      (= x!0 21051)
+      (= x!0 16200)
+      (= x!0 16202)
+      (= x!0 2851)
+      (= x!0 19801)))
 
 ;; TODO: this should be generated from the problem parameters
 ;; lemma to synthesize
@@ -169,45 +159,45 @@
 ))
 
 ;; constraints from true models
-(constraint (or (lemma 20550 20552 20551)
-(lemma 20551 20552 20551)
-(lemma 20552 20552 20551)
+(constraint (or (lemma 23800 23800 23802)
+(lemma 23801 23800 23802)
+(lemma 23802 23800 23802)
 ))
-(constraint (or (lemma 23850 23850 23852)
-(lemma 23851 23850 23852)
-(lemma 23852 23850 23852)
+(constraint (or (lemma 15250 15251 15252)
+(lemma 15251 15251 15252)
+(lemma 15252 15251 15252)
 ))
-(constraint (or (lemma 1000 1001 1000)
-(lemma 1001 1001 1000)
-(lemma 1002 1001 1000)
+(constraint (or (lemma 11600 11602 11601)
+(lemma 11601 11602 11601)
+(lemma 11602 11602 11601)
 ))
-(constraint (or (lemma 21450 21452 21451)
-(lemma 21451 21452 21451)
-(lemma 21452 21452 21451)
+(constraint (or (lemma 10000 10001 10000)
+(lemma 10001 10001 10000)
+(lemma 10002 10001 10000)
 ))
-(constraint (or (lemma 17300 17301 17300)
-(lemma 17301 17301 17300)
-(lemma 17302 17301 17300)
+(constraint (or (lemma 11150 11150 11151)
+(lemma 11151 11150 11151)
+(lemma 11152 11150 11151)
 ))
-(constraint (or (lemma 8250 8251 8250)
-(lemma 8251 8251 8250)
-(lemma 8252 8251 8250)
+(constraint (or (lemma 12250 12252 12251)
+(lemma 12251 12252 12251)
+(lemma 12252 12252 12251)
 ))
-(constraint (or (lemma 20050 20050 20051)
-(lemma 20051 20050 20051)
-(lemma 20052 20050 20051)
+(constraint (or (lemma 21050 21050 21051)
+(lemma 21051 21050 21051)
+(lemma 21052 21050 21051)
 ))
-(constraint (or (lemma 21650 21650 21652)
-(lemma 21651 21650 21652)
-(lemma 21652 21650 21652)
+(constraint (or (lemma 16200 16201 16202)
+(lemma 16201 16201 16202)
+(lemma 16202 16201 16202)
 ))
-(constraint (or (lemma 16750 16752 16750)
-(lemma 16751 16752 16750)
-(lemma 16752 16752 16750)
+(constraint (or (lemma 2850 2850 2851)
+(lemma 2851 2850 2851)
+(lemma 2852 2850 2851)
 ))
-(constraint (or (lemma 2300 2302 2300)
-(lemma 2301 2302 2300)
-(lemma 2302 2302 2300)
+(constraint (or (lemma 19800 19802 19801)
+(lemma 19801 19802 19801)
+(lemma 19802 19802 19801)
 ))
 
 (check-synth)

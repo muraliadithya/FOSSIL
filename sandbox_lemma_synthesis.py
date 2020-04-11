@@ -102,8 +102,8 @@ def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, un
     (false_model_z3, false_model_dict) = getFalseModelDict(fcts_z3, axioms_z3, unfold_recdefs_z3, deref, const, vc)
     #print(false_model)
     all_models = true_models + [ false_model_dict ]
-    for model in all_models:
-       print(model)
+    # for model in all_models:
+    #    print(model)
     sygus_model_definitions = sygusBigModelEncoding(all_models, fcts_z3)
     #print(sygus_model_definitions)
     with open(out_file, 'w') as out, open(preamble_file, 'r') as preamble, open(grammar_file, 'r') as grammar:

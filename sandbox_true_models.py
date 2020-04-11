@@ -131,11 +131,20 @@ def filterByAxiomsFct(model, axioms_python):
 # Function to evaluate recursive definitions on a given true model.
 # Calls on evaluateUntilFixpoint
 def getRecdefsEval(model, unfold_recdefs_python):
-    recdef_lookup = {getRecdefName(recdef) : recdef for recdef in unfold_recdefs_python}
-    for recdef in unfold_recdefs_python:
-        init_rec = initializeRecdef(model, recdef)
-        model.update(init_rec)
-    #Evaluate recursive definitions. Since they may be mutually recursive they must be evaluated together
+    for key in unfold_recdefs_python.keys():
+        if key != '1_int_bool':
+            raise ValueError('Cannot currently handle anything except unary recursive predicates on the foreground sort.')
+        else:
+            recdefs = unfold_recdefs_python[key]
+            #Lookup must eventually be distinguished by signature
+            recdef_lookup = {getRecdefName(recdef) : recdef for recdef in recdefs}
+            for recdef in recdefs:
+                init_rec = initializeRecdef(model, recdef)
+                model.update(init_rec)
+
+    # Evaluate recursive definitions. Since they may be mutually recursive they must be evaluated together
+    # This means all recursive definitions of different signatures must be evaluated together
+    ## or restrictions must be placed on the structure of the problem
     eval_model = evaluateUntilFixpoint(recdef_lookup, model)
     return eval_model
 
@@ -174,7 +183,7 @@ def addOffset(model, f):
 # N : parameter to specify how many true models we want. Will produce N or the total amount of filtered true models, whichever is less.
 def getNTrueModels(elems, fcts_z3, unfold_recdefs_python, axioms_python,N = 'full'):
     #Experimental switch for generating models randomly rather than using cartesian product
-    experimental_random_models_switch = 'off'
+    #experimental_random_models_switch = 'off'
     true_models_base = getTrueModels(elems, fcts_z3)
     #true_models_base = [{'elems' : [0,1,-1], 'x' : 1, 'y' : 1, 'z' : 1, 'next' : {1 : 0, 0 : -1, -1 : -1}, 'next_p' : {1 : 1, 0 : -1, -1 : -1} }]
     evaluated_models = []

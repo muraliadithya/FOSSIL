@@ -52,3 +52,8 @@ def getRecdefName(recdef_python_function):
     # Make this more systematic
     recdef_name = recdef_python_function.__name__
     return '_'.join(recdef_name[1:].split('_')[:-1])
+
+# Extract declaration dictionary for converting cvc4 output to z3Py
+def extractDecls(fcts_z3):
+    # TODO
+    return None

@@ -182,6 +182,7 @@ def translateLemma(lemma):
     z3_str = { 'list' : list, 'lsegy' : lsegy, 'list_p' : list_p, 'lsegy_p' : lsegy_p,
                'next' : next, 'next_p' : next_p, 'nil' : nil, 'y' : y }
     z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
+    print(z3py_lemma)
     # model = proveVC(fct_axioms, z3_str, recdefs_macros, deref, const, z3py_lemma, True)
     model = None
     if model == None:

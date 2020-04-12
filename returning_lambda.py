@@ -1,6 +1,6 @@
 from z3 import *
 
-# This is the version that has one dictionary but has old values floating around
+# This is the version that has one anonymous dictionary but has old values floating around inside that dictionary
 def getAxiom1(smt_str, z3_dict):
     z3_dict_copy = z3_dict.copy()
     lam = lambda w : parse_smt2_string(smt_str,decls = (z3_dict_copy.update({'fresh': w}) or z3_dict_copy))[0]

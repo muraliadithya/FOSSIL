@@ -1,5 +1,6 @@
 from z3 import *
 from lemma_synthesis import *
+from natural_proofs import *
 
 # functions
 next = Function('next', IntSort(), IntSort())
@@ -52,13 +53,13 @@ def uslist(x):
    )
 
 def usdlist(x):
-    return Iff( sdlist(x), IteBool( x == -1,
-                                   True,
-                                   IteBool( next(x) == -1,
-                                            True,
-                                            And(key(x) <= key(next(x)),
-                                                prev(next(x)) == x, sdlist(next(x))) ))
-    )
+    rho = IteBool( x == -1,
+                   True,
+                   IteBool( next(x) == -1,
+                            True,
+                            And(key(x) <= key(next(x)),
+                                prev(next(x)) == x, sdlist(next(x))) ))
+    return Iff(sdlist(x), rho)
 
 recdefs_macros = [udlist, uslist, usdlist]
 
@@ -120,8 +121,15 @@ elems = [-1, *range(2)]
 def translateLemma(lemma):
     smt_string = lemma + ' (assert (forall ((x Int)) (lemma x)))'
     z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
-    # TODO: check if lemma is valid/provable
-    return z3py_lemma
+    print(z3py_lemma)
+    model = proveVC(fct_axioms, z3_str, recdefs_macros, deref, const, z3py_lemma, True)
+    if model == None:
+        # TODO: check if lemma is valid/provable
+        return z3py_lemma
+    else:
+        print('proposed lemma cannot be proved.')
+        # TODO: add to bag of unwanted lemmas
+        exit(0)
 
 while True:
     lemma = getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
@@ -130,5 +138,4 @@ while True:
                            'grammar_sdlist-dlist-and-slist.sy',
                            'out_sdlist-dlist-and-slist.sy')
     z3py_lemma = translateLemma(lemma)
-    print(z3py_lemma)
     fct_axioms = fct_axioms + [ z3py_lemma ]

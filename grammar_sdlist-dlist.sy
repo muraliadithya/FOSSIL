@@ -1,4 +1,6 @@
 ;; lemma to synthesize
+;; TODO: must be generated from problem parameters
+
 (synth-fun lemma ((x Int)) Bool
 
            ((Start Bool) (Rec Bool) (B Bool) (I Int))

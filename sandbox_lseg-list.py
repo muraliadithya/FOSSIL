@@ -168,15 +168,40 @@ def pgm(x, y, z):
 def vc(x, y, z):
     return Implies( pgm(x, y, z), list_p(x) )
 
-
-deref = [x,next(x)]
+deref = [x, next(x)]
 const = [nil, y]
 elems = [*range(3)]
 num_true_models = 10
 
+# translate output of cvc4 into z3py form
+def translateLemma(lemma):
+    const_decls = '(declare-const fresh Int)'
+    assertion = '(assert (lemma fresh nil y))'
+    smt_string = const_decls + '\n' + lemma + '\n' + assertion
+    # TODO: generate this
+    z3_str = { 'list' : list, 'lsegy' : lsegy, 'list_p' : list_p, 'lsegy_p' : lsegy_p,
+               'next' : next, 'next_p' : next_p, 'nil' : nil, 'y' : y }
+    z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
+    # model = proveVC(fct_axioms, z3_str, recdefs_macros, deref, const, z3py_lemma, True)
+    model = None
+    if model == None:
+        # TODO: check if lemma is valid/provable
+        return z3py_lemma
+    else:
+        print('proposed lemma cannot be proved.')
+        # TODO: add to bag of unwanted lemmas (or add induction principle of lemma to axioms)
+        # and continue
+        exit(0)
 
-lemma = getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc(x,y,z), 'lseg-list')
+# bag of unwanted lemmas. initialized to empty
+lemmas = []
 
-#print(lemma)
+# continuously get valid lemmas until VC has been proven
+while True:
+    lemma = getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3,
+                           lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const,
+                           vc(x,y,z), 'lseg-list')
+    z3py_lemma = translateLemma(lemma)
+    lemmas = lemmas + [ z3py_lemma ]
 
 # TODO: enforce small false model?

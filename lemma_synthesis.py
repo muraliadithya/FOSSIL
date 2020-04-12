@@ -1,41 +1,10 @@
 from z3 import *
+from natural_proofs import *
 import subprocess
-
-# unfold each recursive definition on x
-def unfold_recdefs(sol, recdefs_macros, x):
-    for rec in recdefs_macros:
-        sol.add(rec(x))
-
-# Get false model - model where VC is false
-def getFalseModel(fct_axioms, recdefs_macros, deref, const, vc):
-    sol = Solver()
-
-    # add axioms next(nil) = nil, prev(nil) = nil
-    for ax in fct_axioms:
-        sol.add(ax)
-
-    # unfold constants
-    for c in const:
-        unfold_recdefs(sol, recdefs_macros, c)
-
-    # unfold dereferenced variables
-    for d in deref:
-        unfold_recdefs(sol, recdefs_macros, d)
-
-    # negate VC
-    sol.add(Not(vc))
-
-    # check satisfiability and print model in format CVC4 can handle 
-    if (sol.check() == sat):
-        m = sol.model()
-        return m
-
-    else:
-        print("No model available. Lemma was proved.")
 
 # get false model in dictionary representation
 def getFalseModelDict(elems, keys, fct_axioms, recdefs_macros, deref, const, vc, z3_str):
-    false_model = getFalseModel(fct_axioms, recdefs_macros, deref, const, vc)
+    false_model = proveVC(fct_axioms, z3_str, recdefs_macros, deref, const, vc, False)
     if false_model == None:
         exit(0)
     false_model_dict = {}

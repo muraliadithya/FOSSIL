@@ -1,23 +1,14 @@
 from z3 import *
 from lemsynth_utils import *
 
-
-# # unfold each recursive definition on x
-# def unfold_recdefs(sol, recdefs_macros, x):
-#     for rec in recdefs_macros:
-#         sol.add(rec(x))
-
-# Get false model - model where VC is false
-# deref is a list of terms that are derefenced. This must be computed prior depending on the depth of instantiation
-## This can be done by knowing prior the terms that appear in the axioms and the recursive definitions,
-## and then computing the appriopriate set of terms at the instantiation depth. In general, this will be a dictionary of tuples
-## indexed by signature.
-# Currently only unary (or 0-ary) recursive predicates and axioms on the location sort are supported. So it is all computed in one loop
-def getFalseModel(axioms_z3, unfold_recdefs_z3, deref, const, vc):
+# Get false model - model where VC is false deref is a list of terms that are
+# derefenced. This must be computed prior depending on the depth of instantiation.
+# Only unary recursive predicates and axioms supported
+def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc):
     sol = Solver()
 
-    instantiations = const + deref #only useful for current implementation. must be distinguished by signature in general
-
+    # only useful for current implementation. must be distinguished by signature in general
+    instantiations = const + deref
     for key in axioms_z3.keys():
         signature = getFctSignature(key)
         arity = signature[0]
@@ -31,10 +22,17 @@ def getFalseModel(axioms_z3, unfold_recdefs_z3, deref, const, vc):
                 for inst in instantiations:
                     sol.add(ax(inst))
 
+    # instantiate lemmas
+    fresh = Int('fresh')
+    for lemma in lemmas:
+        for inst in instantiations:
+            inst = substitute(lemma, (fresh, inst))
+            sol.add(inst)
+
     # unfold recursive definitions on instantiations
     for key in unfold_recdefs_z3:
         if key != '1_int_bool':
-            raise ValueError('Cannot currently handle anything except unary recursive predicates on the foreground sort.')
+            raise ValueError('Only unary recursive predicates on the foreground sort permitted.')
         else:
             recdefs = unfold_recdefs_z3[key]
             for recdef in recdefs:
@@ -54,13 +52,15 @@ def getFalseModel(axioms_z3, unfold_recdefs_z3, deref, const, vc):
         return None
 
 
-# Get false model in dictionary representation
-# Only need to get values of dereferenced variables and constants. Nothing else will be used in SyGuS file generation
-## VERY IMPORTANT: the dictioaries' entries are not integers, but Z3 types like IntNumRef and such. Must fix to avoid subtle issues
-def getFalseModelDict(fcts_z3, axioms_z3, unfold_recdefs_z3, deref, const, vc):
-    false_model_z3 = getFalseModel(axioms_z3, unfold_recdefs_z3, deref, const, vc)
+# Get false model in dictionary representation. Only need values of
+# dereferenced variables and constants, nothing else will be used in SyGuS file
+# generation.
+# TODO - VERY IMPORTANT: the dictionaries' entries are not integers, but Z3 types
+#  like IntNumRef and such. Must fix to avoid subtle issues
+def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc):
+    false_model_z3 = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc)
     if false_model_z3 == None:
-        #Lemma is correct and useful. Exit.
+        # Lemmas generated up to this point are useful. Exit.
         exit(0)
 
     false_model_dict = {}
@@ -72,13 +72,12 @@ def getFalseModelDict(fcts_z3, axioms_z3, unfold_recdefs_z3, deref, const, vc):
             for fct in fcts_z3[key]:
                 fct_name = getZ3FctName(fct)
                 false_model_dict[fct_name] = false_model_z3.eval(fct,model_completion=True)
-                #print(type(false_model_z3.eval(fct,model_completion=True)))
         else:
-            # Currently only supporting unary functions/recursive definitions
+            # only supporting unary functions/recursive definitions
             for fct in fcts_z3[key]:
                 fct_name = getZ3FctName(fct)
                 false_model_dict[fct_name] = {}
-                # Need to add support for n-ary symbols. But that requires knowing the instantiations sorted by signature
+                # TODO: add support for n-ary symbols
                 instantiations = const + deref
                 for inst in instantiations:
                     inst_value = false_model_z3.eval(inst, model_completion=True)

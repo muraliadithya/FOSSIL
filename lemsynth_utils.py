@@ -55,5 +55,9 @@ def getRecdefName(recdef_python_function):
 
 # Extract declaration dictionary for converting cvc4 output to z3Py
 def extractDecls(fcts_z3):
-    # TODO
-    return None
+    z3_str = {}
+    # Currently not distinguishing by signatures
+    for key in fcts_z3.keys():
+        for fct in fcts_z3[key]:
+            z3_str[getZ3FctName(fct)] = fct
+    return z3_str

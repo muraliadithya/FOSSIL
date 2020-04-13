@@ -1,10 +1,17 @@
 from z3 import *
 from lemsynth_utils import *
 
+def makeIP(vc, variables, lhs, rhs, recdefs_macros):
+    rec_rho = True # getDef(lhs, recdefs_macros)
+    pfp = True
+    # pfp = ForAll(variables, Implies(substitute(rec_rho (lhs, rhs)), rhs))
+    induction_principle = Implies(pfp, ForAll(variables, Implies(lhs, rhs)))
+    return induction_principle
+
 # Get false model - model where VC is false deref is a list of terms that are
 # derefenced. This must be computed prior depending on the depth of instantiation.
 # Only unary recursive predicates and axioms supported
-def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc):
+def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip):
     sol = Solver()
 
     # only useful for current implementation. must be distinguished by signature in general
@@ -42,6 +49,16 @@ def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc):
     # negate VC
     sol.add(Not(vc))
 
+    if ip:
+        lhs = vc.arg(0)
+        print(lhs)
+        # lhs = getLHS(vc, z3_str)
+        # rhs = getRHS(vc, z3_str)
+        # induction_principle = makeIP(vc, variables, lhs, rhs, recdefs_macros)
+        # print(induction_principle)
+        # sol.add(induction_principle)
+
+
     # check satisfiability and print model in format CVC4 can handle
     if (sol.check() == sat):
         m = sol.model()
@@ -57,8 +74,8 @@ def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc):
 # generation.
 # TODO - VERY IMPORTANT: the dictionaries' entries are not integers, but Z3 types
 #  like IntNumRef and such. Must fix to avoid subtle issues
-def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc):
-    false_model_z3 = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc)
+def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip):
+    false_model_z3 = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip)
     if false_model_z3 == None:
         # Lemmas generated up to this point are useful. Exit.
         exit(0)

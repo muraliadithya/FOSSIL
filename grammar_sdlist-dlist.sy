@@ -1,7 +1,7 @@
 ;; lemma to synthesize
 ;; TODO: must be generated from problem parameters
 
-(synth-fun lemma ((x Int)) Bool
+(synth-fun lemma ((x Int) (nil Int)) Bool
 
            ((Start Bool) (Rec Bool) (B Bool) (I Int))
 
@@ -15,7 +15,8 @@
                    (or B B)
                    (not B)
                    (dlist I) (sdlist I)))
-            (I Int (x (- 1)
-                   (next I))))
+            (I Int (x nil
+                   (next I)
+                   (prev I))))
 
 )

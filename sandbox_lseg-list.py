@@ -1,6 +1,7 @@
 from z3 import *
 from sandbox_lemma_synthesis import *
 from sandbox_true_models import *
+from natural_proofs import *
 
 ####### Section 0
 # some general FOL macros
@@ -65,7 +66,7 @@ def next_p_fct_axiom_python(w,model):
     else:
         return model['next_p'][w] == model['next'][w]
 
-# Axioms for next and prev of nil equals nil as python functions
+# Axioms for next and next' of nil equals nil as z3py formulas
 next_nil_z3 = next(nil) == nil
 next_p_nil_z3 = next_p(nil) == nil
 
@@ -174,6 +175,7 @@ elems = [*range(3)]
 num_true_models = 10
 
 # translate output of cvc4 into z3py form
+# TODO: abstract this out as general function, not specific to each input
 def translateLemma(lemma):
     const_decls = '(declare-const fresh Int)'
     assertion = '(assert (lemma fresh nil y))'
@@ -183,7 +185,7 @@ def translateLemma(lemma):
                'next' : next, 'next_p' : next_p, 'nil' : nil, 'y' : y }
     z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
     print(z3py_lemma)
-    # model = proveVC(fct_axioms, z3_str, recdefs_macros, deref, const, z3py_lemma, True)
+    # model = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
     model = None
     if model == None:
         # TODO: check if lemma is valid/provable
@@ -204,5 +206,3 @@ while True:
                            vc(x,y,z), 'lseg-list')
     z3py_lemma = translateLemma(lemma)
     lemmas = lemmas + [ z3py_lemma ]
-
-# TODO: enforce small false model?

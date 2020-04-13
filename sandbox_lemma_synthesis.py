@@ -62,7 +62,7 @@ def generateTrueConstraints(model, const):
     for elem in elems:
         # TODO: only one universally quantified variable in desired lemma for now
         constraints = constraints + '(lemma {0} {1})\n'.format(elem,const_values)
-    out = '(constraint (or {0}))\n'.format(constraints)
+    out = '(constraint (and {0}))\n'.format(constraints)
     return out
 
 # Generate constraints corresponding to all true models for SyGuS

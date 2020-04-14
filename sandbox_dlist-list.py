@@ -131,7 +131,7 @@ def vc(x, ret):
 deref = [x]
 const = [nil]
 elems = [*range(3)]
-num_true_models = 100
+num_true_models = 10
 
 # translate output of cvc4 into z3py form
 # TODO: abstract this out as general function, not specific to each input
@@ -139,8 +139,7 @@ def translateLemma(lemma):
     const_decls = '(declare-const fresh Int)'
     assertion = '(assert (lemma fresh nil))'
     smt_string = const_decls + '\n' + lemma + '\n' + assertion
-    # TODO: generate this
-    z3_str = { 'list' : list, 'dlist' : dlist, 'next' : next, 'prev' : prev, 'nil' : nil }
+    z3_str = extractDecls(fcts_z3)
     z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
     print(z3py_lemma)
     # model = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)

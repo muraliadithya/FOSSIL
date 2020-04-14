@@ -180,9 +180,7 @@ def translateLemma(lemma):
     const_decls = '(declare-const fresh Int)'
     assertion = '(assert (lemma fresh nil y))'
     smt_string = const_decls + '\n' + lemma + '\n' + assertion
-    # TODO: generate this
-    z3_str = { 'list' : list, 'lsegy' : lsegy, 'list_p' : list_p, 'lsegy_p' : lsegy_p,
-               'next' : next, 'next_p' : next_p, 'nil' : nil, 'y' : y }
+    z3_str = extractDecls(fcts_z3)
     z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
     print(z3py_lemma)
     # model = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)

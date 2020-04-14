@@ -1,198 +1,119 @@
-from z3 import *
-from natural_proofs import *
 import subprocess
 
-# get false model in dictionary representation
-def getFalseModelDict(elems, keys, fct_axioms, recdefs_macros, deref, const, vc, z3_str):
-    false_model = proveVC(fct_axioms, z3_str, recdefs_macros, deref, const, vc, False)
-    if false_model == None:
-        exit(0)
-    false_model_dict = {}
-    for key in keys:
-        key_dict = {}
-        for elem in elems:
-            z3_fct = z3_str[key]
-            key_dict[elem] = false_model.eval(z3_fct(elem))
-        false_model_dict[key] = key_dict
-    return false_model_dict
+from z3 import *
+from true_models import *
+from false_models import *
+from lemsynth_utils import *
 
-# return product of two lists of dictionaries
-def product(ll1, ll2):
-    out = []
-    for x in ll1:
-        for y in ll2:
-            new_dict = x.copy()
-            for key in y.keys():
-                if key in new_dict:
-                    new_dict_key = new_dict[key].copy()
-                    new_dict_key.update(y[key])
-                    new_dict[key] = new_dict_key
-                else:
-                    new_dict[key] = y[key]
-            out += [new_dict]
-    return out
+# Add constraints from each model into the given solver
+# Look through model's function entries and adds each input-output constraint
+def modelToSolver(model, fcts_z3, sol):
+    for key in fcts_z3.keys():
+        signature = getFctSignature(key)
+        arity = signature[0]
+        if arity == 0:
+            # TODO: handle constant symbols
+            # constant symbol
+            continue
+        else:
+            for fct in fcts_z3[key]:
+                # no need to distinguish by signature as models are organised by
+                # dictionaries pointing from input to output
+                fct_name = getZ3FctName(fct)
+                for input_arg in model[fct_name].keys():
+                    output_value = model[fct_name][input_arg]
+                    if isinstance(input_arg, tuple):
+                        # arg must be unpacked as *arg before constructing the Z3 term
+                        sol.add(fct(*input_arg) == output_value)
+                    else:
+                        sol.add(fct(input_arg) == output_value)
 
-# return product of two lists of lists
-def productlist(ll1, ll2):
-    return [ x + y for x in ll1 for y in ll2 ]
-
-# generate all possible valuations of all functions at src
-def getTrueModelsElem(elems, fcts, src):
-    models_elt = [{}]
-    for fct in fcts:
-        fct_eval = [ { fct : { src : tgt } } for tgt in elems ]
-        models_elt = product(fct_eval, models_elt)
-    return models_elt
-
-# generate true models in the form of all posible evaluations of all functions
-def getTrueModels(elems, fcts):
-    models = [{}]
-    for elem in elems:
-        models_elt = getTrueModelsElem(elems, fcts, elem)
-        models = product(models, models_elt)
-    return models
-
-# initialize dictionary where all recdefs are False for all elements
-def initializeRecDefs(elems, recdefs, recdef_str):
-    init = {}
-    for recdef in recdefs:
-        curr = {}
-        for elem in elems:
-            curr[elem] = False
-        init[recdef_str[recdef]] = curr
-    return init
-
-# evaluate model via recdef functions until fixpoint is reached
-def evaluateUntilFixpoint(model, prev_model, elems, recdefs, recdef_str):
-    if model == prev_model:
-        return model
-    new_prev = model.copy()
-    for elem in elems:
-        for recdef in recdefs:
-            new_val = recdef(elem, model)
-            model[recdef_str[recdef]][elem] = new_val
-    return evaluateUntilFixpoint(model, new_prev, elems, recdefs, recdef_str)
-
-# add constraints from each model into a given solver
-def modelToSolver(model, sol, z3_str):
-    for key in model.keys():
-        z3key = z3_str[key]
-        for arg in model[key].keys():
-            sol.add(z3key(arg) == model[key][arg])
-
-# return True if given model satisfies all axioms, uses Z3 solving. slow
-def filterByAxioms(model, fct_axioms):
-    axiom_sol = Solver()
-    modelToSolver(model, axiom_sol)
-    axiom_sol.add(Not(And(fct_axioms)))
-    if axiom_sol.check() == unsat:
-        return True
-    else:
-        return False
-
-# same as above, uses builtin functions on the model instead of Z3 solving. fast
-def filterByAxiomsFct(model, vc_axioms):
-    for axiom in vc_axioms:
-        if not(axiom(model)):
-            return False
-    return True
-
-# evaluate recursive definitions on true model
-def getRecDefsEval(elems, fcts, vc_axioms, recdefs, recdef_str):
-    models = getTrueModels(elems, fcts)
-    evaluated_models = []
+# Generate single model from a given list of models
+# Returns the definitions for functions and recdefs.
+# TODO: consider not using z3 for this and just generating the definitions using python code
+# TODO - VERY IMPORTANT: subtle issue here. The true models' entries are
+#  actually integers, whereas the false model's entries are Z3 types like
+#  IntNumRef, etc. Must fix this during false model dict generation.
+def sygusBigModelEncoding(models, fcts_z3):
+    sol = Solver()
     for model in models:
-        init_recs = initializeRecDefs(elems, recdefs, recdef_str)
-        model.update(init_recs)
-        eval_model = evaluateUntilFixpoint(model, [], elems, recdefs, recdef_str)
-        if filterByAxiomsFct(eval_model, vc_axioms):
-            evaluated_models += [ eval_model ]
-    return evaluated_models
-
-# add offset to true models to avoid non-unique keys
-def addOffset(model, f):
-    newModel = model.copy()
-    for key in model.keys():
-        newDict = {}
-        for fctkey in model[key].keys():
-            if fctkey == -1:
-                new_in = fctkey
-            else:
-                new_in = f(fctkey)
-            if isinstance(model[key][fctkey], bool) or model[key][fctkey] == -1:
-                new_out = model[key][fctkey]
-            else:
-                new_out = f(model[key][fctkey])
-            newDict[new_in] = new_out
-        newModel[key] = newDict
-    return newModel
-
-# get true models with offsets added
-def getTrueModelsOffsets(elems, fcts, vc_axioms, recdefs, recdef_str):
-    models = getRecDefsEval(elems, fcts, vc_axioms, recdefs, recdef_str)
-    for i in range(len(models)):
-        models[i] = addOffset(models[i], lambda x: x + 50*(i+1))
-    return models
-
-# generate single model from a given list of models
-def sygusBigModelEncoding(models, sol, z3_str):
-    for model in models:
-        modelToSolver(model, sol, z3_str)
+        modelToSolver(model, fcts_z3, sol)
     sol.check()
     m = sol.model()
     return m.sexpr()
 
-# generate constraints corresponding to false model for SyGuS
-def generateFalseConstraints(model, deref):
-    out = '(constraint (or '
-    for var in deref:
-        out += '(not (lemma ' + str(var) + '))'
-    out += '))'
+# Generate constraints corresponding to false model for SyGuS
+def generateFalseConstraints(model_z3, deref, const):
+    constraints = ''
+    # Must convert result of model.eval using as_string() because returned value is a Z3 type like IntNumRef
+    const_values = ' '.join([model_z3.eval(constant_symbol, model_completion=True).as_string() for constant_symbol in const])
+    for arg in const + deref:
+        # In general, arg will range over the tuples of instantiated terms
+        arg_value = model_z3.eval(arg, model_completion=True)
+        constraints = constraints + '(not (lemma {0} {1}))\n'.format(arg_value, const_values)
+    out = '(constraint (or {0}))'.format(constraints)
     return out
 
-# generate constraints corresponding to one true model for SyGuS
-def generateTrueConstraints(model, elems, f):
-    out = ''
+# Generate constraints corresponding to one true model for SyGuS
+def generateTrueConstraints(model, const):
+    constraints = ''
+    const_values = ' '.join([str(model[getZ3FctName(constant_symbol)]) for constant_symbol in const])
+    elems = model['elems']
     for elem in elems:
-        if elem != -1:
-            out += '(constraint (lemma ' + str(f(elem)) + '))\n'
+        # TODO: only one universally quantified variable in desired lemma for now
+        constraints = constraints + '(lemma {0} {1})\n'.format(elem,const_values)
+    out = '(constraint (and {0}))\n'.format(constraints)
     return out
 
-# generate constraints corresponding to all true models for SyGuS
-def generateAllTrueConstraints(models, elems):
-    out = '(constraint (lemma (- 1)))\n'
-    for i in range(len(models)):
-        out += generateTrueConstraints(models[i], elems, lambda x: x + 50*(i+1))
+# Generate constraints corresponding to all true models for SyGuS
+def generateAllTrueConstraints(models, const):
+    out = ''
+    for model in models:
+        out = out + generateTrueConstraints(model, const)
     return out
 
 # write output to a file that can be parsed by CVC4 SyGuS
-def getSygusOutput(elems, fcts, vc_axioms, fct_axioms, recdefs_macros, recdefs,
-                   recdef_str, deref, const, vc, z3_str, preamble_file, grammar_file, out_file):
-    true_models = getTrueModelsOffsets(elems, fcts, vc_axioms, recdefs, recdef_str)
-    keys = true_models[0].keys()
-    false_model = getFalseModelDict(elems, keys, fct_axioms, recdefs_macros,
-                                    deref, const, vc, z3_str)
-    all_models = true_models + [ false_model ]
-    encoding_sol = Solver()
-    sygus_model = sygusBigModelEncoding(all_models, encoding_sol, z3_str)
+
+# fcts -> fcts_z3
+# vc_axioms -> axioms_python
+# fct_axioms -> axioms_z3
+
+def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc, problem_instance_name):
+    preamble_file = 'preamble_{0}.sy'.format(problem_instance_name)
+    grammar_file = 'grammar_{0}.sy'.format(problem_instance_name)
+    out_file = 'out_{0}.sy'.format(problem_instance_name)
+
+    true_models = getNTrueModels(elems, fcts_z3, unfold_recdefs_python, axioms_python, num_true_models)
+    # TODO: false model currently does not have an 'elems' entry. It is not complete either.
+    # However, it works because we only need the false model to provide us with valuations of the dereferenced terms.
+    # Also works because the lemma for the current class of examples is not going to use any terms that have not already been explicitly computed.
+    # One fix is to evalaute all terms within the false model into itself. Hopefully that can be done easily.
+    (false_model_z3, false_model_dict) = getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, False)
+    all_models = true_models + [false_model_dict]
+    sygus_model_definitions = sygusBigModelEncoding(all_models, fcts_z3)
     with open(out_file, 'w') as out, open(preamble_file, 'r') as preamble, open(grammar_file, 'r') as grammar:
-        for line in preamble:
-            out.write(line)
+        preamble_string = preamble.read()
+        out.write(preamble_string)
         out.write('\n')
         out.write(';; combination of true models and false model\n')
-        out.write(sygus_model)
+        out.write(sygus_model_definitions)
         out.write('\n\n')
-        for line in grammar:
-            out.write(line)
+        grammar_string = grammar.read()
+        # Must modify grammar string to include arguments based on problem parameters.
+        # Or generate the grammar file based on problem parameters.
+        out.write(grammar_string)
         out.write('\n')
         out.write(';; constraints from false model\n')
-        out.write(generateFalseConstraints(false_model, deref))
+        false_constraints = generateFalseConstraints(false_model_z3, deref, const)
+        out.write(false_constraints)
         out.write('\n')
         out.write('\n')
         out.write(';; constraints from true models\n')
-        out.write(generateAllTrueConstraints(true_models, elems))
+        true_constraints = generateAllTrueConstraints(true_models, const)
+        out.write(true_constraints)
         out.write('\n')
         out.write('(check-synth)')
+        out.close()
     proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     cvc4_out, err = proc.communicate()
     lemma = str(cvc4_out).split('\\n')[1]

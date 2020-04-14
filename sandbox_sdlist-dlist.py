@@ -58,7 +58,7 @@ key = Function('key', IntSort(), IntSort())
 # Axioms for next and prev of nil equals nil as z3py formulas
 next_nil_z3 = next(nil) == nil
 prev_nil_z3 = prev(nil) == nil
-key_nil_z3 = key(nil) == nil
+# key_nil_z3 = key(nil) == nil
 
 # Python version for the axioms above
 def next_nil_python(model):
@@ -67,14 +67,15 @@ def next_nil_python(model):
 def prev_nil_python(model):
     return model['prev'][model['nil']] == model['nil']
 
-def key_nil_python(model):
-    return model['key'][model['nil']] == model['nil']
+# def key_nil_python(model):
+#     return model['key'][model['nil']] == model['nil']
 
 # Updating fcts and fct_Axioms for next and next_p
 # TODO: change signature to have 'loc' rather than 'int'
+# TODO: what to do about -1 for key axioms?
 fcts_z3['1_int_int'] = [next, prev, key]
-axioms_z3['0'] = [next_nil_z3, prev_nil_z3] # , key_nil_z3]
-axioms_python['0'] = [next_nil_python, prev_nil_python] #, key_nil_python]
+axioms_z3['0'] = [next_nil_z3, prev_nil_z3]
+axioms_python['0'] = [next_nil_python, prev_nil_python]
 
 ######## Section 3
 # Recursive definitions

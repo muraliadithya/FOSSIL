@@ -1,5 +1,5 @@
 ;; lemma to synthesize
-(synth-fun lemma ((x Int)) Bool
+(synth-fun lemma ((x Int) (nil Int)) Bool
 
            ((Start Bool) (Rec Bool) (B Bool) (I Int))
 
@@ -13,7 +13,8 @@
                    (or B B)
                    (not B)
                    (dlist I) (slist I) (sdlist I)))
-            (I Int (x (- 1)
-                   (next I))))
+            (I Int (x nil
+                   (next I)
+                   (prev I))))
 
 )

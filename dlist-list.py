@@ -141,9 +141,8 @@ def translateLemma(lemma):
     smt_string = const_decls + '\n' + lemma + '\n' + assertion
     z3_str = extractDecls(fcts_z3)
     z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
-    print(z3py_lemma)
-    # model = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
-    model = None
+    print('proposed lemma: ' + str(z3py_lemma))
+    model = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
     if model == None:
         # TODO: check if lemma is valid/provable
         return z3py_lemma

@@ -85,10 +85,11 @@ def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, le
 
     true_models = getNTrueModels(elems, fcts_z3, unfold_recdefs_python, axioms_python, num_true_models)
     # TODO: false model currently does not have an 'elems' entry. It is not complete either.
+
     # However, it works because we only need the false model to provide us with valuations of the dereferenced terms.
     # Also works because the lemma for the current class of examples is not going to use any terms that have not already been explicitly computed.
     # One fix is to evalaute all terms within the false model into itself. Hopefully that can be done easily.
-    (false_model_z3, false_model_dict) = getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, False)
+    (false_model_z3, false_model_dict) = getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc)
     all_models = true_models + [false_model_dict]
     sygus_model_definitions = sygusBigModelEncoding(all_models, fcts_z3)
     with open(out_file, 'w') as out, open(preamble_file, 'r') as preamble, open(grammar_file, 'r') as grammar:

@@ -1,17 +1,41 @@
 from z3 import *
 from lemsynth_utils import *
 
-def makeIP(vc, variables, lhs, rhs, recdefs_macros):
-    rec_rho = True # getDef(lhs, recdefs_macros)
-    pfp = True
-    # pfp = ForAll(variables, Implies(substitute(rec_rho (lhs, rhs)), rhs))
-    induction_principle = Implies(pfp, ForAll(variables, Implies(lhs, rhs)))
+def makeIP(lhs, rhs, recdefs, fcts_z3, insts):
+    fresh = Int('fresh')
+    skolem = Int('skolem')
+    # TODO: get udef automatically. need map from dlist -> udlist_z3
+    udef = recdefs['1_int_bool'][1]
+    rec_rho = udef(skolem).arg(0).arg(1)
+    lhs_decl = lhs.decl()
+    rhs_decl = rhs.decl()
+    subst_pairs = []
+    for key in fcts_z3.keys():
+        if 'recpreds' in key:
+            continue
+        signature = getFctSignature(key)
+        arity = signature[0]
+        if arity == 0:
+            # constant symbols
+            for fct in fcts_z3[key]:
+                subst_rhs = substitute(rhs, (fresh, fct))
+                subst_pairs = subst_pairs + [ (lhs_decl(fct), subst_rhs) ]
+        else:
+        # only supporting unary functions
+            for fct in fcts_z3[key]:
+                # TODO: add support for n-ary symbols
+                for inst in insts + [skolem]:
+                    subst_rhs = substitute(rhs, (fresh, fct(inst)))
+                    subst_pairs = subst_pairs + [ (lhs_decl(fct(inst)), subst_rhs) ]
+    subst_rho = substitute(rec_rho, subst_pairs)
+    pfp = Implies(subst_rho, substitute(rhs, (fresh, skolem)))
+    induction_principle = Implies(pfp, ForAll(fresh, Implies(lhs, rhs)))
     return induction_principle
 
 # Get false model - model where VC is false deref is a list of terms that are
 # derefenced. This must be computed prior depending on the depth of instantiation.
 # Only unary recursive predicates and axioms supported
-def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip):
+def getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip = False):
     sol = Solver()
 
     # only useful for current implementation. must be distinguished by signature in general
@@ -36,6 +60,14 @@ def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip):
             inst = substitute(lemma, (fresh, inst))
             sol.add(inst)
 
+    # generate induction principle
+    if ip:
+        lhs = vc.arg(0)
+        rhs = vc.arg(1)
+        def_name = lhs.decl()
+        induction_principle = makeIP(lhs, rhs, unfold_recdefs_z3, fcts_z3, const + deref)
+        sol.add(induction_principle)
+
     # unfold recursive definitions on instantiations
     for key in unfold_recdefs_z3:
         if key != '1_int_bool':
@@ -45,19 +77,13 @@ def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip):
             for recdef in recdefs:
                 for inst in instantiations:
                     sol.add(recdef(inst))
+                    # unfold on skolemized variable from generated induction principle
+                    if ip:
+                        skolem = Int('skolem')
+                        sol.add(recdef(skolem))
 
     # negate VC
     sol.add(Not(vc))
-
-    if ip:
-        lhs = vc.arg(0)
-        print(lhs)
-        # lhs = getLHS(vc, z3_str)
-        # rhs = getRHS(vc, z3_str)
-        # induction_principle = makeIP(vc, variables, lhs, rhs, recdefs_macros)
-        # print(induction_principle)
-        # sol.add(induction_principle)
-
 
     # check satisfiability and print model in format CVC4 can handle
     if (sol.check() == sat):
@@ -74,8 +100,8 @@ def getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip):
 # generation.
 # TODO - VERY IMPORTANT: the dictionaries' entries are not integers, but Z3 types
 #  like IntNumRef and such. Must fix to avoid subtle issues
-def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip):
-    false_model_z3 = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip)
+def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip = False):
+    false_model_z3 = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, vc)
     if false_model_z3 == None:
         # Lemmas generated up to this point are useful. Exit.
         exit(0)

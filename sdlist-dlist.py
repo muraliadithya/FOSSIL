@@ -148,27 +148,6 @@ const = [nil]
 elems = [*range(2)]
 num_true_models = 'full'
 
-# translate output of cvc4 into z3py form
-# TODO: abstract this out as general function, not specific to each input
-def translateLemma(lemma):
-    const_decls = '(declare-const fresh Int)'
-    assertion = '(assert (lemma fresh nil))'
-    smt_string = const_decls + '\n' + lemma + '\n' + assertion
-    # TODO: generate this
-    z3_str = { 'dlist' : dlist, 'sdlist' : sdlist, 'next' : next, 'prev' : prev, 'nil' : nil }
-    z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
-    print(z3py_lemma)
-    # model = getFalseModel(axioms_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
-    model = None
-    if model == None:
-        # TODO: check if lemma is valid/provable
-        return z3py_lemma
-    else:
-        print('proposed lemma cannot be proved.')
-        # TODO: add to bag of unwanted lemmas (or add induction principle of lemma to axioms)
-        # and continue
-        exit(0)
-
 # bag of unwanted lemmas. initialized to empty
 lemmas = []
 
@@ -177,5 +156,5 @@ while True:
     lemma = getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3,
                            lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const,
                            vc(x,ret), 'sdlist-dlist')
-    z3py_lemma = translateLemma(lemma)
+    z3py_lemma = translateLemma(lemma, fcts_z3)
     lemmas = lemmas + [ z3py_lemma ]

@@ -78,3 +78,15 @@ def translateLemma(lemma, fcts_z3):
     z3py_lemma = parse_smt2_string(smt_string, decls=z3_str)[0]
     print('proposed lemma: ' + str(z3py_lemma))
     return z3py_lemma
+
+# Given the name of a recursive predicate/function name and a list of unfolded recdefs
+# Returns the function object corresponding to the name
+def getUnfoldRecdefFct(recdef_name,unfold_recdefs_list):
+    # unfolding function objects have the name 'u' + <recdef-name> + '_z3'/'_python'
+    for key in unfold_recefs_list.keys():
+        for fct in unfold_recdefs_list[key]:
+            func_name = fct.__name__
+            if func_name.startswith('u'+recdef_name):
+                return fct
+    # Default case. Recdef not found. Return none.
+    return None

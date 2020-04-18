@@ -81,10 +81,10 @@ def translateLemma(lemma, fcts_z3):
 
 # Given the name of a recursive predicate/function name and a list of unfolded recdefs
 # Returns the function object corresponding to the name
-def getUnfoldRecdefFct(recdef_name,unfold_recdefs_list):
+def getUnfoldRecdefFct(recdef_name,unfold_recdefs_dict):
     # unfolding function objects have the name 'u' + <recdef-name> + '_z3'/'_python'
-    for key in unfold_recefs_list.keys():
-        for fct in unfold_recdefs_list[key]:
+    for key in unfold_recefs_dict.keys():
+        for fct in unfold_recdefs_dict[key]:
             func_name = fct.__name__
             if func_name.startswith('u'+recdef_name):
                 return fct

@@ -1,3 +1,0 @@
-(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (lsegy x) (lsegy_p x)))
-(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (list (next x)) (list x)))
-(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (lsegy (next (next x))) (lsegy_p x)))

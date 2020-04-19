@@ -130,7 +130,7 @@ def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, le
             standard_out, standard_err = prefetch_proc.communicate(timeout=60)
         except subprocess.TimeoutExpired:
             prefetch_proc.kill()
-            sygus_proc.kill()
+        sygus_proc.kill()
         with open(klemmas_filename, 'r') as klemmas:
             lemmas = klemmas.readlines()
             # Lemmas are returned as strings. Possibly terminated by '\n'

@@ -1,6 +1,11 @@
 import fileinput
 import sys
 
+# Writes to a file everytime it gets something from the input stream for num_lines number of lines
+# Filename and num_lines are passed as arguments to the script
+
+# Slightly hacky solution
+# This is the only version that works despite timeouts and everything
 
 line_counter = 0
 outfile_name = sys.argv[1]

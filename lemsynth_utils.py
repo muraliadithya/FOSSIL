@@ -1,6 +1,7 @@
 from z3 import *
 import re
 
+
 # Implementing a copy function because dictionary with dictionary entries is not
 # copied as expected. The inner dictionaries are stll passed by reference
 # Consider doing a more general and systematic deepcopy implementation

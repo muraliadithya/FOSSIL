@@ -182,6 +182,10 @@ while True:
     lemma = getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3,
                            lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const,
                            vc(x,y,z), 'lseg-list')
+    if lemma == None:
+        print('Lemma cannot be found by sygus')
+        exit(0)
+    print(lemma)
     z3py_lemma = translateLemma(lemma, fcts_z3)
     # model = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
     model = None

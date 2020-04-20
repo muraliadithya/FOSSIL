@@ -4,11 +4,10 @@ from lemsynth_utils import *
 def makeIP(lhs, rhs, recdefs, fcts_z3, insts):
     fresh = Int('fresh')
     skolem = Int('skolem')
-    # TODO: get udef automatically. need map from dlist -> udlist_z3
-    udef = recdefs['1_int_bool'][1]
-    rec_rho = udef(skolem).arg(0).arg(1)
     lhs_decl = lhs.decl()
-    rhs_decl = rhs.decl()
+    lhs_decl_name = str(lhs_decl)
+    udef = getUnfoldRecdefFct(lhs_decl_name, recdefs)
+    rec_rho = udef(skolem).arg(0).arg(1)
     subst_pairs = []
     for key in fcts_z3.keys():
         if 'recpreds' in key:

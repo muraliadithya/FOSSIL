@@ -185,10 +185,8 @@ while True:
     if lemma == None:
         print('Lemma cannot be found by sygus')
         exit(0)
-    print(lemma)
     z3py_lemma = translateLemma(lemma, fcts_z3)
-    # model = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
-    model = None
+    model = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
     if model != None:
         print('proposed lemma cannot be proved.')
         # TODO: add to bag of unwanted lemmas (or add induction principle of lemma to axioms)

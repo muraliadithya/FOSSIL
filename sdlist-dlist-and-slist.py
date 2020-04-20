@@ -99,7 +99,7 @@ def udlist_z3(x):
                                             And(prev(next(x)) == x, dlist(next(x)))) ))
 
 def uslist_z3(x):
-    return Iff( dlist(x), IteBool( x == nil,
+    return Iff( slist(x), IteBool( x == nil,
                                    True,
                                    IteBool( next(x) == nil,
                                             True,
@@ -175,4 +175,11 @@ while True:
                            lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const,
                            vc(x,ret), 'sdlist-dlist-and-slist')
     z3py_lemma = translateLemma(lemma, fcts_z3)
+    model = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
+    if model != None:
+        print(model)
+        print('proposed lemma cannot be proved.')
+        # TODO: add to bag of unwanted lemmas (or add induction principle of lemma to axioms)
+        # and continue
+        exit(0)
     lemmas = lemmas + [ z3py_lemma ]

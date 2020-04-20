@@ -157,4 +157,11 @@ while True:
                            lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const,
                            vc(x,ret), 'sdlist-dlist')
     z3py_lemma = translateLemma(lemma, fcts_z3)
+    model = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
+    if model != None:
+        print(model)
+        print('proposed lemma cannot be proved.')
+        # TODO: add to bag of unwanted lemmas (or add induction principle of lemma to axioms)
+        # and continue
+        exit(0)
     lemmas = lemmas + [ z3py_lemma ]

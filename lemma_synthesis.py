@@ -144,5 +144,5 @@ def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, le
         if cvc4_out == 'unknown\n':
             return None
         else:
-            lemma = str(cvc4_out).split('\\n')[1]
+            lemma = str(cvc4_out).split('\n')[1]
             return lemma

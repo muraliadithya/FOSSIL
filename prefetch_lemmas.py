@@ -23,4 +23,3 @@ with fileinput.input(files='-') as f:
         if line_counter == num_lines:
             fileinput.close()
             exit(0)
-

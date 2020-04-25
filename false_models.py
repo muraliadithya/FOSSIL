@@ -101,6 +101,14 @@ def getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, v
 #  like IntNumRef and such. Must fix to avoid subtle issues
 def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip = False):
     false_model_z3 = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, vc)
+    # print(axioms_z3)
+    # print(lemmas)
+    # print(unfold_recdefs_z3)
+    # print(deref)
+    # print(const)
+    # print(vc)
+    # print(false_model_z3.sexpr())
+    # exit(0)
     if false_model_z3 == None:
         # Lemmas generated up to this point are useful. Exit.
         print('Lemmas used to prove original vc:')

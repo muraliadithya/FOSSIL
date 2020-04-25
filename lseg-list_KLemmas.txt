@@ -1,0 +1,7 @@
+(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (lsegy_p x) (lsegy x)))
+(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (list y) (not (list_p y))))
+(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (list y) (=> (list_p y) (lsegy x))))
+(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (list y) (=> (list_p y) (lsegy_p x))))
+(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (lsegy x) (not (and (list x) (list_p x)))))
+(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (list x) (not (and (list y) (list_p y)))))
+(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (lsegy_p x) (not (and (list y) (list_p y)))))

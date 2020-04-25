@@ -164,19 +164,21 @@ fcts_z3['recpreds-loc_1_int_bool'] = [list, lsegy, list_p, lsegy_p]
 # Program, VC, and Instantiation
 
 def pgm(x, y, z):
-    return And( lsegy(x), next(y) == nil, list(z) )
+    return And( lsegy_p(x), next(y) == nil, list_p(z) )
 
 def vc(x, y, z):
     return Implies( pgm(x, y, z), list_p(x) )
 
-deref = [x, next(x)]
+deref = [x, y]
 const = [nil, y]
 elems = [*range(3)]
-num_true_models = 'full'
+num_true_models = 10
 
 # valid and invalid lemmas
 valid_lemmas = []
 invalid_lemmas = []
+
+
 
 # continuously get valid lemmas until VC has been proven
 while True:

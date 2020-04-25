@@ -118,7 +118,7 @@ def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, le
     experimental_prefetching_switch = 'on'
     if experimental_prefetching_switch == 'on':
         # Must include a parameter in the overall call for number of lemmas to be prefetched
-        # Currently set to 5
+        # Currently hardcoded
         prefetch_count = 100
         klemmas_filename = problem_instance_name + '_KLemmas.txt'
         sygus_proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
@@ -126,7 +126,7 @@ def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, le
         #Timeout is given in seconds
         try:
             # Timeout given is given in seconds.
-            # Currently 60 seconds. Must make it a parameter
+            # Currently hardcoded. Must make it a parameter
             standard_out, standard_err = prefetch_proc.communicate(timeout=60)
         except subprocess.TimeoutExpired:
             prefetch_proc.kill()

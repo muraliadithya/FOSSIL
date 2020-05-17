@@ -1,6 +1,5 @@
 from z3 import *
 from lemma_synthesis import *
-from natural_proofs import *
 
 ####### Section 0
 # some general FOL macros

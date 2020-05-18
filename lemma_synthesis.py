@@ -79,7 +79,6 @@ def generateAllTrueConstraints(models, const):
 # fct_axioms -> axioms_z3
 
 def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc, problem_instance_name):
-    preamble_file = 'preamble_{0}.sy'.format(problem_instance_name)
     grammar_file = 'grammar_{0}.sy'.format(problem_instance_name)
     out_file = 'out_{0}.sy'.format(problem_instance_name)
 
@@ -92,9 +91,8 @@ def getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3, le
     (false_model_z3, false_model_dict) = getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc)
     all_models = true_models + [false_model_dict]
     sygus_model_definitions = sygusBigModelEncoding(all_models, fcts_z3)
-    with open(out_file, 'w') as out, open(preamble_file, 'r') as preamble, open(grammar_file, 'r') as grammar:
-        preamble_string = preamble.read()
-        out.write(preamble_string)
+    with open(out_file, 'w') as out, open(grammar_file, 'r') as grammar:
+        out.write('(set-logic ALL)')
         out.write('\n')
         out.write(';; combination of true models and false model\n')
         out.write(sygus_model_definitions)

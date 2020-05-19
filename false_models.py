@@ -69,17 +69,14 @@ def getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, v
 
     # unfold recursive definitions on instantiations
     for key in unfold_recdefs_z3:
-        if key != '1_int_bool':
-            raise ValueError('Only unary recursive predicates on the foreground sort permitted.')
-        else:
-            recdefs = unfold_recdefs_z3[key]
-            for recdef in recdefs:
-                for inst in instantiations:
-                    sol.add(recdef(inst))
-                    # unfold on skolemized variable from generated induction principle
-                    if ip:
-                        skolem = Int('skolem')
-                        sol.add(recdef(skolem))
+        recdefs = unfold_recdefs_z3[key]
+        for recdef in recdefs:
+            for inst in instantiations:
+                sol.add(recdef(inst))
+                # unfold on skolemized variable from generated induction principle
+                if ip:
+                    skolem = Int('skolem')
+                    sol.add(recdef(skolem))
 
     # negate VC
     sol.add(Not(vc))

@@ -3,4 +3,5 @@ all:
 	python3 slist-list.py
 	python3 sdlist-dlist.py
 	python3 sdlist-dlist-and-slist.py
+	python3 listlen-list.py
 	# python3 lseg-list.py

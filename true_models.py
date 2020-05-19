@@ -55,11 +55,12 @@ def getTrueModels(elems, fcts_z3):
 
 # Initialize dictionary where given recdef's name is evaluated to a dictionary
 ## where all elements have the initial value (lattice bottom)
-def initializeRecdef(model, recdef):
+def initializeRecdef(model, recdef, key):
     # only supporting boolean recursive predicates. Initial value is false
     elems = model['elems']
     recdef_name = getRecdefName(recdef)
-    init = {recdef_name : {elem : False for elem in elems}}
+    bottom_elt = getBottomElement(key)
+    init = {recdef_name : {elem : bottom_elt for elem in elems}}
     return init
 
 # evaluate model via given unfolded recdef function until fixpoint is reached
@@ -105,16 +106,14 @@ def filterByAxiomsFct(model, axioms_python):
 
 # Function to evaluate recursive definitions on a given true model
 def getRecdefsEval(model, unfold_recdefs_python):
+    recdef_lookup = {}
     for key in unfold_recdefs_python.keys():
-        if key != '1_int_bool':
-            raise ValueError('Only unary recursive predicates on the foreground sort permitted.')
-        else:
-            recdefs = unfold_recdefs_python[key]
-            # Lookup must eventually be distinguished by signature
-            recdef_lookup = {getRecdefName(recdef) : recdef for recdef in recdefs}
-            for recdef in recdefs:
-                init_rec = initializeRecdef(model, recdef)
-                model.update(init_rec)
+        recdefs = unfold_recdefs_python[key]
+        # Lookup must eventually be distinguished by signature
+        recdef_lookup.update({getRecdefName(recdef) : recdef for recdef in recdefs})
+        for recdef in recdefs:
+            init_rec = initializeRecdef(model, recdef, key)
+            model.update(init_rec)
     # Evaluate recursive definitions
     eval_model = evaluateUntilFixpoint(recdef_lookup, model)
     return eval_model

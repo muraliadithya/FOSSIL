@@ -89,10 +89,11 @@ def ulistlen_bool_z3(x):
     return Iff( listlen_bool(x), IteBool(x == nil, True, listlen_bool(next(x))) )
 
 def ulistlen_int_z3(x):
-    cond = x == nil
-    then_case = Implies(cond, listlen_int(x) == 0)
-    else_case = Implies(Not(cond), listlen_int(x) == listlen_int(next(x)) + 1)
-    return And(then_case, else_case)
+    is_nil = x == nil
+    in_domain = listlen_bool(x)
+    then_case = Implies(is_nil, listlen_int(x) == 0)
+    else_case = Implies(Not(is_nil), listlen_int(x) == listlen_int(next(x)) + 1)
+    return Implies(in_domain, And(then_case, else_case))
 
 # Python versions for finding valuation on true models
 def ulist_python(x, model):
@@ -114,7 +115,13 @@ def ulistlen_int_python(x, model):
         return 0
     else:
         next_val = model['next'][x]
-        return model['listlen_int'][next_val] + 1
+        curr_listlen_int = model['listlen_int'][x]
+        next_listlen_int = model['listlen_int'][next_val]
+        curr_listlen_bool = model['listlen_bool'][x]
+        if curr_listlen_bool:
+            return next_listlen_int + 1
+        else:
+            return curr_listlen_int
 
 unfold_recdefs_z3['1_int_bool'] = [ulist_z3, ulistlen_bool_z3]
 unfold_recdefs_python['1_int_bool'] = [ulist_python, ulistlen_bool_python]
@@ -145,24 +152,22 @@ valid_lemmas = []
 invalid_lemmas = []
 
 
-# # continuously get valid lemmas until VC has been proven
-# while True:
-#     lemmas = getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3,
-#                             valid_lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const,
-#                             vc(x,y,z), 'lseg-list')
-#     lemmas = lemmas + ['(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (lsegy_p x) (=> (list_p y) (list_p x))))']
-#     print('Lemmas: {}'.format(lemmas))
-#     for lemma in lemmas:
-#         z3py_lemma = translateLemma(lemma, fcts_z3)
-#         if z3py_lemma in invalid_lemmas:
-#             print('lemma has already been proposed')
-#             continue
-#         model = getFalseModel(axioms_z3, fcts_z3, valid_lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
-#         if model != None:
-#             print('proposed lemma cannot be proved.')
-#             invalid_lemmas = invalid_lemmas + [ z3py_lemma ]
-#             # TODO: add to bag of unwanted lemmas (or add induction principle of lemma to axioms)
-#             # and continue
-#         else:
-#             valid_lemmas = valid_lemmas + [ z3py_lemma ]
-#             break
+# continuously get valid lemmas until VC has been proven
+while True:
+    lemmas = getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3,
+                            valid_lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const,
+                            vc(x,ret), 'listlen-list')
+    for lemma in lemmas:
+        z3py_lemma = translateLemma(lemma, fcts_z3)
+        if z3py_lemma in invalid_lemmas:
+            print('lemma has already been proposed')
+            continue
+        model = getFalseModel(axioms_z3, fcts_z3, valid_lemmas, unfold_recdefs_z3, deref, const, z3py_lemma, True)
+        if model != None:
+            print('proposed lemma cannot be proved.')
+            invalid_lemmas = invalid_lemmas + [ z3py_lemma ]
+            # TODO: add to bag of unwanted lemmas (or add induction principle of lemma to axioms)
+            # and continue
+        else:
+            valid_lemmas = valid_lemmas + [ z3py_lemma ]
+            break

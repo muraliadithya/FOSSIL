@@ -91,3 +91,10 @@ def getUnfoldRecdefFct(recdef_name, unfold_recdefs_dict):
                 return fct
     # Default case. Recdef not found. Return none.
     return None
+
+def getBottomElement(key):
+    ret_type = key.split('_')[-1]
+    if ret_type == 'bool':
+        return False
+    elif ret_type == 'int':
+        return -1

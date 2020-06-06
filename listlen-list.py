@@ -149,7 +149,7 @@ invalid_lemmas = []
 # while True:
 #     lemmas = getSygusOutput(elems, num_true_models, fcts_z3, axioms_python, axioms_z3,
 #                             valid_lemmas, unfold_recdefs_z3, unfold_recdefs_python, deref, const,
-#                             vc(x,y,z), 'lseg-list')
+#                             vc(x,y,z), 'listlen-list')
 #     lemmas = lemmas + ['(define-fun lemma ((x Int) (nil Int) (y Int)) Bool (=> (lsegy_p x) (=> (list_p y) (list_p x))))']
 #     print('Lemmas: {}'.format(lemmas))
 #     for lemma in lemmas:

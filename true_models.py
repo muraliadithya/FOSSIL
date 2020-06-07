@@ -142,6 +142,10 @@ def addOffset(model, f):
                 new_in = f(fctkey)
                 if isinstance(model[key][fctkey], bool):
                     new_out = model[key][fctkey]
+                elif isinstance(model[key][fctkey], set):
+                    # Assuming that the elements are integers
+                    old_out = model[key][fctkey]
+                    new_out = {f(value) for value in old_out}
                 else:
                     new_out = f(model[key][fctkey])
                 newDict[new_in] = new_out

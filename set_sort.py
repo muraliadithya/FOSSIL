@@ -38,7 +38,10 @@ def getSortUniversalSet(set_sort):
 # The function explicitly asks for the sort of its elements, as we might encode many sorts using the same python representation, for example: length as well as keys represented by integers
 # An attempt to disambugiate in the future could get the implementation more towards a better python encoding/representation for various sorts that we use
 def getZ3SetConstEncoding(element_sort, python_set):
-    z3_set = EmptySet(element_sort)
+    if element_sort == 'int':
+        z3_set = EmptySet(IntSort())
+    else:
+        raise ValueError('Only IntSort sets supported.')
     # The assumption is that python_set is a list or a set in python
     # Therefore, one can iterate over it
     for elem in python_set:

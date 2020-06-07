@@ -130,6 +130,9 @@ def addOffset(model, f):
                new_out = [f(i) for i in value]
             elif isinstance(value, bool):
                 new_out = value
+            elif isinstance(value, set):
+                # Assuming that the elements are intergers
+                new_out = {f(elem) for elem in value}
             else:
                 new_out = f(value)
             newModel[key] = new_out

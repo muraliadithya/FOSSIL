@@ -22,7 +22,7 @@ def getElementType(set_sort):
 
 # Returns an empty set of the appropriate sort
 def getSortEmptySet(set_sort):
-    element_sort = getElementType(set_sort):
+    element_sort = getElementType(set_sort)
     sort_empty_set = EmptySet(element_sort)
     return sort_empty_set
 

@@ -248,8 +248,8 @@ for elem in modified_set:
 # TODO: generate these in a 'more automatic' way
 # Currently the rules are completely instantiated and given along with the VC as 'nullary' axioms_z3
 for term in deref + const:
-    for recdef_frame_prime_triple in recdef_frame_prime_tiples:
-        (recdef, hrecdef, recdef_p) = recdef_frame_prime_triples
+    for recdef_frame_prime_triple in recdef_frame_prime_triples:
+        (recdef, hrecdef, recdef_p) = recdef_frame_prime_triple
         emptyset_intsort = getSortEmptySet(SetIntSort)
         non_intersection = SetIntersect(hrecdef(x), modified_set_z3) == emptyset_intsort
         frame_rule = Implies(And(recdef(term), non_intersection), recdef_p(term))

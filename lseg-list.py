@@ -231,12 +231,17 @@ fcts_z3['recfunctions-loc_1_int_set-int'] = [hlist, hlsegy, hlist_p, hlsegy_p]
 # Program, VC, and Instantiation
 
 def pgm(x, y, z):
-    return And( lsegy(x), next(y) == nil, list(z) )
+    emptyset_intsort = getSortEmptySet(SetIntSort)
+    lsegxy_star_listy = SetIntersect(hlsegy(x),hlist(y)) == emptyset_intsort
+    listy_star_listz = SetIntersect(hlist(y),hlist(z)) == emptyset_intsort
+    lsegxy_star_listz = SetIntersect(hlsegy(x),hlist(z)) == emptyset_intsort
+    lsegxy_star_listy_star_listz = And(lsegxy_star_listy,listy_star_listz,lsegxy_star_listz)
+    return And( lsegy(x), next(y) == nil, list(z), lsegxy_star_listy_star_listz)
 
 def vc(x, y, z):
     return Implies( pgm(x, y, z), list_p(x) )
 
-deref = [x, next(x)]
+deref = [x, next(x), z]
 const = [nil, y]
 modified_set = {y} # Note that this is a python set with the elements themselves being z3 terms. This is weird and needs to cleaned up.
 # Must have some sort of general treatment for converting the modified set to Z3 regardless of whether it is a finite set or represented by a recursive definition, or a mix of both

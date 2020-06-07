@@ -4,6 +4,7 @@ from z3 import *
 from true_models import *
 from false_models import *
 from lemsynth_utils import *
+from set_sort import *
 
 # Add constraints from each model into the given solver
 # Look through model's function entries and adds each input-output constraint
@@ -22,11 +23,19 @@ def modelToSolver(model, fcts_z3, sol):
                 fct_name = getZ3FctName(fct)
                 for input_arg in model[fct_name].keys():
                     output_value = model[fct_name][input_arg]
+                    if isinstance(output_value, set):
+                        # This step is slightly wrong. We do not know what the intended sort of the output value set's elements is.
+                        # We are assuming integers by default, because that is the only thing being supported. Perhaps booleans. Nothing that cannot be distinguished.
+                        # This is taking the implementation deeper into a territory where it will be hard to distinguish sorts implemented by the same python type.
+                        output_value_converted = getZ3SetConstEncoding('int', output_value)
+                    else:
+                        output_value_converted = output_value
+
                     if isinstance(input_arg, tuple):
                         # arg must be unpacked as *arg before constructing the Z3 term
-                        sol.add(fct(*input_arg) == output_value)
+                        sol.add(fct(*input_arg) == output_value_converted)
                     else:
-                        sol.add(fct(input_arg) == output_value)
+                        sol.add(fct(input_arg) == output_value_converted)
 
 # Generate single model from a given list of models
 # Returns the definitions for functions and recdefs.

@@ -92,9 +92,35 @@ def getUnfoldRecdefFct(recdef_name, unfold_recdefs_dict):
     # Default case. Recdef not found. Return none.
     return None
 
+
+###### General support for sorts. Particularly used for background sorts #######
+
+# Given the name of a primitive sort as a string, returns the appropriate sort
+# Must add support for set types as well
+def getSortFromName(sort_name):
+    if sort_name == 'int':
+        return IntSort()
+    elif sort_name == 'bool':
+        return BoolSort()
+    else:
+        return ValueError('Sort name not supported in current conversion scheme')
+
+# Creates a z3py variable with the given name and sort
+# Z3Py already provides an API for this. If it stops being there or doesn't work for some sorts, might have to replace this
+def createSortVar(name, sort):
+    return Const(name, sort)
+
+# Returns the bottom element of the corresponding lattice in order to enable fixpoint computation
+# The returned value is a native python value that will be used to populate elements in the true models, which are themseleves python dictionaries
 def getBottomElement(key):
     ret_type = key.split('_')[-1]
     if ret_type == 'bool':
         return False
     elif ret_type == 'int':
+        # UNDESIRABLE: this path will only be triggered by length predicates currently, which are always non-negative so using -1 as a bottom element is ok
+        # TODO: must fix this by distinguishing sorts
         return -1
+    elif ret_type == 'set-int':
+        return set()
+    else:
+        raise ValueError('Sort name is not supported')

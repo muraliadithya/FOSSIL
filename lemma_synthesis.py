@@ -1,7 +1,7 @@
 import subprocess
 
 from z3 import *
-set_param('model.compact', False)
+# set_param('model.compact', False)
 from true_models import *
 from false_models import *
 from lemsynth_utils import *

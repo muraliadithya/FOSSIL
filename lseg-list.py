@@ -225,7 +225,7 @@ unfold_recdefs_python['1_int_set-int'] = [uhlist_python, uhlsegy_python, uhlist_
 
 # Recall recursive predicates are always unary
 fcts_z3['recpreds-loc_1_int_bool'] = [list, lsegy, list_p, lsegy_p]
-fcts_z3['recfunctions-loc_1_int_set-int'] = [hlist, hlsegy, hlist_p, hlsegy_p]
+# fcts_z3['recfunctions-loc_1_int_set-int'] = [hlist, hlsegy, hlist_p, hlsegy_p]
 
 ############# Section 5
 # Program, VC, and Instantiation
@@ -243,8 +243,12 @@ def vc(x, y, z):
 
 deref = [x, next(x), z]
 const = [nil, y]
-modified_set = {y} # Note that this is a python set with the elements themselves being z3 terms. This is weird and needs to cleaned up.
-# Must have some sort of general treatment for converting the modified set to Z3 regardless of whether it is a finite set or represented by a recursive definition, or a mix of both
+modified_set = {y} # Note that this is a python set with the elements themselves
+# being z3 terms. This is weird and needs to cleaned up.
+
+# Must have some sort of general treatment for converting the modified set to Z3
+# regardless of whether it is a finite set or represented by a recursive
+# definition, or a mix of both
 modified_set_z3 = getSortEmptySet(SetIntSort)
 for elem in modified_set:
     modified_set_z3 = SetAdd(modified_set_z3, elem)

@@ -1,0 +1,37 @@
+;; TODO: this should be generated from the problem parameters
+;; lemma to synthesize
+(synth-fun lemma ((x Int) (nil Int) (y Int)) Bool
+           ((Start Bool) (Rec Bool) (B Bool) (I Int))
+
+           ((Start Bool
+                  ((=> Rec B)))
+           (Rec Bool
+                  ((list I) (lsegy I)))
+           (B Bool
+                  ((=> B B)
+                   (and B B)
+                   (or B B)
+                   (not B)
+                   (list I) (lsegy I) ))
+            (I Int (x nil y
+                   (next I))))
+)
+
+
+;; Grammar for old version of code. Must be removed
+;(synth-fun lemma ((x Int)) Bool
+;           ((Start Bool) (Rec Bool) (B Bool) (I Int))
+;
+;           ((Start Bool
+;                  ((=> Rec B)))
+;           (Rec Bool
+;                  ((list I) (lsegy I) (list_p I) (lsegy_p I)))
+;           (B Bool
+;                  ((=> B B)
+;                   (and B B)
+;                   (or B B)
+;                   (not B)
+;                   (list I) (lsegy I) (list_p I) (lsegy_p I)))
+;            (I Int (x nil y
+;                   (next I))))
+;)

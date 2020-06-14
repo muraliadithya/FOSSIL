@@ -76,7 +76,7 @@ axioms_python['0'] = [next_nil_python]
 # Recdefs can only be unary (on the foreground sort?)
 # TODO: add support for recursive functions
 list = Function('list', IntSort(), BoolSort())
-slist = Function('slist', IntSort(), BoolSort())
+lsegy = Function('lsegy', IntSort(), BoolSort())
 
 ############ Section 4
 # Unfolding recursive definitions
@@ -104,8 +104,8 @@ def ulsegy_python(x, model):
         next_val = model['next'][x]
         return model['lsegy'][next_val]
 
-unfold_recdefs_z3['1_int_bool'] = [ulist_z3, ulseg_z3]
-unfold_recdefs_python['1_int_bool'] = [ulist_python, ulseg_python]
+unfold_recdefs_z3['1_int_bool'] = [ulist_z3, ulsegy_z3]
+unfold_recdefs_python['1_int_bool'] = [ulist_python, ulsegy_python]
 
 # Recall recursive predicates are always unary
 fcts_z3['recpreds-loc_1_int_bool'] = [list, lsegy]
@@ -117,7 +117,7 @@ def pgm(x, ret):
     return IteBool(x == nil, ret == nil, ret == next(x))
 
 def vc(x, ret):
-    return Implies( And(lsegy(x), y == nil)
+    return Implies( And(lsegy(x), y == nil),
                     Implies(pgm(x, ret), list(ret)))
 
 deref = [x]

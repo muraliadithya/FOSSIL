@@ -234,8 +234,8 @@ def pgm(x, y, z):
     emptyset_intsort = getSortEmptySet(SetIntSort)
     lsegxy_star_listy = SetIntersect(hlsegy(x),hlist(y)) == emptyset_intsort
     listy_star_listz = SetIntersect(hlist(y),hlist(z)) == emptyset_intsort
-    lsegxy_star_listz = SetIntersect(hlsegy(x),hlist(z)) == emptyset_intsort
-    lsegxy_star_listy_star_listz = And(lsegxy_star_listy,listy_star_listz,lsegxy_star_listz)
+    #lsegxy_star_listz = SetIntersect(hlsegy(x),hlist(z)) == emptyset_intsort
+    lsegxy_star_listy_star_listz = And(lsegxy_star_listy,listy_star_listz) #,lsegxy_star_listz)
     return And( lsegy(x), next(y) == nil, list(z), lsegxy_star_listy_star_listz)
 
 def vc(x, y, z):

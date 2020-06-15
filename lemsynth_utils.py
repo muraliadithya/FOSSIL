@@ -1,6 +1,8 @@
 from z3 import *
 import re
 
+############################
+# Support for models
 
 # Implementing a copy function because dictionary with dictionary entries is not
 # copied as expected. The inner dictionaries are stll passed by reference
@@ -15,6 +17,8 @@ def deepcopyModel(model):
             new_model[key] = model[key]
     return new_model
 
+##################################
+# General unclassified utilities
 
 # Cartesian product of two lists of elements, with a given function applied to
 # the pair Default is a + function which will work if defined for the sort of
@@ -93,7 +97,8 @@ def getUnfoldRecdefFct(recdef_name, unfold_recdefs_dict):
     return None
 
 
-###### General support for sorts. Particularly used for background sorts #######
+####################
+# Support for sorts. Particularly used for background sorts
 
 # Given the name of a primitive sort as a string, returns the appropriate sort
 # Must add support for set types as well

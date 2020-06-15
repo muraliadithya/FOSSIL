@@ -90,6 +90,38 @@ def getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, v
         print("No model available. Lemma was proved.")
         return None
 
+def convertZ3ValueTypetoPython(value):
+    if type(value) == BoolRef:
+        return bool(value)
+    elif type(value) == IntNumRef:
+        # NOTE: returns a bignum
+        return value.as_long()
+    elif type(value) == ArrayRef:
+        # Only sets of integers supported
+        # Convert to a python set recursively
+        declaration = value.decl()
+        if str(declaration) == 'K':
+            if bool(value.children()[0]) == True:
+                # K(Int, True) is the set of all natural numbers
+                raise ValueError('Infinite set obtained. Something is wrong.')
+            else:
+                # K(Int, False) is the empty set
+                return set()
+        elif str(declaration) == 'Store':
+            # Recursively construct the set
+            expr_children = value.children()
+            sub_set = convertZ3ValueTypetoPython(expr_children[0])
+            element = convertZ3ValueTypetoPython(expr_children[1])
+            membership = convertZ3ValueTypetoPython(expr_children[2])
+            if membership == True:
+                return sub_set | {element}
+            elif membership == False:
+                return sub_set
+            else:
+                raise ValueError('Store expression asssigns element to neither True nor False')
+        else:
+            # Cannot handle this case, if it exists
+            raise ValueError('ArrayRef object is neither a constant array nor a Store expression. Something is wrong.')
 
 # Get false model in dictionary representation. Only need values of
 # dereferenced variables and constants, nothing else will be used in SyGuS file
@@ -98,14 +130,7 @@ def getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, v
 #  like IntNumRef and such. Must fix to avoid subtle issues
 def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, const, vc, ip = False):
     false_model_z3 = getFalseModel(axioms_z3, fcts_z3, lemmas, unfold_recdefs_z3, deref, const, vc)
-    # print(axioms_z3)
-    # print(lemmas)
-    # print(unfold_recdefs_z3)
-    # print(deref)
-    # print(const)
-    # print(vc)
-    # print(false_model_z3.sexpr())
-    # exit(0)
+
     if false_model_z3 == None:
         # Lemmas generated up to this point are useful. Exit.
         print('Lemmas used to prove original vc:')
@@ -121,7 +146,8 @@ def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, cons
             # constant symbols
             for fct in fcts_z3[key]:
                 fct_name = getZ3FctName(fct)
-                false_model_dict[fct_name] = false_model_z3.eval(fct,model_completion=True)
+                constant_value = false_model_z3.eval(fct,model_completion=True)
+                false_model_dict[fct_name] = convertZ3ValueTypetoPython(constant_value)
         else:
             # only supporting unary functions/recursive definitions
             for fct in fcts_z3[key]:
@@ -132,5 +158,5 @@ def getFalseModelDict(fcts_z3, axioms_z3, lemmas, unfold_recdefs_z3, deref, cons
                 for inst in instantiations:
                     inst_value = false_model_z3.eval(inst, model_completion=True)
                     fct_of_inst_value = false_model_z3.eval(fct(inst), model_completion=True)
-                    false_model_dict[fct_name][inst_value] = fct_of_inst_value
+                    false_model_dict[fct_name][inst_value] = convertZ3ValueTypetoPython(fct_of_inst_value)
     return (false_model_z3, false_model_dict)

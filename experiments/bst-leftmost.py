@@ -96,7 +96,7 @@ def uminr_z3(x):
 def umaxr_z3(x):
     is_nil = x == nil
     then_case = Implies(is_nil, maxr(x) == 101)
-    else_case = Implies(Not(is_nil), maxr(x) == max3(key(x), minr(left(x)), minr(right(x))))
+    else_case = Implies(Not(is_nil), maxr(x) == max3(key(x), maxr(left(x)), maxr(right(x))))
     return And(then_case, else_case)
 
 def uleftmost_z3(x):

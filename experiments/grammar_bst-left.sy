@@ -1,6 +1,6 @@
 ;; lemma to synthesize
 ;; TODO: must be generated from problem parameters
-(synth-fun lemma ((x Int) (nil Int) (y Int)) Bool
+(synth-fun lemma ((x Int) (nil Int) (y Int) (smallkey Int) (bigkey Int)) Bool
            ((Start Bool) (B1 Bool) (S (Set Int)) (S1 (Set Int)) (I Int) (Loc Int))
 
            ((Start Bool (B1

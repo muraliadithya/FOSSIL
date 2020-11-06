@@ -54,7 +54,8 @@ unfold_recdefs_python = {}
 # The z3py variable for a z3 variable will be the same as its string value.
 # So we will use the string 'x' for python functions and just x for creating z3 types
 x, y, nil = Ints('x y nil')
-fcts_z3['0_int'] = [x, y, nil]
+bigkey, smallkey = Ints('bigkey smallkey')
+fcts_z3['0_int'] = [x, y, nil, bigkey, smallkey]
 
 ####### Section 2
 # Functions
@@ -83,20 +84,20 @@ keys = Function('keys', IntSort(), SetIntSort)
 def ubst_z3(x):
     return Iff( bst(x), IteBool( x == nil,
                                  True,
-                                 And( 0 < key(x), key(x) < 100,
-                                      bst(left(x)), bst(right(x)),
-                                      maxr(left(x)) <= key(x),
-                                      key(x) <= minr(right(x)) ) ) )
+                                 And(smallkey < key(x), key(x) < bigkey,
+                                     bst(left(x)), bst(right(x)),
+                                     maxr(left(x)) <= key(x),
+                                     key(x) <= minr(right(x))) ) )
 
 def uminr_z3(x):
     is_nil = x == nil
-    then_case = Implies(is_nil, minr(x) == -1)
+    then_case = Implies(is_nil, minr(x) == smallkey)
     else_case = Implies(Not(is_nil), minr(x) == min3(key(x), minr(left(x)), minr(right(x))))
     return And(then_case, else_case)
 
 def umaxr_z3(x):
     is_nil = x == nil
-    then_case = Implies(is_nil, maxr(x) == 101)
+    then_case = Implies(is_nil, maxr(x) == bigkey)
     else_case = Implies(Not(is_nil), maxr(x) == max3(key(x), maxr(left(x)), maxr(right(x))))
     return And(then_case, else_case)
 
@@ -123,7 +124,7 @@ pfp_dict = {}
 pfp_dict['bst'] = '''
 (=> (ite (= {primary_arg} {nil})
          true
-         (and (< 0 (key {primary_arg})) (< (key {primary_arg}) 100)
+         (and (< {smallkey} (key {primary_arg})) (< (key {primary_arg}) {bigkey})
               (and (bst (left {primary_arg})) (lemma (left {primary_arg}) {rest_args}))
               (and (bst (right {primary_arg})) (lemma (right {primary_arg}) {rest_args}))
               (<= (maxr (left {primary_arg})) (key {primary_arg}))
@@ -144,7 +145,7 @@ def vc(x, y):
     return Implies( rec, Implies ( lhs, rhs ) )
 
 deref = [x, left(x), right(x)]
-const = [nil, y]
+const = [nil, y, smallkey, bigkey]
 verification_condition = vc(x, y)
 
 # End of input

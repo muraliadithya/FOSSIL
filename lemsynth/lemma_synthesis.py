@@ -269,7 +269,11 @@ def getSygusOutput(fcts_z3, axioms_python, axioms_z3, lemmas, unfold_recdefs_z3,
     else:
         proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
         cvc4_out, err = proc.communicate()
-        if cvc4_out == 'unknown\n':
+        if cvc4_out == '':
+            print(err)
+            return None
+        elif cvc4_out == 'unknown\n':
+            print('CVC4 SyGuS returns unknown. Exiting.')
             return None
         else:
             lemma = str(cvc4_out).split('\n')[1:][:-1]

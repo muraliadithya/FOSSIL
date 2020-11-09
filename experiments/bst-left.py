@@ -53,9 +53,9 @@ unfold_recdefs_python = {}
 
 # The z3py variable for a z3 variable will be the same as its string value.
 # So we will use the string 'x' for python functions and just x for creating z3 types
-x, y, nil = Ints('x y nil')
+x, k, nil = Ints('x k nil')
 bigkey, smallkey = Ints('bigkey smallkey')
-fcts_z3['0_int'] = [x, y, nil, bigkey, smallkey]
+fcts_z3['0_int'] = [x, k, nil, bigkey, smallkey]
 
 ####### Section 2
 # Functions
@@ -138,15 +138,15 @@ pfp_dict['bst'] = '''
 ############# Section 5
 # Program, VC, and Instantiation
 
-def vc(x, y):
+def vc(x, k):
     rec = bst(x)
-    lhs = And( IsMember(key(y), keys(x)), key(y) < key(x) )
-    rhs = IsMember(key(y), keys(left(x)))
+    lhs = And( IsMember(k, keys(x)), k < key(x) )
+    rhs = IsMember(k, keys(left(x)))
     return Implies( rec, Implies ( lhs, rhs ) )
 
 deref = [x, left(x), right(x)]
-const = [nil, y, smallkey, bigkey]
-verification_condition = vc(x, y)
+const = [nil, k, smallkey, bigkey]
+verification_condition = vc(x, k)
 
 # End of input
 

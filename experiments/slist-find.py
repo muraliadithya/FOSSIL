@@ -207,21 +207,4 @@ skolem = Int('skolem')
 # Must be added as this particular example requires one more level of instantiation than is apparent.
 synth_dict['lemma_deref'] = [next(skolem)]
 
-synth_dict['translate_lemma_addl_decls'] = {}
-synth_dict['translate_lemma_replace_fcts'] = {}
-synth_dict['translate_lemma_swap_fcts'] = {}
-# TODO: replace all the swap and replace declarations below by having translateLemma use substituteSubformula instead of swap_fcts and replace_fcts
-# Must add the declarations below in order to translate 'member' in cvc4 to 'ismember' in z3
-# This is an uninterpreted function with the same signature as that of set membership
-membership = Function('membership', IntSort(), SetIntSort, BoolSort())
-# This is say that 'member' in cvc4 should be replaced by the uninterpreted function 'membership'
-synth_dict['translate_lemma_addl_decls']['member'] = membership
-# This is to say that the uninterpreted function 'membership' should be substituted away to 'IsMember' in z3
-synth_dict['translate_lemma_replace_fcts'][membership] = IsMember
-# Similarly for converting 'insert' in cvc4 to 'SetAdd' in z3
-# The corresponding function must be placed in swap_fcts rather than replace_fcts because the order of arguments is different in cvc4 and z3 
-insertion = Function('insertion', IntSort(), SetIntSort, SetIntSort)
-synth_dict['translate_lemma_addl_decls']['insert'] = insertion
-synth_dict['translate_lemma_swap_fcts'][insertion] = SetAdd
-
 solveProblem(fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, verification_condition, name, grammar_string, config_params, synth_dict)

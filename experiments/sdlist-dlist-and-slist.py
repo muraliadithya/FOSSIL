@@ -1,5 +1,10 @@
-import importlib_resources
 from z3 import *
+import importlib_resources
+
+
+from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
+import naturalproofs.decls_api as api
+from lemsynth.lemsynth_engine import solveProblem
 from lemsynth.lemsynth_engine import *
 
 ####### Section 0
@@ -9,7 +14,7 @@ def Iff(b1, b2):
     return And(Implies(b1, b2), Implies(b2, b1))
 
 def IteBool(b, l, r):
-    return And(Implies(b, l), Implies(Not(b), r))
+    return If(b, l, r)
 
 # Datastructure initialisations Below are some dictionaries being
 # initialised. Will be updated later with constants/functions/definitions of
@@ -46,14 +51,14 @@ unfold_recdefs_python = {}
 
 # The z3py variable for a z3 variable will be the same as its string value.
 # So we will use the string 'x' for python functions and just x for creating z3 types
-x, ret, nil = Ints('x ret nil')
+x, ret, nil = api.Consts('x ret nil', fgsort)
 fcts_z3['0_int'] = [x, ret, nil]
 
 ######## Section 2
 # Functions
-next = Function('next', IntSort(), IntSort())
-prev = Function('prev', IntSort(), IntSort())
-key = Function('key', IntSort(), IntSort())
+next = api.Function('next', fgsort, fgsort)
+prev = api.Function('prev', fgsort, fgsort)
+key = api.Function('key', fgsort, fgsort)
 
 # Axioms for next and prev of nil equals nil as z3py formulas
 next_nil_z3 = next(nil) == nil
@@ -82,9 +87,9 @@ axioms_python['0'] = [next_nil_python, prev_nil_python]
 
 # Recdefs can only be unary (on the foreground sort?)
 # TODO: add support for recursive functions
-dlist = Function('dlist', IntSort(), BoolSort())
-slist = Function('slist', IntSort(), BoolSort())
-sdlist = Function('sdlist', IntSort(), BoolSort())
+dlist = api.Function('dlist', fgsort, boolsort)
+slist = api.Function('slist', fgsort, boolsort)
+sdlist = api.Function('sdlist', fgsort, boolsort)
 
 ############ Section 4
 # Unfolding recursive definitions

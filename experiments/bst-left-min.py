@@ -131,7 +131,7 @@ def vc(x, k):
     rhs = k <= minr(x)
     return Implies( rec, Implies( lhs, rhs ) )
 
-deref = [x]
+deref = [x, left(x), right(x)]
 const = [nil, k]
 verification_condition = vc(x, k)
 

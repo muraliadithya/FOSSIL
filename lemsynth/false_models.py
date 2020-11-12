@@ -2,6 +2,7 @@ from z3 import *
 z3.set_param('model.compact', False)
 from lemsynth.lemsynth_utils import *
 
+
 def makePFP(vc, recdefs, fcts_z3, insts):
     op = vc.decl()
     if getZ3FctName(op) != '=>':
@@ -13,7 +14,7 @@ def makePFP(vc, recdefs, fcts_z3, insts):
     skolem = Int('skolem')
     lhs_decl = lhs.decl()
     if str(lhs.arg(0)) != 'fresh':
-        return True
+        return BoolVal(True)
     lhs_decl_name = str(lhs_decl)
     udef = getUnfoldRecdefFct(lhs_decl_name, recdefs)
     rec_rho = udef(skolem).arg(0).arg(1)

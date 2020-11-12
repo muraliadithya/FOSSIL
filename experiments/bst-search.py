@@ -53,9 +53,8 @@ unfold_recdefs_python = {}
 
 # The z3py variable for a z3 variable will be the same as its string value.
 # So we will use the string 'x' for python functions and just x for creating z3 types
-x, k, nil = Ints('x k nil')
-bigkey, smallkey = Ints('bigkey smallkey')
-fcts_z3['0_int'] = [x, k, nil, bigkey, smallkey]
+x, y, k, nil = Ints('x y k nil')
+fcts_z3['0_int'] = [x, y, k, nil]
 
 ####### Section 2
 # Functions
@@ -80,24 +79,25 @@ bst = Function('bst', IntSort(), BoolSort())
 minr = Function('minr', IntSort(), IntSort())
 maxr = Function('maxr', IntSort(), IntSort())
 keys = Function('keys', IntSort(), SetIntSort)
+heaplet = Function('heaplet', IntSort(), SetIntSort)
 
 def ubst_z3(x):
     return Iff( bst(x), IteBool( x == nil,
                                  True,
-                                 And(smallkey < key(x), key(x) < bigkey,
-                                     bst(left(x)), bst(right(x)),
-                                     maxr(left(x)) <= key(x),
-                                     key(x) <= minr(right(x))) ) )
+                                 And( 0 < key(x), key(x) < 100,
+                                      bst(left(x)), bst(right(x)),
+                                      maxr(left(x)) <= key(x),
+                                      key(x) <= minr(right(x)) ) ) )
 
 def uminr_z3(x):
     is_nil = x == nil
-    then_case = Implies(is_nil, minr(x) == smallkey)
+    then_case = Implies(is_nil, minr(x) == -1)
     else_case = Implies(Not(is_nil), minr(x) == min3(key(x), minr(left(x)), minr(right(x))))
     return And(then_case, else_case)
 
 def umaxr_z3(x):
     is_nil = x == nil
-    then_case = Implies(is_nil, maxr(x) == bigkey)
+    then_case = Implies(is_nil, maxr(x) == 101)
     else_case = Implies(Not(is_nil), maxr(x) == max3(key(x), maxr(left(x)), maxr(right(x))))
     return And(then_case, else_case)
 
@@ -110,21 +110,30 @@ def ukeys_z3(x):
                                                        key(x)))
     return And(then_case, else_case)
 
+def uheaplet_z3(x):
+    emptyset = getSortEmptySet(SetIntSort)
+    is_nil = x == nil
+    in_domain = bst(x)
+    then_case = Implies(is_nil, keys(x) == emptyset)
+    else_case = Implies(Not(is_nil),
+                        keys(x) == SetAdd(SetUnion(heaplet(left(x)), heaplet(right(x))), x))
+    return And(then_case, else_case)
+
 # No true models so no need for python versions
 
 unfold_recdefs_z3['1_int_bool'] = [ubst_z3]
-unfold_recdefs_z3['1_int_set-int'] = [ukeys_z3]
+unfold_recdefs_z3['1_int_set-int'] = [ukeys_z3, uheaplet_z3]
 unfold_recdefs_z3['1_int_int'] = [uminr_z3, umaxr_z3]
 
 fcts_z3['recpreds-loc_1_int_bool'] = [bst]
-fcts_z3['recfunctions-loc_1_int_set-int'] = [keys]
+fcts_z3['recfunctions-loc_1_int_set-int'] = [keys, heaplet]
 fcts_z3['recfunctions-loc_1_int_int'] = [minr, maxr]
 
 pfp_dict = {}
 pfp_dict['bst'] = '''
 (=> (ite (= {primary_arg} {nil})
          true
-         (and (< {smallkey} (key {primary_arg})) (< (key {primary_arg}) {bigkey})
+         (and (< 0 (key {primary_arg})) (< (key {primary_arg}) 100)
               (and (bst (left {primary_arg})) (lemma (left {primary_arg}) {rest_args}))
               (and (bst (right {primary_arg})) (lemma (right {primary_arg}) {rest_args}))
               (<= (maxr (left {primary_arg})) (key {primary_arg}))
@@ -138,15 +147,16 @@ pfp_dict['bst'] = '''
 ############# Section 5
 # Program, VC, and Instantiation
 
-def vc(x, k):
+def vc(x, y, k):
     rec = bst(x)
-    lhs = And( IsMember(k, keys(x)), k < key(x) )
-    rhs = IsMember(k, keys(left(x)))
+    lhs = And( x != nil, bst(y), IsMember(k, keys(x)), IsMember(k, keys(y)),
+               IsMember(y, heaplet(x)), y != nil, k < key(y) )
+    rhs = Iff( IsMember(k, keys(x)), IsMember(k, keys(left(y))) )
     return Implies( rec, Implies ( lhs, rhs ) )
 
 deref = [x, left(x), right(x)]
-const = [nil, k, smallkey, bigkey]
-verification_condition = vc(x, k)
+const = [nil, y, k]
+verification_condition = vc(x, y, k)
 
 # End of input
 
@@ -158,7 +168,7 @@ config_params = {'mode': 'random', 'num_true_models':0}
 config_params['pfp_dict'] = pfp_dict
 config_params['use_cex_models'] = True
 
-name = 'bst-left'
+name = 'bst-search'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 synth_dict = {}

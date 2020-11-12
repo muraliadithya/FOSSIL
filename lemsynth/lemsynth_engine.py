@@ -3,6 +3,7 @@ from z3 import *
 from lemsynth.lemma_synthesis import *
 from lemsynth.false_models import *
 from lemsynth.lemsynth_utils import *
+from lemsynth.set_sort import *
 
 def solveProblem(fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_recdefs_python, deref, const, vc, name, grammar_string, config_params, synth_dict):
     # Extract relevant parameters for running the verification-synthesis engine from synth_dict
@@ -23,6 +24,14 @@ def solveProblem(fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_re
     else:
         print('vc is provable using induction.')
         exit(0)
+
+    # convert CVC4 versions of membership, insertion to z3py versions
+    SetIntSort = createSetSort('int')
+    membership = Function('membership', IntSort(), SetIntSort, BoolSort())
+    insertion = Function('insertion', IntSort(), SetIntSort, SetIntSort)
+    addl_decls = {'member' : membership, 'insert' : insertion}
+    swap_fcts = {insertion : SetAdd}
+    replace_fcts = {membership : IsMember}
     
     # continuously get valid lemmas until VC has been proven
     while True:
@@ -32,9 +41,6 @@ def solveProblem(fcts_z3, axioms_python, axioms_z3, unfold_recdefs_z3, unfold_re
         if lemma is None:
             exit('Instance failed.')
 
-        addl_decls = synth_dict.get('translate_lemma_addl_decls',{})
-        swap_fcts = synth_dict.get('translate_lemma_swap_fcts',{})
-        replace_fcts = synth_dict.get('translate_lemma_replace_fcts',{})
         rhs_lemma = translateLemma(lemma[0], fcts_z3, addl_decls, swap_fcts, replace_fcts)
         index = int(lemma[1][-2])
         lhs_lemma = fcts_z3['recpreds-loc_1_int_bool'][index](fresh)

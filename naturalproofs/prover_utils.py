@@ -26,7 +26,14 @@ def instantiate(bound_formulas, terms):
         arity = len(formal_params)
         # The arguments are all possible tuples of terms whose length is arity
         # TODO: make this step more efficient by sorting bound_formulas by arity or using numpy.product
-        arg_tuples = itertools.product(terms, repeat=arity)
+        # Distinguish some special cases for more efficient execution
+        if arity == 0:
+            instantiated_set.add(body)
+            return instantiated_set
+        elif arity == 1:
+            arg_tuples = [(term,) for term in terms]
+        else:
+            arg_tuples = itertools.product(terms, repeat=arity)
         for arg_tuple in arg_tuples:
             instantiated_set.add(apply_bound_formula(bound_formula, arg_tuple))
     return instantiated_set

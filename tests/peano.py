@@ -49,7 +49,7 @@ base_case = plus(zero, zero) == plus(zero, zero)
 induction_hypothesis = plus(zero, ny) == plus(ny, zero)
 induction_step = plus(zero, succ(ny)) == plus(succ(ny), zero)
 
-pfp_goal = Implies(induction_hypothesis, induction_step)
+pfp_goal = And(base_case, Implies(induction_hypothesis, induction_step))
 base_np_solver = NPSolver()
 base_solution = base_np_solver.solve(pfp_goal)
 print('Lemma for base case: zero + x = x')
@@ -63,7 +63,7 @@ base_case = plus(zero, succ(y)) == succ(plus(zero, y))
 induction_hypothesis = plus(nx, succ(y)) == succ(plus(nx, y))
 induction_step = plus(succ(nx), succ(y)) == succ(plus(succ(nx), y))
 
-pfp_goal = Implies(induction_hypothesis, induction_step)
+pfp_goal = And(base_case, Implies(induction_hypothesis, induction_step))
 ind_np_solver = NPSolver()
 ind_solution = ind_np_solver.solve(pfp_goal)
 print('Lemma for inductive case: x + S y = S (x + y)')
@@ -81,9 +81,9 @@ ind_lemma_body = plus(x, succ(y)) == succ(plus(x, y))
 
 lemmas = {(base_lemma_params, base_lemma_body), (ind_lemma_params, ind_lemma_body)}
 final_np_solver = NPSolver()
-final_solution = final_np_solver.solve(goal, lemmas)
+final_solution = final_np_solver.solve(pfp_goal, lemmas)
 print('Original goal with lemmas assumed:')
-if not ind_solution.if_sat:
+if not final_solution.if_sat:
     print(' -- goal is valid')
 else:
     print(' -- goal is invalid')

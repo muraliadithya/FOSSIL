@@ -9,6 +9,7 @@ import importlib_resources
 # DO NOT switch on prefetching. Code is not updated to handle current sygus output.
 experimental_prefetching_switch = 'off'
 exclude_set_type_definitions_switch = 'off'
+constraint_based_solver = 'on'
 ###############################################################################
 
 log_file_path = os.path.abspath(importlib_resources.files('lemsynth')/'../logs')

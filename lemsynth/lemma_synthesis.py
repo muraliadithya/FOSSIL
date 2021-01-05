@@ -17,6 +17,8 @@ from naturalproofs.extensions.finitemodel import recover_value
 from naturalproofs.extensions.finitemodel import FiniteModel
 from naturalproofs.decl_api import get_vocabulary, is_var_decl
 
+from  constraint_solver.lem_syn import replace_grammars
+
 
 # Add constraints from each model into the given solver
 # Look through model's function entries and adds each input-output constraint
@@ -317,14 +319,40 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
             # List of lemmas returned in string format
             return lemmas
     else:
-        proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-        cvc4_out, err = proc.communicate()
-        if cvc4_out == '':
-            print(err)
-            return None
-        elif cvc4_out == 'unknown\n':
-            print('CVC4 SyGuS returns unknown. Exiting.')
-            return None
+        if options.constraint_based_solver == 'on':
+            grammars, smt_file = replace_grammars(out_file)
+            print(grammars)
+            print(smt_file)
+            proc = subprocess.Popen('cvc4 {} -m --lang=smt2'.format(smt_file), shell=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            cvc4_out, err = proc.communicate()
+            print(cvc4_out)
+            if cvc4_out == '':
+                print(err)
+                return None
+            else:
+                cvc4_lines = cvc4_out.split('\n')
+                if cvc4_lines[0] == 'sat':
+                    model = {}
+                    for line in cvc4_lines:
+                        if 'define-fun' in line:
+                            line = line.split(' ')
+                            model[line[1]] = line[4][:-1] == 'true'
+                    print('sat\n')
+                    for G in grammars:
+                        G.print_lemma(model=model, ind=True)
+                        print('')
+                else:
+                    print('unsat')
         else:
-            lemma = str(cvc4_out).split('\n')[1:][:-1]
-            return lemma
+            proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            cvc4_out, err = proc.communicate()
+            if cvc4_out == '':
+                print(err)
+                return None
+            elif cvc4_out == 'unknown\n':
+                print('CVC4 SyGuS returns unknown. Exiting.')
+                return None
+            else:
+                lemma = str(cvc4_out).split('\n')[1:][:-1]
+                return lemma

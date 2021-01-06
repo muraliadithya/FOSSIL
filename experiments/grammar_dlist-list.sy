@@ -11,7 +11,7 @@
             (I Int (I1
                    (nxt I1)
                    (prv I1)))
-            (I1 Int (x y)))
+            (I1 Int (x nil)))
 )
 
 (define-fun rswitch () Int 0)

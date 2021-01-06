@@ -321,8 +321,17 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
     else:
         if options.constraint_based_solver == 'on':
             grammars, smt_file = replace_grammars(out_file)
-            print(grammars)
-            print(smt_file)
+            # print(grammars)
+            # print(smt_file)
+            # Hack around constraint-based solver not replacing constraint with assert
+            with open(smt_file, 'r') as f:
+                smt_file_string = f.read()
+                smt_file_string = smt_file_string.replace('constraint', 'assert')
+                smt_file_string = smt_file_string.replace('check-synth', 'check-sat')
+                # print(smt_file_string)
+            with open(smt_file,'w') as f:
+                f.write(smt_file_string.replace('constraint', 'assert'))
+            # End of hack
             proc = subprocess.Popen('cvc4 {} -m --lang=smt2'.format(smt_file), shell=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
             cvc4_out, err = proc.communicate()

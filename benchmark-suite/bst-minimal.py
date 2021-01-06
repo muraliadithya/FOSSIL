@@ -10,7 +10,7 @@ from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFuncti
 
 from lemsynth.lemsynth_engine import solveProblem
 
-# Declarations
+# declarations
 x = Var('x', fgsort)
 y, nil = Consts('y nil', fgsort)
 k = Const('k', intsort)
@@ -35,12 +35,20 @@ AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
-# Problem parameters
+# vc
 goal = Implies(bst(x), Implies(And(x != nil,
                                    And(IsMember(y, hbst(x)),
                                        And(k == minr(x),
                                            And(k == minr(y), y != nil)))),
                                k == minr(lft(y))))
+
+# check validity with natural proof solver and no hardcoded lemmas
+np_solver = NPSolver()
+solution = np_solver.solve(goal)
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
 
 # hardcoded lemmas
 ## NOTE: seems only lemma 2 is needed, though it was postulated that
@@ -51,10 +59,9 @@ lemma2_params = (x,)
 lemma2_body = Implies(bst(x), minr(x) <= maxr(x))
 lemmas = {(lemma2_params, lemma2_body)}
 
-# check validity with natural proof solver
-np_solver = NPSolver()
+# check validity with natural proof solver and hardcoded lemmas
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
-    print('goal is valid')
+    print('goal (with lemmas) is valid')
 else:
-    print('goal is invalid')
+    print('goal (with lemmas) is invalid')

@@ -10,7 +10,7 @@ from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFuncti
 
 from lemsynth.lemsynth_engine import solveProblem
 
-# Declarations
+# declarations
 x, y = Vars('x y', fgsort)
 nil = Const('nil', fgsort)
 k = Const('k', intsort)
@@ -38,7 +38,7 @@ AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
-# Problem parameters
+# problem parameters
 goal = Implies(bst(x), Implies(And(x != nil,
                                    And(bst(y),
                                        And(y != nil,
@@ -46,17 +46,23 @@ goal = Implies(bst(x), Implies(And(x != nil,
                                                And(IsMember(y, hbst(x)), k < key(y)))))),
                                IsMember(k, keys(x)) == IsMember(k, keys(lft(y)))))
 
+# check validity with natural proof solver and no hardcoded lemmas
+np_solver = NPSolver()
+solution = np_solver.solve(goal)
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
+
 # hardcoded lemma
-# TODO: does not go through since lemma parameters must all be fgsort
+# TODO: does not go through, related to all lemma parameters must all be fgsort?
 lemma_params = (x,)
 lemma_body = Implies(bst(x), Implies(IsMember(k, keys(x)), minr(x) <= k))
 lemmas = {(lemma_params, lemma_body)}
 
-# check validity with natural proof solver
-np_solver = NPSolver()
+# check validity with natural proof solver and hardcoded lemmas
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
-    print('goal is valid')
+    print('goal (with lemmas) is valid')
 else:
-    print('goal is invalid')
-
+    print('goal (with lemmas) is invalid')

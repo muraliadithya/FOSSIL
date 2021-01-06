@@ -10,7 +10,7 @@ from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFuncti
 
 from lemsynth.lemsynth_engine import solveProblem
 
-# Declarations
+# declarations
 x = Var('x', fgsort)
 y, nil = Consts('y nil', fgsort)
 k = Const('k', intsort)

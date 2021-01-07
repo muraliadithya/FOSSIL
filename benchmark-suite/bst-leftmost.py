@@ -39,7 +39,7 @@ AddAxiom((), rght(nil) == nil)
 # I think it might have to do with x being a variable and y being a constant.
 goal = Implies(bst(x), Implies(And(x != nil, y == leftmost(x)), key(y) == minr(x)))
 
-lemmas = {((), True)}
+lemmas = {((), z3.BoolVal(True))}
 
 # check validity with natural proof solver
 np_solver = NPSolver()

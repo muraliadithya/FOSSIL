@@ -5,6 +5,7 @@ from z3 import And, Or, Not, Implies, If
 from z3 import IsMember, IsSubset, SetUnion, SetIntersect, SetComplement, EmptySet, SetAdd
 
 from naturalproofs.prover import NPSolver
+import naturalproofs.proveroptions as proveroptions
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
 
@@ -35,8 +36,9 @@ AddRecDefinition(keys, x, If(x == nil, fgsetsort.lattice_bottom,
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
-# vc
-goal = Implies(bst(x), Implies(And(IsMember(k, keys(x)), k < key(x)), IsMember(k, keys(lft(x)))))
+
+# Problem parameters
+goal = Implies(bst(x), Implies(And(IsMember(k, keys(x)), k < key(x), x != nil), IsMember(k, keys(lft(x)))))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -46,17 +48,21 @@ if not solution.if_sat:
 else:
     print('goal (no lemmas) is invalid')
 
-# hardcoded lemma
-# TODO: lemmas not sufficient
-lemma_params = (x,)
-lemma_body = Implies(bst(x), Implies(IsMember(k, keys(x)),
+
+# check validity with natural proof solver and hardcoded lemmas
+lemma_params = (x, )
+lemma_body = Implies(bst(x), Implies(And(IsMember(k, keys(x)), x != nil),
                                      And(minr(x) <= k, k <= maxr(x))))
 lemmas = {(lemma_params, lemma_body)}
 
-# check validity with natural proof solver and hardcoded lemmas
+# check validity with natural proof solver
+np_solver = NPSolver()
+# If this mode is not specified the proof won't go through because the VC does not contain rght(x), which needs
+# to be among the terms used for instantiation. Can also use manual instantiation mode, but that can't help 
+# with lemma synthesis.
+np_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
     print('goal (with lemmas) is valid')
 else:
     print('goal (with lemmas) is invalid')
-

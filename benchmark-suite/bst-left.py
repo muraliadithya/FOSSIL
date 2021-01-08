@@ -8,6 +8,7 @@ from naturalproofs.prover import NPSolver
 import naturalproofs.proveroptions as proveroptions
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
+from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
@@ -37,28 +38,36 @@ AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
 
-# Problem parameters
+# vc
 goal = Implies(bst(x), Implies(And(IsMember(k, keys(x)), k < key(x), x != nil), IsMember(k, keys(lft(x)))))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
-solution = np_solver.solve(goal)
+solution = np_solver.solve(make_pfp_formula(goal))
 if not solution.if_sat:
     print('goal (no lemmas) is valid')
 else:
     print('goal (no lemmas) is invalid')
 
 
-# check validity with natural proof solver and hardcoded lemmas
-lemma_params = (x, )
+# hardcoded lemmas
+lemma_params = (x,)
 lemma_body = Implies(bst(x), Implies(And(IsMember(k, keys(x)), x != nil),
                                      And(minr(x) <= k, k <= maxr(x))))
 lemmas = {(lemma_params, lemma_body)}
 
+# check validity of lemmas
+solution = np_solver.solve(make_pfp_formula(lemma_body))
+if not solution.if_sat:
+    print('lemma is valid')
+else:
+    print('lemma is invalid')
+
 # check validity with natural proof solver
 np_solver = NPSolver()
-# If this mode is not specified the proof won't go through because the VC does not contain rght(x), which needs
-# to be among the terms used for instantiation. Can also use manual instantiation mode, but that can't help 
+# If this mode is not specified the proof won't go through because the VC does
+# not contain rght(x), which needs to be among the terms used for
+# instantiation. Can also use manual instantiation mode, but that can't help
 # with lemma synthesis.
 np_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
 solution = np_solver.solve(goal, lemmas)

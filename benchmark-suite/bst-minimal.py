@@ -7,6 +7,7 @@ from z3 import IsMember, IsSubset, SetUnion, SetIntersect, SetComplement, EmptyS
 from naturalproofs.prover import NPSolver
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
+from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
@@ -44,22 +45,33 @@ goal = Implies(bst(x), Implies(And(x != nil,
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
-solution = np_solver.solve(goal)
+solution = np_solver.solve(make_pfp_formula(goal))
 if not solution.if_sat:
     print('goal (no lemmas) is valid')
 else:
     print('goal (no lemmas) is invalid')
 
 # hardcoded lemmas
-## NOTE: seems only lemma 2 is needed, though it was postulated that
-## both lemmas 1 and 2 would be needed
 lemma1_params = (x,y)
 lemma1_body = Implies(bst(x), Implies(IsMember(y, hbst(x)), bst(y)))
 lemma2_params = (x,)
-lemma2_body = Implies(bst(x), minr(x) <= maxr(x))
-lemmas = {(lemma2_params, lemma2_body)}
+lemma2_body = Implies(bst(x), Implies(x != nil, minr(x) <= maxr(x)))
+lemmas = {(lemma1_params, lemma1_body), (lemma2_params, lemma2_body)}
+
+# check validity of lemmas
+solution = np_solver.solve(make_pfp_formula(lemma1_body))
+if not solution.if_sat:
+    print('lemma 1 is valid')
+else:
+    print('lemma 1 is invalid')
+solution = np_solver.solve(make_pfp_formula(lemma2_body))
+if not solution.if_sat:
+    print('lemma 2 is valid')
+else:
+    print('lemma 2 is invalid')
 
 # check validity with natural proof solver and hardcoded lemmas
+# TODO: lemmas not sufficient
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
     print('goal (with lemmas) is valid')

@@ -12,8 +12,7 @@
            sdlst(x) => slst(x)
 
 5. Theorem: listlen(x, l) => (If(l == 1, ret == x, ret == nxt(x)), list(x))
-   Lemmas: listlen(x, l) => list(nil) -- not needed
-           listlen(x, l) => list(x)
+   Lemmas: listlen(x, l) => list(x)
 
 6. {v1 = v2}
    while (v1 != nil) do

@@ -7,12 +7,13 @@ from z3 import IsMember, IsSubset, SetUnion, SetIntersect, SetComplement, EmptyS
 from naturalproofs.prover import NPSolver
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
+from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
 # declarations
 x, y, z = Vars('x y z', fgsort)
-nil = Const('y nil', fgsort)
+nil = Const('nil', fgsort)
 k = Const('k', intsort)
 key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
@@ -43,7 +44,7 @@ goal = Implies(bst(x), Implies(And(x != nil,
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
-solution = np_solver.solve(goal)
+solution = np_solver.solve(make_pfp_formula(goal))
 if not solution.if_sat:
     print('goal (no lemmas) is valid')
 else:
@@ -55,6 +56,18 @@ lemma1_body = Implies(bst(x), Implies(IsMember(y, hbst(x)), key(y) <= maxr(x)))
 lemma2_params = (x,y)
 lemma2_body = Implies(bst(x), Implies(IsMember(y, hbst(x)), minr(x) <= key(y)))
 lemmas = {(lemma1_params, lemma1_body), (lemma2_params, lemma2_body)}
+
+# check validity of lemmas
+solution = np_solver.solve(make_pfp_formula(lemma1_body))
+if not solution.if_sat:
+    print('lemma 1 is valid')
+else:
+    print('lemma 1 is invalid')
+solution = np_solver.solve(make_pfp_formula(lemma2_body))
+if not solution.if_sat:
+    print('lemma 2 is valid')
+else:
+    print('lemma 2 is invalid')
 
 # check validity with natural proof solver and hardcoded lemmas
 solution = np_solver.solve(goal, lemmas)

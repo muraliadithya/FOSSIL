@@ -70,7 +70,4 @@
             slseg(x, y) => (slist(y) => slist(x))
 
 14. Theorem: lseg(x, y) => (list(y) /\ x != c /\ next(y) == z => (lseg(x, z) /\ list(z)))
-    Lemmas: list(x) => lseg(y, y) -- not needed
-            lseg(x, y) => (lseg(y, z) => lseg(x, z))
-    Notes: restricted grammar
-           PFP is provable when x != c removed from theorem
+    Lemmas: lseg(x, y) => (lseg(y, z) => lseg(x, z))

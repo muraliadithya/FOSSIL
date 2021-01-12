@@ -70,4 +70,29 @@
             slseg(x, y) => (slist(y) => slist(x))
 
 14. Theorem: lseg(x, y) => (list(y) /\ x != c /\ next(y) == z => (lseg(x, z) /\ list(z)))
-    Lemmas: lseg(x, y) => (lseg(y, z) => lseg(x, z))
+    Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
+
+15. Theorem: lseg(x, y) => (key(x) != k /\ lseg(y, z) => lseg(x, z))
+    Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
+
+16. Theorem: lseg(x, y) => (key(x) != k /\ lseg(x, z) => lseg(y, z) \/ lseg(z, y))
+    Lemma: lseg(x, y) => (lseg(x, z) => lseg(y, z) \/ lseg(z, y))
+
+17. Theorem: bst(x) => ((x != nil /\ y \in hbst(lft(x)) /\ z \in hbst(rght(x))) => key(y) <= key(z))
+    Lemmas: bst(x) => (y \in hbst(x) => key(y) <= max(x))
+            bst(x) => (y \in hbst(x) => min(x) <= key(y))
+
+18. Theorem: bst(x) => ((x != nil /\ k \in keys(x) /\ k < keys(x)) => k \in keys(lft(x)))
+    Lemma: bst(x) => ((x != nil /\ k \in keys(x)) => min(x) <= k /\ k <= max(x))
+
+19. Theorem: bst(x) => ((x != nil /\ k \in keys(x) /\ k > keys(x)) => k \in keys(rght(x)))
+    Lemma: bst(x) => ((x != nil /\ k \in keys(x)) => min(x) <= k /\ k <= max(x))
+
+20. Theorem: lseg(x,y) => ((key(x) != k /\ n(y) = z) => lseg(x,z))
+    Lemma: lseg(x,y) => (n(y) = z => lseg(x,z))
+
+21. Theorem: lst(x) => ((y != nil /\ lseg(x,y)) => k \in keys(x))
+    Lemma: lseg(x,y) => ((y != nil /\ lst(x)) => k \in keys(x))
+
+22. Theorem: lseg(x,y) => ((x != nil /\ y != nil /\ lst(x)) => k \in keys(x))
+    Lemma: lseg(x,y) => ((y != nil /\ lst(x)) => k \in keys(x))

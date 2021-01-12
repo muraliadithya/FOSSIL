@@ -1,0 +1,26 @@
+(synth-fun lemma ((x Int) (y Int) (zero Int)) Bool
+
+           ((Start Bool) (B1 Bool) (I Int) (I1 Int) (I2 Int))
+
+           ((Start Bool (B1
+                   (=> B1 B1)
+                   (and B1 B1)))
+            (B1 Bool ((= I I)
+                     (nat I2)))
+            (I Int (I1
+                   (plus I1 I1)
+                   (succ I1)))
+            (I1 Int (I2
+                    (plus I2 I2)
+                    (succ I2)))
+            (I2 Int (x y zero)))
+
+)
+
+(synth-fun rswitch () Int
+
+           ((Start Int))
+
+           ((Start Int (0)))
+
+)

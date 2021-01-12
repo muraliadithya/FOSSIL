@@ -96,3 +96,12 @@
 
 22. Theorem: lseg(x,y) => ((x != nil /\ y != nil /\ lst(x)) => k \in keys(x))
     Lemma: lseg(x,y) => ((y != nil /\ lst(x)) => k \in keys(x))
+
+23. Theorem: rlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+    Lemma: rlst(x) => dlst(x)
+
+24. Theorem: odd_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+    Lemma: odd_lst(x) => lst(x)
+
+25. Theorem: even_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+    Lemma: even_lst(x) => lst(x)

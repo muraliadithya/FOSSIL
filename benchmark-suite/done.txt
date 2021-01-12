@@ -100,8 +100,16 @@
 23. Theorem: rlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
     Lemma: rlst(x) => dlst(x)
 
-24. Theorem: odd_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+24. Theorem: rlst(x) => (black(x) => red_height(x) == black_height(x))
+    Lemma: rlst(x) => ((black(x) => red_height(x) == black_height(x)) /\
+                       (red(x) => red_height(x) == 1 + black_height(x)))
+
+25. Theorem: rlst(x) => (red(x) => red_height(x) == 1 + black_height(x))
+    Lemma: rlst(x) => ((black(x) => red_height(x) == black_height(x)) /\
+                       (red(x) => red_height(x) == 1 + black_height(x)))
+
+26. Theorem: odd_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
     Lemma: odd_lst(x) => lst(x)
 
-25. Theorem: even_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+27. Theorem: even_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
     Lemma: even_lst(x) => lst(x)

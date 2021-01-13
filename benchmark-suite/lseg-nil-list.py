@@ -52,3 +52,13 @@ if not solution.if_sat:
     print('goal (with lemmas) is valid')
 else:
     print('goal (with lemmas) is invalid')
+
+# lemma synthesis
+v1, v2 = Vars('v1 v2', fgsort)
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, nil, nxt(nil), v2, nxt(v2), nxt(v1), nxt(nxt(v1)), nxt(nxt(nxt(v1)))}
+
+name = 'lseg-nil-list'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

@@ -1,18 +1,23 @@
 1. Theorem: dlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
    Lemma: dlst(x) => lst(x)
+   SyGuS synthesis: 0.9
 
 2. Theorem: slst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
    Lemma: slst(x) => lst(x)
+   SyGuS synthesis: 0.87
 
 3. Theorem: sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret))
    Lemma: sdlst(x) => dlst(x)
+   SyGuS synthesis: 1.13
 
 4. Theorem: sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret) /\ slst(ret))
    Lemmas: sdlst(x) => dlst(x)
            sdlst(x) => slst(x)
+   SyGuS synthesis: 2.64
 
 5. Theorem: listlen(x, l) => (If(l == 1, ret == x, ret == nxt(x)), list(x))
    Lemmas: listlen(x, l) => list(x)
+   SyGuS synthesis: 0.81
 
 6. {v1 = v2}
    while (v1 != nil) do
@@ -64,16 +69,20 @@
 
 12. Theorem: lseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => list(ret)))
     Lemma: lseg(x, y) => (list(y) => list(x))
+    SyGuS synthesis: 12.92
 
 13. Theorem: slseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => slist(ret)))
     Lemmas: slseg(x, y) => slist(x) == slist(y) -- not needed
             slseg(x, y) => (slist(y) => slist(x))
+    SyGuS synthesis: 9.94
 
 14. Theorem: lseg(x, y) => (list(y) /\ x != c /\ next(y) == z => (lseg(x, z) /\ list(z)))
     Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
+    SyGuS synthesis: 610.28 (large grammar restriction)
 
 15. Theorem: lseg(x, y) => (key(x) != k /\ lseg(y, z) => lseg(x, z))
     Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
+    SyGuS synthesis: 1785.46 (large grammar restriction)
 
 16. Theorem: lseg(x, y) => (key(x) != k /\ lseg(x, z) => lseg(y, z) \/ lseg(z, y))
     Lemma: lseg(x, y) => (lseg(x, z) => lseg(y, z) \/ lseg(z, y))
@@ -81,6 +90,7 @@
 17. Theorem: bst(x) => ((x != nil /\ y \in hbst(lft(x)) /\ z \in hbst(rght(x))) => key(y) <= key(z))
     Lemmas: bst(x) => (y \in hbst(x) => key(y) <= max(x))
             bst(x) => (y \in hbst(x) => min(x) <= key(y))
+    SyGuS synthesis: Lemmas not proposed, only 23 lemmas proposed in >1 hr with restricted grammar
 
 18. Theorem: bst(x) => ((x != nil /\ k \in keys(x) /\ k < keys(x)) => k \in keys(lft(x)))
     Lemma: bst(x) => ((x != nil /\ k \in keys(x)) => min(x) <= k /\ k <= max(x))
@@ -90,6 +100,7 @@
 
 20. Theorem: lseg(x,y) => ((key(x) != k /\ n(y) = z) => lseg(x,z))
     Lemma: lseg(x,y) => (n(y) = z => lseg(x,z))
+    SyGuS synthesis: 37.91, different proposed lemma: lseg(x, y) => lseg(n(x), n(y))
 
 21. Theorem: lst(x) => ((y != nil /\ lseg(x,y)) => k \in keys(x))
     Lemma: lseg(x,y) => ((y != nil /\ lst(x)) => k \in keys(x))
@@ -98,7 +109,8 @@
     Lemma: lseg(x,y) => ((y != nil /\ lst(x)) => k \in keys(x))
 
 23. Theorem: rlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
-    Lemma: rlst(x) => dlst(x)
+    Lemma: rlst(x) => lst(x)
+    SyGuS synthesis: 0.86
 
 24. Theorem: rlst(x) => (black(x) => red_height(x) == black_height(x))
     Lemma: rlst(x) => ((black(x) => red_height(x) == black_height(x)) /\
@@ -110,6 +122,8 @@
 
 26. Theorem: odd_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
     Lemma: odd_lst(x) => lst(x)
+    SyGuS synthesis: 1.53
 
 27. Theorem: even_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
     Lemma: even_lst(x) => lst(x)
+    SyGuS synthesis: 0.93

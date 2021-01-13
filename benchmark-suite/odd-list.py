@@ -17,8 +17,8 @@ x = Var('x', fgsort)
 nil, ret = Consts('nil ret', fgsort)
 nxt = Function('nxt', fgsort, fgsort)
 lst = RecFunction('lst', fgsort, boolsort)
-odd_lst = RecFunction('red_lst', fgsort, boolsort)
-even_lst = RecFunction('black_lst', fgsort, boolsort)
+odd_lst = RecFunction('odd_lst', fgsort, boolsort)
+even_lst = RecFunction('even_lst', fgsort, boolsort)
 AddRecDefinition(lst, x, If(x == nil, True, lst(nxt(x))))
 AddRecDefinition(even_lst, x, If(x == nil, True,
                                 If(nxt(x) == nil, False,
@@ -58,3 +58,13 @@ if not solution.if_sat:
     print('goal (with lemmas) is valid')
 else:
     print('goal (with lemmas) is invalid')
+
+# lemma synthesis
+v = Var('v', fgsort)
+lemma_grammar_args = [v, nil]
+lemma_grammar_terms = {v, nil}
+
+name = 'odd-list'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

@@ -8,10 +8,8 @@
             (B1 Bool ((= I I)
                      (nat I2)))
             (I Int (I1
-                   (plus I1 I1)
-                   (succ I1)))
+                   (plus I1 I1)))
             (I1 Int (I2
-                    (plus I2 I2)
                     (succ I2)))
             (I2 Int (x y zero)))
 

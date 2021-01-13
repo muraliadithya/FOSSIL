@@ -54,14 +54,14 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         exit(0)
 
     # check if goal is fo provable using its own pfp
-    pfp_of_goal = make_pfp_formula(goal)
-    goal_pfp_solver = NPSolver()
-    goal_pfp_npsolution = goal_pfp_solver.solve(pfp_of_goal)
-    if goal_pfp_npsolution.if_sat:
-        print('goal cannot be proved using induction.')
-    else:
-        print('goal is provable using induction.')
-        exit(0)
+    # pfp_of_goal = make_pfp_formula(goal)
+    # goal_pfp_solver = NPSolver()
+    # goal_pfp_npsolution = goal_pfp_solver.solve(pfp_of_goal)
+    # if goal_pfp_npsolution.if_sat:
+    #     print('goal cannot be proved using induction.')
+    # else:
+    #     print('goal is provable using induction.')
+    #     exit(0)
 
     # Extract relevant instantiation/extraction terms given the grammar
     lemma_instantiation_terms = grammar.lemma_instantiation_terms(lemma_grammar_args, lemma_grammar_terms, annctx)
@@ -69,7 +69,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     # Specific to depth_one_untracked_lemma_instantitation_mode because it can be reused
     goal_npsolution_instantiation_terms = goal_fo_npsolution.extraction_terms
     config_params['goal_npsolution_instantiation_terms'] = goal_npsolution_instantiation_terms
-    goal_extraction_terms = grammar.goal_extraction_terms(goal_npsolution_instantiation_terms, lemma_grammar_args, lemma_grammar_terms, annctx)
+    # goal_extraction_terms = grammar.goal_extraction_terms(goal_npsolution_instantiation_terms, lemma_grammar_args, lemma_grammar_terms, annctx)
+    goal_extraction_terms = goal_fo_npsolution.extraction_terms
     config_params['goal_extraction_terms'] = goal_extraction_terms
 
     # continuously get valid lemmas until goal has been proven

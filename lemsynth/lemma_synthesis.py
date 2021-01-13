@@ -191,7 +191,16 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
     out_file = '{}/out_{}.sy'.format(options.log_file_path, problem_instance_name)
 
     goal_fo_solver = NPSolver()
-    goal_fo_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
+    goal_instantiation_mode = config_params.get('goal_instantiation_mode_override', None)
+    if goal_instantiation_mode is None:
+        goal_fo_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
+    elif goal_instantiation_mode == proveroptions.manual_instantiation:
+        goal_terms_to_instantiate = config_params.get('goal_instantiation_terms', None)
+        if goal_terms_to_instantiate is None:
+            raise ValueError('Manual instantiation mode override for goal. '
+                             'config_params must have a \'goal_instantiation_terms\' field.')
+        goal_fo_solver.options.terms_to_instantiate = goal_terms_to_instantiate
+
     goal_npsolution = goal_fo_solver.solve(goal, lemmas)
     if not goal_npsolution.if_sat:
         # Lemmas generated up to this point are useful. Exit.

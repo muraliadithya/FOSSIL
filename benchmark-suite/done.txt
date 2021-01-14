@@ -26,6 +26,7 @@
    endwhile
    {v2 = nil \/ v2 = c}
    Lemma: reach(x) => v2(x) == v1(x) \/ v2(x) == c)
+   SyGuS synthesis: 3559.52
 
 7. {v1 = v2}
    while (v1 != nil) do
@@ -34,6 +35,7 @@
    endwhile
    {v2 = nil}
    Lemma: reach(x) => v2(x) == v1(x)
+   SyGuS synthesis: 11.94
 
 8. {v1 = v2}
    while (v1 != c) do
@@ -42,6 +44,7 @@
    endwhile
    {v2 = nil \/ v2 = c}
    Lemma: reach(x) => v2(x) == v1(x)
+   SyGuS synthesis: 59.65
 
 9. {v1 = v2}
    while (v1 != c) do
@@ -50,6 +53,7 @@
    endwhile
    {v2 = nil}
    Lemma: reach(x) => v2(x) == v1(x)
+   SyGuS synthesis: 15.03
 
 10. {v1 = n(v2)}
     while (v1 != nil) do
@@ -58,6 +62,7 @@
     endwhile
     {n(v2) = nil \/ v2 = c}
     Lemma: reach(x) => n(v2(x)) == v1(x) \/ v2(x) == c)
+    SyGuS synthesis: 2042.69
 
 11. {v1 = n(v2)}
     while (v1 != nil) do
@@ -66,6 +71,7 @@
     endwhile
     {n(v2) = nil}
     Lemma: reach(x) => n(v2(x)) == v1(x)
+    SyGuS synthesis: 91.67
 
 12. Theorem: lseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => list(ret)))
     Lemma: lseg(x, y) => (list(y) => list(x))

@@ -17,7 +17,6 @@ from naturalproofs.extensions.finitemodel import recover_value
 from naturalproofs.extensions.finitemodel import FiniteModel
 from naturalproofs.decl_api import get_vocabulary, is_var_decl
 
-from constraint_solver.lem_syn import replace_grammars
 
 # Add constraints from each model into the given solver
 # Look through model's function entries and adds each input-output constraint
@@ -319,7 +318,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
             return lemmas
     else:
         if options.constraint_based_solver == 'on':
-            proc = subprocess.Popen('python3 constraint_solver/engine.py {} -p'.format(out_file),
+            proc = subprocess.Popen('python3 -m minisy.minisy {}'.format(out_file),
                                     shell=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, universal_newlines=True)
             engine_out, err = proc.communicate()

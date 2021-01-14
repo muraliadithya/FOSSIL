@@ -74,12 +74,12 @@
     SyGuS synthesis: 91.67
 
 12. Theorem: lseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => list(ret)))
-    Lemma: lseg(x, y) => (list(y) => list(x))
+    Lemma: lseg(x, y) => (list(y) == list(x))
     SyGuS synthesis: 12.92
 
 13. Theorem: slseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => slist(ret)))
-    Lemmas: slseg(x, y) => slist(x) == slist(y) -- not needed
-            slseg(x, y) => (slist(y) => slist(x))
+    Lemma checked: slseg(x, y) => (slist(x) == slist(y))
+    Lemma synthesized slseg(x, y) => (slist(y) => slist(x))
     SyGuS synthesis: 9.94
 
 14. Theorem: lseg(x, y) => (list(y) /\ x != c /\ next(y) == z => (lseg(x, z) /\ list(z)))
@@ -133,3 +133,7 @@
 27. Theorem: even_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
     Lemma: even_lst(x) => lst(x)
     SyGuS synthesis: 0.93
+
+28. Theorem: lst(x) => (key(x) != k /\ y \in hlst(x) => lst(y))
+    Lemma: lst(x) => (y \in hlst(x) => lst(y))
+    SyGuS synthesis: 2.41

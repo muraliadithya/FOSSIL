@@ -2,29 +2,32 @@ import importlib_resources
 
 import z3
 from z3 import And, Or, Not, Implies, If
-from z3 import IsSubset, Union, SetIntersect, SetComplement, SetAdd, EmptySet, IsMember
+from z3 import IsMember, IsSubset, SetUnion, SetIntersect, SetComplement, EmptySet, SetAdd
 
-from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
-from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
 from naturalproofs.prover import NPSolver
+from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
+from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
 from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
 # declarations
 x, y = Vars('x y', fgsort)
-nil = Const('nil', fgsort)
+nil, ret = Consts('nil ret', fgsort)
 k = Const('k', intsort)
-nxt = Function('nxt', fgsort, fgsort)
 key = Function('key', fgsort, intsort)
-lst = RecFunction('lst', fgsort, boolsort)
-hlst = RecFunction('hlst', fgsort, fgsetsort)
-AddRecDefinition(lst, x, If(x == nil, True, lst(nxt(x))))
-AddRecDefinition(hlst, x, If(x == nil, fgsetsort.lattice_bottom, SetAdd(hlst(nxt(x)), x)))
-AddAxiom((), nxt(nil) == nil)
+lft = Function('lft', fgsort, fgsort)
+rght = Function('rght', fgsort, fgsort)
+dag = RecFunction('dag', fgsort, boolsort)
+reach = RecFunction('reach', fgsort, fgsort, boolsort)
+AddRecDefinition(dag, x, If(x == nil, True, And(dag(lft(x)), dag(rght(x)))))
+AddRecDefinition(reach, (x, y), If(x == y, True,
+                                   Or(reach(lft(x), y), reach(rght(x), y))))
+AddAxiom((), lft(nil) == nil)
+AddAxiom((), rght(nil) == nil)
 
 # vc
-goal = Implies(lst(x), Implies(key(x) != k, Implies(IsMember(y, hlst(x)), lst(y))))
+goal = Implies(reach(x, y), Implies(And(key(x) != k, dag(x)), dag(y)))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -34,9 +37,9 @@ if not solution.if_sat:
 else:
     print('goal (no lemmas) is invalid')
 
-# hardcoded lemma
+# hardcoded lemmas
 lemma_params = (x,y)
-lemma_body = Implies(lst(x), Implies(IsMember(y, hlst(x)), lst(y)))
+lemma_body = Implies(reach(x, y), Implies(dag(x), dag(y)))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas
@@ -55,10 +58,10 @@ else:
 
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
-lemma_grammar_args = [v1, v2, nil]
-lemma_grammar_terms = {v1, v2, nil}
+lemma_grammar_args = [v1, v2]
+lemma_grammar_terms = {lft(rght(v1)), lft(lft(v2)), lft(lft(v1)), lft(rght(nil)), lft(rght(v2)), lft(lft(nil))}
 
-name = 'list-hlist-list'
+name = 'dag-reach'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

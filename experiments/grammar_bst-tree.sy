@@ -10,8 +10,8 @@
                    (not Start)
                    (bst I) (tree I)))
             (I Int (x nil
-                   (left I)
-                   (right I)
+                   (lft I)
+                   (rght I)
                    (key I))))
 
 )

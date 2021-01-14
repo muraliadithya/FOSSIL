@@ -12,19 +12,19 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 # declarations
-x, y = Vars('x y', fgsort)
-nil = Const('nil', fgsort)
+x = Var('x', fgsort)
+nil, ret = Consts('nil ret', fgsort)
 k = Const('k', intsort)
 key = Function('key', fgsort, intsort)
-keys = Function('keys', fgsort, intsetsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
+tree = RecFunction('tree', fgsort, boolsort)
 minr = RecFunction('minr', fgsort, intsort)
 maxr = RecFunction('maxr', fgsort, intsort)
 bst = RecFunction('bst', fgsort, boolsort)
-hbst = RecFunction('hbst', fgsort, fgsetsort)
 AddRecDefinition(minr, x, If(x == nil, 100, min_intsort(key(x), minr(lft(x)), minr(rght(x)))))
 AddRecDefinition(maxr, x, If(x == nil, -1, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
+AddRecDefinition(tree, x, If(x == nil, True, And(tree(lft(x)), tree(rght(x)))))
 AddRecDefinition(bst, x, If(x == nil, True,
                             And(0 < key(x),
                                 And(key(x) < 100,
@@ -32,20 +32,12 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
                                                 key(x) <= minr(rght(x)))))))))
-AddRecDefinition(keys, x, If(x == nil, fgsetsort.lattice_bottom,
-                             SetAdd(SetUnion(keys(lft(x)), keys(rght(x))), key(x))))
-AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
-                             SetAdd(SetUnion(hbst(lft(x)), hbst(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
-# problem parameters
-goal = Implies(bst(x), Implies(And(x != nil,
-                                   And(bst(y),
-                                       And(y != nil,
-                                           And(IsMember(k, keys(x)) == IsMember(k, keys(y)),
-                                               And(IsMember(y, hbst(x)), k < key(y)))))),
-                               IsMember(k, keys(x)) == IsMember(k, keys(lft(y)))))
+# vc
+pgm = If(x == nil, ret == nil, ret == lft(x))
+goal = Implies(bst(x), Implies(pgm, tree(ret)))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -55,9 +47,9 @@ if not solution.if_sat:
 else:
     print('goal (no lemmas) is invalid')
 
-# hardcoded lemma
+# hardcoded lemmas
 lemma_params = (x,)
-lemma_body = Implies(bst(x), Implies(IsMember(k, keys(x)), minr(x) <= k))
+lemma_body = Implies(bst(x), tree(x))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas
@@ -68,9 +60,18 @@ else:
     print('lemma is invalid')
 
 # check validity with natural proof solver and hardcoded lemmas
-# TODO: lemma is not sufficient
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
     print('goal (with lemmas) is valid')
 else:
     print('goal (with lemmas) is invalid')
+
+# lemma synthesis
+v = Var('v', fgsort)
+lemma_grammar_args = [v, nil]
+lemma_grammar_terms = {v, nil}
+
+name = 'bst-tree'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

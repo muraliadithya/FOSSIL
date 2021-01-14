@@ -137,3 +137,19 @@
 28. Theorem: lst(x) => (key(x) != k /\ y \in hlst(x) => lst(y))
     Lemma: lst(x) => (y \in hlst(x) => lst(y))
     SyGuS synthesis: 2.41
+
+29. Theorem: lst(x) => (key(x) != k /\ y \in hlst(x) => lseg(x,y))
+    Lemma: lst(x) => (y \in hlst(x) => lseg(x,y))
+    SyGuS synthesis: 17.97 (restricted grammar)
+
+30. Theorem: bst(x) => (If(x == nil, ret == nil, ret == lft(x)) => tree(ret))
+    Lemma: bst(x) => tree(x)
+    SyGuS synthesis: 1.99
+
+31. Theorem: reach(x,y) => (tree(x) /\ key(x) != k => tree(y))
+    Lemma: reach(x,y) => (tree(x) => tree(y))
+    SyGuS synthesis: 24.16 (restricted grammar)
+
+31. Theorem: reach(x,y) => (dag(x) /\ key(x) != k => dag(y))
+    Lemma: reach(x,y) => (dag(x) => dag(y))
+    SyGuS synthesis: 552.81 (restricted grammar)

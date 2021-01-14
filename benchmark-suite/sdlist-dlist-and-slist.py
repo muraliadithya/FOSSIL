@@ -74,7 +74,7 @@ else:
 # lemma synthesis
 v = Var('v', fgsort)
 lemma_grammar_args = [v, nil]
-lemma_grammar_terms = {v, nil, nxt(v), prv(nxt(v))}
+lemma_grammar_terms = {v, nil, nxt(v), prv(nxt(v)), prv(nil), prv(v)}
 
 name = 'sdlist-dlist-and-slist'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

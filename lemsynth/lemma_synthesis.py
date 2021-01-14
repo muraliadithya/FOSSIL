@@ -322,7 +322,8 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
                                     shell=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, universal_newlines=True)
             engine_out, err = proc.communicate()
-            lemma = str(engine_out).split('\n')[:-1]
+            lemma = engine_out.split('\n\n')[1:][:-1]
+            lemma = [ i.replace('\n',' ')[:-2] + ')' for i in lemma ]
             return lemma
         else:
             proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file],

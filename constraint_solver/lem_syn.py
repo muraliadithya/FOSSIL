@@ -304,7 +304,7 @@ class grammar():
             lem = self.lemma
         if ind:
             lem = indent(lem)
-        out_lem = '(define-fun {} ({}) {}\n{})'.format(
+        out_lem = '(define-fun {} ({}) {} {})'.format(
             self.lemma_name,
             ' '.join(['({} {})'.format(arg, self.arguments[arg])
                       for arg in self.arguments]),

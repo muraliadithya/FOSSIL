@@ -12,9 +12,6 @@ if args:
     proc = subprocess.Popen('cvc4 {} -m --lang=smt2'.format(smt_file), shell=True,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
     cvc4_out, err = proc.communicate()
-    if p:
-        print('runtime: {:.2f}s'.format(time.time()-start))
-        print(cvc4_out)
     if cvc4_out == '':
         if p:
             print(err)
@@ -26,9 +23,7 @@ if args:
                 if 'define-fun' in line:
                     line = line.split(' ')
                     model[line[1]] = line[4][:-1] == 'true'
-            print('sat\n')
             for G in grammars:
-                G.print_lemma(model=model, ind=True)
-                print('')
+                print(G.get_lemma(model=model, ind=False))
         else:
             print('unsat')

@@ -17,8 +17,7 @@ from naturalproofs.extensions.finitemodel import recover_value
 from naturalproofs.extensions.finitemodel import FiniteModel
 from naturalproofs.decl_api import get_vocabulary, is_var_decl
 
-from  constraint_solver.lem_syn import replace_grammars
-
+from constraint_solver.lem_syn import replace_grammars
 
 # Add constraints from each model into the given solver
 # Look through model's function entries and adds each input-output constraint
@@ -320,33 +319,16 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
             return lemmas
     else:
         if options.constraint_based_solver == 'on':
-            grammars, smt_file = replace_grammars(out_file)
-            proc = subprocess.Popen('cvc4 {} -m --lang=smt2'.format(smt_file), shell=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-            cvc4_out, err = proc.communicate()
-            if cvc4_out == '':
-                print(err)
-                return None
-            else:
-                cvc4_lines = cvc4_out.split('\n')
-                if cvc4_lines[0] == 'sat':
-                    model = {}
-                    for line in cvc4_lines:
-                        if 'define-fun' in line:
-                            line = line.split(' ')
-                            model[line[1]] = line[4][:-1] == 'true'
-                    lemma = []
-                    for G in grammars:
-                        curr = G.get_lemma(model=model, ind=True)
-                        curr = curr.replace('\n', ' ')
-                        curr = curr[:-2] + ')'
-                        lemma += [ curr ]
-                    return lemma
-                else:
-                    print('unsat')
-                    return None
+            proc = subprocess.Popen('python3 constraint_solver/engine.py {} -p'.format(out_file),
+                                    shell=True, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, universal_newlines=True)
+            engine_out, err = proc.communicate()
+            lemma = str(engine_out).split('\n')[:-1]
+            return lemma
         else:
-            proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    universal_newlines=True)
             cvc4_out, err = proc.communicate()
             if cvc4_out == '':
                 print(err)

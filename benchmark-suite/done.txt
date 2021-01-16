@@ -150,6 +150,19 @@
     Lemma: reach(x,y) => (tree(x) => tree(y))
     SyGuS synthesis: 24.16 (restricted grammar)
 
-31. Theorem: reach(x,y) => (dag(x) /\ key(x) != k => dag(y))
+32. Theorem: reach(x,y) => (dag(x) /\ key(x) != k => dag(y))
     Lemma: reach(x,y) => (dag(x) => dag(y))
     SyGuS synthesis: 552.81 (restricted grammar)
+
+33. Theorem: tree(x) => (reach(x,y) => tree(y))
+    Lemma: reach(x,y) => (tree(x) => tree(y))
+    SyGuS synthesis: 24.16 (restricted grammar)
+
+34. Theorem: dag(x) => (reach(x,y) => dag(y))
+    Lemma: reach(x,y) => (dag(x) => dag(y))
+    SyGuS synthesis: 552.81 (restricted grammar)
+
+35. Theorem: reach(x,y) => (x != nil /\ y != nil /\ reach(lft(x), y) /\ reach(rght(x), z)
+                           => y != z)
+    Lemma: reach(x,y) => (y != nil => y \in htree(x))
+    SyGuS synthesis: lemma not proposed after >1 hr

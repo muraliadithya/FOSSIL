@@ -51,7 +51,7 @@ def translateSet(s, fct_range):
         else:
             val = str(i)
         out += '(insert ' + val + ' '
-    out += '(as emptyset (' + fct_range + '))'
+    out += 'empIntSet'
     for i in s:
         out += ')'
     return out
@@ -91,7 +91,7 @@ def translateModelsSets(models, set_defs):
                 set_translate = translateSet(model[fct_name][elt], fct_range)
                 curr_model_body += '  (ite (and ' + args + ') ' + set_translate + '\n'
             body += curr_model_body
-        body += '  (as emptyset (' + fct_range + '))'
+        body += '  empIntSet'
         for model in models:
             for elt in model[fct_name]:
                 body += ')'
@@ -182,6 +182,15 @@ def generateAllCexConstraints(models, lemma_args, annctx):
         out = out + generateCexConstraints(model, lemma_args, annctx)
     return out
 
+# preamble for running with z3 (using arrays instead of sets)
+def z3Preamble():
+    insert_def = '(define-fun insert ((x Int) (y (Array Int Bool))) (Array Int Bool)\n'
+    insert_def += '(store y x true)\n)'
+    member_def = '(define-fun member ((x Int) (y (Array Int Bool))) Bool\n'
+    member_def += '(select y x)\n)'
+    empset_def = '(define-fun empIntSet () (Array Int Bool)\n'
+    empset_def += '((as const (Array Int Bool)) false)\n)'
+    return insert_def + '\n' + member_def + '\n' + empset_def
 
 # write output to a file that can be parsed by CVC4 SyGuS
 def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
@@ -266,7 +275,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
 
     sygus_model_definitions = sygusBigModelEncoding(all_models, vocab, set_defs, annctx)
     with open(out_file, 'w') as out:
-        out.write('(set-logic ALL)')
+        out.write(z3Preamble())
         out.write('\n')
         out.write(';; combination of true models and false model\n')
         out.write(sygus_model_definitions)
@@ -318,7 +327,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
             return lemmas
     else:
         if options.constraint_based_solver == 'on':
-            proc = subprocess.Popen('minisy {} --smtsolver=cvc4'.format(out_file),
+            proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file),
                                     shell=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, universal_newlines=True)
             out, err = proc.communicate()

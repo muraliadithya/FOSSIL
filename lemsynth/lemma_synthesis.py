@@ -318,13 +318,26 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
             return lemmas
     else:
         if options.constraint_based_solver == 'on':
-            proc = subprocess.Popen('python3 -m minisy.minisy {}'.format(out_file),
+            proc = subprocess.Popen('minisy {} --smtsolver=cvc4'.format(out_file),
                                     shell=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, universal_newlines=True)
-            engine_out, err = proc.communicate()
-            lemma = engine_out.split('\n\n')[1:][:-1]
-            lemma = [ i.replace('\n',' ')[:-2] + ')' for i in lemma ]
-            return lemma
+            out, err = proc.communicate()
+            # Convert output to string
+            out, err = str(out), str(err)
+            # print('out:{} err:{}'.format(out, err))
+            if out == '':
+                print(err)
+                return None
+            satisfiability = out.split('\n')[0]
+            if satisfiability in {'unsat', 'unknown'}:
+                print('Synthesis solver returns {}. Exiting.'.format(satisfiability))
+                return None
+            else:
+                # Post processing
+                synth_results = '\n'.join(out.split('\n')[1:])
+                synth_results = ['(define-fun' + res for res in synth_results.split('(define-fun')[1:]]
+                synth_results = [' '.join([part for part in res.split('\n') if part != '']) for res in synth_results]
+                return synth_results
         else:
             proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file],
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,

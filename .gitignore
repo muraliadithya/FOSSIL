@@ -3,3 +3,5 @@
 **/logs/*
 **/*_KLemmas.txt
 .idea/**
+minisy/**
+mini-sygus/**

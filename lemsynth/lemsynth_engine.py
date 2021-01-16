@@ -88,7 +88,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
         # testing translation of lemma
         rhs_lemma = translateLemma(lemma[0], lemma_grammar_args, addl_decls, swap_fcts, replace_fcts, annctx)
-        index = int(lemma[1][-2])
+        index = int(lemma[1].split(' ')[-2])
         recs = get_boolean_recursive_definitions()
         lhs = recs[index]
         lhs_arity = lhs.arity()

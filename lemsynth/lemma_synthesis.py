@@ -51,7 +51,10 @@ def translateSet(s, fct_range):
         else:
             val = str(i)
         out += '(insert ' + val + ' '
-    out += 'empIntSet'
+    if options.constraint_based_solver == 'on':
+        out += 'empIntSet'
+    else:
+        out += '(as emptyset (' + fct_range + '))'
     for i in s:
         out += ')'
     return out
@@ -91,7 +94,10 @@ def translateModelsSets(models, set_defs):
                 set_translate = translateSet(model[fct_name][elt], fct_range)
                 curr_model_body += '  (ite (and ' + args + ') ' + set_translate + '\n'
             body += curr_model_body
-        body += '  empIntSet'
+        if options.constraint_based_solver == 'on':
+            body += '  empIntSet'
+        else:
+            body += '  (as emptyset (' + fct_range + '))'
         for model in models:
             for elt in model[fct_name]:
                 body += ')'
@@ -190,7 +196,7 @@ def z3Preamble():
     member_def += '(select y x)\n)'
     empset_def = '(define-fun empIntSet () (Array Int Bool)\n'
     empset_def += '((as const (Array Int Bool)) false)\n)'
-    return insert_def + '\n' + member_def + '\n' + empset_def
+    return insert_def + '\n' + member_def + '\n' + empset_def + '\n'
 
 # write output to a file that can be parsed by CVC4 SyGuS
 def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
@@ -275,8 +281,9 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
 
     sygus_model_definitions = sygusBigModelEncoding(all_models, vocab, set_defs, annctx)
     with open(out_file, 'w') as out:
-        out.write(z3Preamble())
-        out.write('\n')
+        if options.constraint_based_solver == 'on':
+            out.write(z3Preamble())
+            out.write('\n')
         out.write(';; combination of true models and false model\n')
         out.write(sygus_model_definitions)
         out.write('\n\n')
@@ -360,4 +367,5 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
                 return None
             else:
                 lemma = str(cvc4_out).split('\n')[1:][:-1]
-                return lemma
+                synth_results = [ res[:-1] + ' )' for res in lemma ]
+                return synth_results

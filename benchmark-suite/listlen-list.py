@@ -58,7 +58,7 @@ else:
 # lemma synthesis
 v = Var('v', fgsort)
 lemma_grammar_args = [v, nil]
-lemma_grammar_terms = {v, nil}
+lemma_grammar_terms = {v, nil, nxt(nil)}
 
 name = 'listlen-list'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

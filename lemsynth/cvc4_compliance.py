@@ -14,6 +14,6 @@ def cvc4_complicant_formula_sexpr(formula):
     formula_sexpr = trans_expr.sexpr()
     # Replace occurrences of string corresponding to the emptyset in z3 with the one in cvc4 
     z3_emptyset_str = '((as const (Array Int Bool)) false)'
-    cvc4_emptyset_str = '(as emptyset (Set Int) )'
+    cvc4_emptyset_str = 'empIntSet'
     new_formula_sexpr = formula_sexpr.replace(z3_emptyset_str, cvc4_emptyset_str)
     return new_formula_sexpr

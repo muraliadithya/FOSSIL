@@ -1,23 +1,28 @@
 1. Theorem: dlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
    Lemma: dlst(x) => lst(x)
-   SyGuS synthesis: 0.9
+   SyGuS synthesis: 0.9s
+   Constraint-based synthesis: 1.42s
 
 2. Theorem: slst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
    Lemma: slst(x) => lst(x)
-   SyGuS synthesis: 0.87
+   SyGuS synthesis: 1.01s
+   Constraint-based synthesis: 1.69s
 
 3. Theorem: sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret))
    Lemma: sdlst(x) => dlst(x)
-   SyGuS synthesis: 1.13
+   SyGuS synthesis: 2.83s
+   Constraint-based synthesis: 3.06s
 
 4. Theorem: sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret) /\ slst(ret))
    Lemmas: sdlst(x) => dlst(x)
            sdlst(x) => slst(x)
-   SyGuS synthesis: 2.64
+   SyGuS synthesis: 3.68s
+   Constraint-based synthesis: 7.29s
 
 5. Theorem: listlen(x, l) => (If(l == 1, ret == x, ret == nxt(x)), list(x))
    Lemmas: listlen(x, l) => list(x)
-   SyGuS synthesis: 0.81
+   SyGuS synthesis: 0.92s
+   Constraint-based synthesis: 1.13s
 
 6. {v1 = v2}
    while (v1 != nil) do
@@ -26,7 +31,8 @@
    endwhile
    {v2 = nil \/ v2 = c}
    Lemma: reach(x) => v2(x) == v1(x) \/ v2(x) == c)
-   SyGuS synthesis: 3559.52
+   SyGuS synthesis: 2961.88s
+   Constraint-based synthesis: 16.26s
 
 7. {v1 = v2}
    while (v1 != nil) do
@@ -35,7 +41,8 @@
    endwhile
    {v2 = nil}
    Lemma: reach(x) => v2(x) == v1(x)
-   SyGuS synthesis: 11.94
+   SyGuS synthesis: 199.06s
+   Constraint-based synthesis: 8.57s
 
 8. {v1 = v2}
    while (v1 != c) do
@@ -44,7 +51,8 @@
    endwhile
    {v2 = nil \/ v2 = c}
    Lemma: reach(x) => v2(x) == v1(x)
-   SyGuS synthesis: 59.65
+   SyGuS synthesis: 626.50s
+   Constraint-based synthesis: 8.32s
 
 9. {v1 = v2}
    while (v1 != c) do
@@ -53,7 +61,8 @@
    endwhile
    {v2 = nil}
    Lemma: reach(x) => v2(x) == v1(x)
-   SyGuS synthesis: 15.03
+   SyGuS synthesis: 298.09s
+   Constraint-based synthesis: 7.24s
 
 10. {v1 = n(v2)}
     while (v1 != nil) do
@@ -62,7 +71,8 @@
     endwhile
     {n(v2) = nil \/ v2 = c}
     Lemma: reach(x) => n(v2(x)) == v1(x) \/ v2(x) == c)
-    SyGuS synthesis: 2042.69
+    SyGuS synthesis: 3898.42s
+    Constraint-based synthesis: 15.89s
 
 11. {v1 = n(v2)}
     while (v1 != nil) do
@@ -71,24 +81,29 @@
     endwhile
     {n(v2) = nil}
     Lemma: reach(x) => n(v2(x)) == v1(x)
-    SyGuS synthesis: 91.67
+    SyGuS synthesis: 234.85s
+    Constraint-based synthesis: 8.55s
 
 12. Theorem: lseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => list(ret)))
     Lemma: lseg(x, y) => (list(y) == list(x))
-    SyGuS synthesis: 12.92
+    SyGuS synthesis: 12.92s
+    Constraint-based synthesis: 16.85s
 
 13. Theorem: slseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => slist(ret)))
     Lemma checked: slseg(x, y) => (slist(x) == slist(y))
     Lemma synthesized slseg(x, y) => (slist(y) => slist(x))
     SyGuS synthesis: 9.94
+    Constraint-based synthesis: 7.99s
 
 14. Theorem: lseg(x, y) => (list(y) /\ x != c /\ next(y) == z => (lseg(x, z) /\ list(z)))
     Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
-    SyGuS synthesis: 610.28 (large grammar restriction)
+    SyGuS synthesis: 901.26s (large grammar restriction)
+    Constraint-based synthesis: 11.67s
 
 15. Theorem: lseg(x, y) => (key(x) != k /\ lseg(y, z) => lseg(x, z))
     Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
-    SyGuS synthesis: 1785.46 (large grammar restriction)
+    SyGuS synthesis: 1711.89s (large grammar restriction)
+    Constraint-based synthesis: 27.33s
 
 16. Theorem: lseg(x, y) => (key(x) != k /\ lseg(x, z) => lseg(y, z) \/ lseg(z, y))
     Lemma: lseg(x, y) => (lseg(x, z) => lseg(y, z) \/ lseg(z, y))
@@ -166,3 +181,4 @@
                            => y != z)
     Lemma: reach(x,y) => (y != nil => y \in htree(x))
     SyGuS synthesis: lemma not proposed after >1 hr
+    Constraint-based synthesis: 1171.51

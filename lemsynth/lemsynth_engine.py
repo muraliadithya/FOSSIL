@@ -98,13 +98,15 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         z3py_lemma_params = tuple([arg for arg in lemma_grammar_args if is_var_decl(arg)])
         z3py_lemma = (z3py_lemma_params, z3py_lemma_body)
 
-        print('proposed lemma: {}'.format(str(z3py_lemma_body)))
+        if options.verbose == 'on':
+            print('proposed lemma: {}'.format(str(z3py_lemma_body)))
         if z3py_lemma in invalid_lemmas or z3py_lemma in valid_lemmas:
-            print('lemma has already been proposed')
+            if options.verbose == 'on':
+                print('lemma has already been proposed')
             if use_cex_models:
                 if z3py_lemma in invalid_lemmas:
-                    print('Something is wrong. Lemmas should not be re-proposed in the presence of countermodels. '
-                          'Exiting.') 
+                    print('Something is wrong. Lemma was re-proposed in the presence of countermodels. '
+                          'Exiting.')
                 if z3py_lemma in valid_lemmas:
                     print('This is a currently known limitation of the tool. Consider restricting your grammar to '
                           'have terms of lesser height.') 
@@ -120,7 +122,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         lemmaprover.options.terms_to_instantiate = lemma_instantiation_terms
         lemma_npsolution = lemmaprover.solve(pfp_lemma, valid_lemmas)
         if lemma_npsolution.if_sat:
-            print('proposed lemma cannot be proved.')
+            if options.verbose == 'on':
+                print('proposed lemma cannot be proved.')
             if options.debug:
                 # Check that the terms needed from the pfp of the proposed lemma do not exceed lemma_grammar_terms.
                 # Otherwise finite model extraction will not work.
@@ -137,6 +140,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 cex_model = FiniteModel(lemma_npsolution.model, extraction_terms, annctx=annctx)
                 cex_models = cex_models + [cex_model]
         else:
+            if options.verbose == 'on':
+                print('proposed lemma was proven.')
             valid_lemmas.add(z3py_lemma)
             # Reset countermodels and invalid lemmas to [] because we have additional information to retry those proofs.
             cex_models = []

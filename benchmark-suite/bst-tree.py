@@ -69,7 +69,7 @@ else:
 # lemma synthesis
 v = Var('v', fgsort)
 lemma_grammar_args = [v, nil]
-lemma_grammar_terms = {v, nil}
+lemma_grammar_terms = {v, nil, lft(lft(v)), lft(rght(v)), rght(nil)}
 
 name = 'bst-tree'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

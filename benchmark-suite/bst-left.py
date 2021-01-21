@@ -52,16 +52,21 @@ else:
 
 # hardcoded lemmas
 lemma_params = (x,)
-lemma_body = Implies(bst(x), Implies(And(IsMember(k, keys(x)), x != nil),
-                                     And(minr(x) <= k, k <= maxr(x))))
-lemmas = {(lemma_params, lemma_body)}
+lemma1_body = Implies(bst(x), Implies(And(IsMember(k, keys(x)), x != nil), minr(x) <= k))
+lemma2_body = Implies(bst(x), Implies(And(IsMember(k, keys(x)), x != nil), k <= maxr(x)))
+lemmas = {(lemma_params, lemma1_body), (lemma_params, lemma2_body)}
 
 # check validity of lemmas
-solution = np_solver.solve(make_pfp_formula(lemma_body))
+solution = np_solver.solve(make_pfp_formula(lemma1_body))
 if not solution.if_sat:
-    print('lemma is valid')
+    print('lemma 1 is valid')
 else:
-    print('lemma is invalid')
+    print('lemma 1 is invalid')
+solution = np_solver.solve(make_pfp_formula(lemma2_body))
+if not solution.if_sat:
+    print('lemma 2 is valid')
+else:
+    print('lemma 2 is invalid')
 
 # check validity with natural proof solver
 np_solver = NPSolver()
@@ -75,3 +80,13 @@ if not solution.if_sat:
     print('goal (with lemmas) is valid')
 else:
     print('goal (with lemmas) is invalid')
+
+# lemma synthesis
+v = Var('v', fgsort)
+lemma_grammar_args = [v, k, nil]
+lemma_grammar_terms = {v, k, nil, rght(rght(v)), rght(lft(v))}
+
+name = 'bst-left'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

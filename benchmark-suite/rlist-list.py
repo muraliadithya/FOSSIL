@@ -66,7 +66,7 @@ else:
 # lemma synthesis
 v = Var('v', fgsort)
 lemma_grammar_args = [v, nil]
-lemma_grammar_terms = {v, nil}
+lemma_grammar_terms = {v, nil, nxt(nil)}
 
 name = 'rlist-list'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

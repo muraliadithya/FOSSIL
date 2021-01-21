@@ -13,8 +13,8 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 # declarations
-x, y, z = Vars('x y z', fgsort)
-nil = Const('nil', fgsort)
+x, y = Vars('x y', fgsort)
+nil, z = Consts('nil z', fgsort)
 k = Const('k', intsort)
 nxt = Function('nxt', fgsort, fgsort)
 lst = RecFunction('lst', fgsort, boolsort)
@@ -53,3 +53,13 @@ if not solution.if_sat:
     print('goal (with lemmas) is valid')
 else:
     print('goal (with lemmas) is invalid')
+
+# lemma synthesis
+v1, v2 = Vars('v1 v2', fgsort)
+lemma_grammar_args = [v1, v2, z]
+lemma_grammar_terms = {v1, v2, z}
+
+name = 'lseg-ext'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

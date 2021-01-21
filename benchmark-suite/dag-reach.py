@@ -59,7 +59,7 @@ else:
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2]
-lemma_grammar_terms = {lft(rght(v1)), lft(lft(v2)), lft(lft(v1)), lft(rght(nil)), lft(rght(v2)), lft(lft(nil))}
+lemma_grammar_terms = {lft(rght(v1)), lft(lft(v2)), lft(lft(v1)), lft(rght(v2))}
 
 name = 'dag-reach'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

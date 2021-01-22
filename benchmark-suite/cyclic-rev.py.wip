@@ -35,6 +35,7 @@ lemmas = {(lemma_params, lemma1_body), (lemma_params, lemma2_body)}
 
 # check validity with natural proof solver
 np_solver = NPSolver()
+np_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
     print('goal is valid')
@@ -42,3 +43,13 @@ else:
     print('goal is invalid')
 
 exit(1)
+
+# lemma synthesis
+v1, v2 = Vars('v1 v2', fgsort)
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, v2, nil, nxt(v2), nxt(nxt(v1)), nxt(nil)}
+
+name = 'cyclic-rev'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

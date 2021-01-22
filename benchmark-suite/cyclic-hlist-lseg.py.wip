@@ -8,6 +8,7 @@ from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
 from naturalproofs.prover import NPSolver
 import naturalproofs.proveroptions as proveroptions
+from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
@@ -27,7 +28,7 @@ AddAxiom((), nxt(nil) == nil)
 
 # Problem parameters
 goal = Implies(cyclic(x),
-               Implies(cyclic(y), SetIntersect(hcyclic(x), hcyclic(y)) == fgsetsort.lattice_bottom),
+               Implies(cyclic(y), SetIntersect(hcyclic(x), hcyclic(y)) != fgsetsort.lattice_bottom),
                And(lseg(x,y), lseg(y,x)))
 
 # hardcoded lemmas
@@ -38,7 +39,8 @@ lemmas = {(lemma_params, lemma_body)}
 
 # check validity with natural proof solver
 np_solver = NPSolver()
-solution = np_solver.solve(goal)
+solution = np_solver.solve(make_pfp_formula(goal))
+
 if not solution.if_sat:
     print('goal is valid')
 else:

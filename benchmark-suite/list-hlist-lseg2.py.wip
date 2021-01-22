@@ -27,7 +27,7 @@ AddAxiom((), nxt(nil) == nil)
 
 # vc
 goal = Implies(lst(x),
-               Implies(lst(y), SetIntersect(hlst(x), hlst(y)) == fgsetsort.lattice_bottom),
+               Implies(lst(y), SetIntersect(hlst(x), hlst(y)) != fgsetsort.lattice_bottom),
                Or(lseg(x,y), lseg(y,x)))
 
 # check validity with natural proof solver and no hardcoded lemmas
@@ -57,12 +57,10 @@ if not solution.if_sat:
 else:
     print('goal (with lemmas) is invalid')
 
-exit(1)
-
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
-lemma_grammar_args = [v1, v2]
-lemma_grammar_terms = {v1, v2, nil}
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, v2, nil, nxt(nxt(v1)), nxt(v2)}
 
 name = 'list-hlist-lseg2'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

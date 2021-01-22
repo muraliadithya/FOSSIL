@@ -1,6 +1,6 @@
 ;; lemma to synthesize
 ;; TODO: must be generated from problem parameters
-(synth-fun lemma ((x Int) (y Int)) Bool
+(synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
            ((Start Bool) (B1 Bool) (Loc Int) (Loc1 Int))
 
            ((Start Bool (B1
@@ -12,7 +12,7 @@
            (Loc Int (Loc1
                 (lft x)
                 (rght x)))
-           (Loc1 Int (x y)))
+           (Loc1 Int (x y nil)))
 )
 
 (synth-fun rswitch () Int

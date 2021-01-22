@@ -8,6 +8,7 @@
                   (=> BLeaf BLeaf)))
            (BLeaf Bool (
                   (lseg Loc Loc)
+                  (lseg_p Loc Loc)
                   (= Loc Loc)))
            (Loc Int (LocLeaf
                     (nxt LocLeaf)))
@@ -16,5 +17,5 @@
 
 (synth-fun rswitch () Int
            ((Start Int))
-           ((Start Int (0)))
+           ((Start Int (0 1)))
 )

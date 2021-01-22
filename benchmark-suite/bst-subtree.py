@@ -74,3 +74,5 @@ if not solution.if_sat:
     print('goal (with lemmas) is valid')
 else:
     print('goal (with lemmas) is invalid')
+
+exit(1)

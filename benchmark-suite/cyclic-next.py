@@ -41,3 +41,4 @@ if not solution.if_sat:
 else:
     print('goal is invalid')
     
+exit(1)

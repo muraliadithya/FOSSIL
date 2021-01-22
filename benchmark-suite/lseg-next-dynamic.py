@@ -17,11 +17,9 @@ x, y, z, x_p, y_p = Vars('x y z x_p y_p', fgsort)
 nil = Const('nil', fgsort)
 k = Const('k', intsort)
 nxt = Function('nxt', fgsort, fgsort)
-lst = RecFunction('lst', fgsort, boolsort)
 lseg = RecFunction('lseg', fgsort, fgsort, boolsort)
 lseg_p = RecFunction('lseg_p', fgsort, fgsort, boolsort)
 key = Function('key', fgsort, intsort)
-AddRecDefinition(lst, x, If(x == nil, True, lst(nxt(x))))
 AddRecDefinition(lseg, (x, y) , If(x == y, True, lseg(nxt(x), y)))
 AddRecDefinition(lseg_p, (x_p, y_p) , If(x_p == y_p, True, lseg_p(If(x_p == y, z, nxt(x_p)), y_p)))
 AddAxiom((), nxt(nil) == nil)
@@ -55,3 +53,13 @@ if not solution.if_sat:
     print('goal (with lemmas) is valid')
 else:
     print('goal (with lemmas) is invalid')
+
+# lemma synthesis
+v1, v2, v3 = Vars('v1 v2 v3', fgsort)
+lemma_grammar_args = [v1, v2, v3]
+lemma_grammar_terms = {v1, v2, v3, nxt(v2), nxt(nxt(v1))}
+
+name = 'lseg-next-dynamic'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

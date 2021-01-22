@@ -57,12 +57,14 @@ if not solution.if_sat:
 else:
     print('goal (with lemmas) is invalid')
 
+exit(1)
+
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2]
 lemma_grammar_terms = {v1, v2, nil}
 
-name = 'list-hlist-lseg'
+name = 'list-hlist-lseg2'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

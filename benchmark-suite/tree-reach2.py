@@ -64,8 +64,8 @@ else:
 
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
-lemma_grammar_args = [v1, v2]
-lemma_grammar_terms = {v1, v2}
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, v2, nil, rght(lft(v1)), rght(rght(v1))}
 
 name = 'tree-reach'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

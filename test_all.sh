@@ -6,7 +6,7 @@ function report_case () {
   if [ $1 == 0 ]
   then printf "\e[94m%s\e[0m %s \e[1m%s\e[0m \e[32m %s\e[0m\n" "$COUNT" "|" $2 "SUCCESS: $3s"
   else
-    printf "\e[94m%s\e[0m %s \e[1m%s\e[0m \e[31m%s\e[0m\n" "$COUNT" "|" $2 "FAILURE";
+    printf "\e[94m%s\e[0m %s \e[1m%s\e[0m \e[31m %s\e[0m\n" "$COUNT" "|" $2 "FAILURE";
     (( NUM_ERRORS += 1 ));
   fi
 }
@@ -23,9 +23,10 @@ for file in `ls benchmark-suite/*.py`
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)
     gtimeout 3600 python3 $file
+    exit_code=$?
     END=$(date +%s)
     DIFF=$(( $END - $START ))
-    if [ $? != 0 ]
+    if [ $exit_code != 0 ]
       then report_case 1 $file
       else report_case 0 $file $DIFF
     fi;

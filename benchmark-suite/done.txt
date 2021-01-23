@@ -197,23 +197,23 @@
 
 32. Theorem: reach(x,y) => (dag(x) /\ key(x) != k => dag(y))
     Lemma: reach(x,y) => (dag(x) => dag(y))
-    SyGuS synthesis: Timeout after 1 hr
-    Constraint-based synthesis: 661.34
+    SyGuS synthesis: 291.63s
+    Constraint-based synthesis: 74.42s
 
 33. Theorem: tree(x) => (reach(x,y) => tree(y))
     Lemma: reach(x,y) => (tree(x) => tree(y))
     SyGuS synthesis: Timeout after 1 hr
-    Constraint-based synthesis: 487.81
+    Constraint-based synthesis: 487.81s
 
 34. Theorem: dag(x) => (reach(x,y) => dag(y))
     Lemma: reach(x,y) => (dag(x) => dag(y))
-    SyGuS synthesis: Timeout after 1 hr
-    COnstraint-based synthesis: 1045.15s
+    SyGuS synthesis: 198.01s
+    COnstraint-based synthesis: 48.69s
 
 35. Theorem: reach(x,y) => (x != nil /\ y != nil /\ reach(lft(x), y) /\ reach(rght(x), z)
                            => y != z)
     Lemma: reach(x,y) => (y != nil => y \in htree(x))
-    SyGuS synthesis: lemma not proposed after >1 hr
+    SyGuS synthesis: Timeout after 1 hr
     Constraint-based synthesis: 1171.51
 
 36. Theorem: cyclic(x) => cyclic(nxt(x))
@@ -221,4 +221,7 @@
     SyGuS synthesis: 161.12s
     Constraint-based synthesis: 14.39s
 
-
+37. Theorem: bst(x) => ((x != nil /\ key(x) != k /\ y == leftmost(x)) => key(y) == minr(x))
+    Lemma: bst(x) => (x != nil => key(leftmost(x)) == minr(x))
+    SyGuS synthesis: Timeout after 1 hr
+    Constraint-based synthesis: 162.49

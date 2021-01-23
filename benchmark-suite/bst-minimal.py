@@ -37,10 +37,10 @@ AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
 # vc
-goal = Implies(bst(x), Implies(And(x != nil,
+goal = Implies(bst(x), Implies(And(x != nil, And(lft(y) != nil,
                                    And(IsMember(y, hbst(x)),
                                        And(k == minr(x),
-                                           And(k == minr(y), y != nil)))),
+                                           And(k == minr(y), y != nil))))),
                                k == minr(lft(y))))
 
 # check validity with natural proof solver and no hardcoded lemmas
@@ -78,4 +78,13 @@ if not solution.if_sat:
 else:
     print('goal (with lemmas) is invalid')
 
-exit(1)
+# lemma synthesis
+v1, v2 = Vars('v1 v2', fgsort)
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, v2, nil}
+
+name = 'bst-minimal'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)
+

@@ -7,6 +7,7 @@ from z3 import IsMember, IsSubset, SetUnion, SetIntersect, SetComplement, EmptyS
 from naturalproofs.prover import NPSolver
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
+from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
@@ -35,18 +36,45 @@ AddRecDefinition(leftmost, x, If(x == nil, x,
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
-# TODO: this does not compile. Somthing with the key(y) == minr(x) expression.
-# I think it might have to do with x being a variable and y being a constant.
-goal = Implies(bst(x), Implies(And(x != nil, y == leftmost(x)), key(y) == minr(x)))
+# vc
+goal = Implies(bst(x), Implies(And(And(x != nil, key(x) != k),
+                                   y == leftmost(x)),
+                               key(y) == minr(x)))
 
-lemmas = {((), z3.BoolVal(True))}
+# check validity with natural proof solver and no hardcoded lemmas
+np_solver = NPSolver()
+solution = np_solver.solve(make_pfp_formula(goal))
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
+
+# hardcoded lemmas
+lemma_params = (x,)
+lemma_body = Implies(bst(x), Implies(x != nil, key(leftmost(x)) == minr(x)))
+lemmas = {(lemma_params, lemma_body)}
+
+# check validity of lemmas
+solution = np_solver.solve(make_pfp_formula(lemma_body))
+if not solution.if_sat:
+    print('lemma is valid')
+else:
+    print('lemma is invalid')
 
 # check validity with natural proof solver
 np_solver = NPSolver()
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
-    print('goal is valid')
+    print('goal (with lemmas) is valid')
 else:
-    print('goal is invalid')
+    print('goal (with lemmas) is invalid')
 
-exit(1)
+# lemma synthesis
+v1, v2 = Vars('v1 v2', fgsort)
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, v2, nil, leftmost(rght(v1)), leftmost(v1), leftmost(lft(v1)), leftmost(v2)}
+
+name = 'bst-leftmost'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

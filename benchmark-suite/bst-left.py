@@ -49,7 +49,6 @@ if not solution.if_sat:
 else:
     print('goal (no lemmas) is invalid')
 
-
 # hardcoded lemmas
 lemma_params = (x,)
 lemma1_body = Implies(bst(x), Implies(And(IsMember(k, keys(x)), x != nil), minr(x) <= k))

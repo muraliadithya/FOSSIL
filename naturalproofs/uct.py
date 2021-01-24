@@ -75,6 +75,9 @@ def get_uct_sort(exprref, annctx=default_annctx):
         raise TypeError('AnnotatedContext expected.')
     # The sort of the expression is the range sort of the declaration
     declaration = exprref.decl()
+    # Unless the declaration is a z3.If, in which case the sort is that of either of the arguments
+    if declaration.kind() == z3.Z3_OP_ITE:
+        return get_uct_sort(exprref.arg(1), annctx)
     sig = annctx.read_alias_annotation(declaration)
     if sig is None:
         # Signature cannot be looked up in the annotated context. Default to using z3 sort in the client code.

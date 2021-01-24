@@ -73,11 +73,13 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     config_params['goal_extraction_terms'] = goal_extraction_terms
 
     # continuously get valid lemmas until goal has been proven
+    total_lemmas = 0
     while True:
-        lemma = getSygusOutput(valid_lemmas, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
+        lemma = getSygusOutput(valid_lemmas, total_lemmas, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
         if lemma is None:
             exit('Instance failed.')
 
+        total_lemmas += 1
         # convert CVC4 versions of membership, insertion to z3py versions
         SetIntSort = SetSort(IntSort())
         membership = Function('membership', IntSort(), SetIntSort, BoolSort())

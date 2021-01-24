@@ -199,7 +199,7 @@ def z3Preamble():
     return insert_def + '\n' + member_def + '\n' + empset_def + '\n'
 
 # write output to a file that can be parsed by CVC4 SyGuS
-def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
+def getSygusOutput(lemmas, total_lemmas, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
     # Make log folder if it does not exist already
     os.makedirs(options.log_file_path, exist_ok=True)
 
@@ -213,6 +213,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
         print('VC has been proven. Lemmas used to prove original vc:')
         for lemma in lemmas:
             print(lemma[1])
+        print('Total lemmas proposed: ' + str(total_lemmas))
         exit(0)
 
     goal_extraction_terms = config_params.get('goal_extraction_terms', None)

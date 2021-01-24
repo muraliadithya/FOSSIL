@@ -1,0 +1,30 @@
+(synth-fun lemma ((x Int) (nil Int)) Bool
+
+           ((Start Bool) (B1 Bool) (BLeaf Bool) (I Int) (ILeaf Int) (Loc Int) (LocLeaf Int))
+
+           ((Start Bool (B1
+                   (=> B1 B1)
+                   (and B1 B1)))
+            (B1 Bool (BLeaf
+                (=> BLeaf BLeaf)
+                (and BLeaf BLeaf)))
+            (BLeaf Bool (
+                   (red Loc)
+                   (black Loc)
+                   (= I I)))
+            (I Int (ILeaf
+               (+ ILeaf ILeaf)))
+            (ILeaf Int (1
+                   (red_height Loc)
+                   (black_height Loc)))
+            (Loc Int (LocLeaf
+                 (nxt LocLeaf)))
+            (LocLeaf Int (x nil)))
+)
+
+(synth-fun rswitch () Int
+
+           ((Start Int))
+           ((Start Int (0)))
+
+)

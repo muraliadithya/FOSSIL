@@ -158,10 +158,14 @@
 24. Theorem: rlst(x) => (black(x) => red_height(x) == black_height(x))
     Lemma: rlst(x) => ((black(x) => red_height(x) == black_height(x)) /\
                        (red(x) => red_height(x) == 1 + black_height(x)))
+    SyGuS synthesis: 96.74s
+    Constraint-based synthesis: 24.16s
 
 25. Theorem: rlst(x) => (red(x) => red_height(x) == 1 + black_height(x))
     Lemma: rlst(x) => ((black(x) => red_height(x) == black_height(x)) /\
                        (red(x) => red_height(x) == 1 + black_height(x)))
+    SyGuS synthesis: 131.82s
+    Constraint-based synthesis: 27.10s
 
 26. Theorem: odd_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
     Lemma: odd_lst(x) => lst(x)
@@ -208,7 +212,7 @@
 34. Theorem: dag(x) => (reach(x,y) => dag(y))
     Lemma: reach(x,y) => (dag(x) => dag(y))
     SyGuS synthesis: 198.01s
-    COnstraint-based synthesis: 48.69s
+    Constraint-based synthesis: 48.69s
 
 35. Theorem: reach(x,y) => (x != nil /\ y != nil /\ reach(lft(x), y) /\ reach(rght(x), z)
                            => y != z)
@@ -224,4 +228,10 @@
 37. Theorem: bst(x) => ((x != nil /\ key(x) != k /\ y == leftmost(x)) => key(y) == minr(x))
     Lemma: bst(x) => (x != nil => key(leftmost(x)) == minr(x))
     SyGuS synthesis: Timeout after 1 hr
-    Constraint-based synthesis: 162.49
+    Constraint-based synthesis: 162.49s
+
+38. Theorem: lst(x) => (even_lst(x) \/ odd_lst(x))
+    Lemmas: lst(x) => (Not(even_lst(nxt(x))) => even_lst(x))
+            even_lst(x) => (x != nil => odd_lst(nxt(x)))
+    SyGuS synthesis: 49.16s
+    Constraint-based synthesis: 14.84s

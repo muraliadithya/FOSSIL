@@ -17,8 +17,8 @@ x = Var('x', fgsort)
 nil, ret = Consts('nil ret', fgsort)
 nxt = Function('nxt', fgsort, fgsort)
 lst = RecFunction('lst', fgsort, boolsort)
-odd_lst = RecFunction('red_lst', fgsort, boolsort)
-even_lst = RecFunction('black_lst', fgsort, boolsort)
+odd_lst = RecFunction('odd_lst', fgsort, boolsort)
+even_lst = RecFunction('even_lst', fgsort, boolsort)
 AddRecDefinition(lst, x, If(x == nil, True, lst(nxt(x))))
 AddRecDefinition(even_lst, x, If(x == nil, True,
                                 If(nxt(x) == nil, False,
@@ -43,15 +43,25 @@ else:
 # hardcoded lemma
 # TODO: lemma does not go through. need greater depth?
 lemma_params = (x,)
-lemma_body = Implies(lst(x), Or(even_lst(x), odd_lst(x)))
-lemmas = {(lemma_params, lemma_body)}
+# even_lst(nxt(x)) => odd_lst(nil) is equivalent to Not(even_lst(nxt(x)))
+lemma1_body = Implies(lst(x),
+                      Implies(Implies(even_lst(nxt(x)), odd_lst(nil)),
+                              even_lst(x)))
+lemma2_body = Implies(even_lst(x), Implies(x != nil, odd_lst(nxt(x))))
+
+lemmas = {(lemma_params, lemma1_body), (lemma_params, lemma2_body)}
 
 # check validity of lemmas
-solution = np_solver.solve(make_pfp_formula(lemma_body))
+solution = np_solver.solve(make_pfp_formula(lemma1_body))
 if not solution.if_sat:
-    print('lemma is valid')
+    print('lemma 1 is valid')
 else:
-    print('lemma is invalid')
+    print('lemma 1 is invalid')
+solution = np_solver.solve(make_pfp_formula(lemma2_body))
+if not solution.if_sat:
+    print('lemma 2 is valid')
+else:
+    print('lemma 2 is invalid')
 
 # check validity with natural proof solver and hardcoded lemmas
 solution = np_solver.solve(goal, lemmas)
@@ -60,4 +70,12 @@ if not solution.if_sat:
 else:
     print('goal (with lemmas) is invalid')
 
-exit(1)
+# lemma synthesis
+v = Var('v', fgsort)
+lemma_grammar_args = [v, nil]
+lemma_grammar_terms = {v, nil, nxt(nxt(v)), nxt(nil)}
+
+name = 'list-even-or-odd'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

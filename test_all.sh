@@ -18,7 +18,7 @@ function final_report () {
   fi
 }
 
-for file in `ls benchmark-suite/*.py`
+for file in `ls benchmark-suite/*py`
   do
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)

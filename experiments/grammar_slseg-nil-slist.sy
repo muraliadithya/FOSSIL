@@ -8,13 +8,11 @@
            ((Start Bool (BLeaf
                    (=> BLeaf BLeaf)
                    (= BLeaf BLeaf)))
-
-           (BLeaf Bool (
-                  (slst Loc)
-                  (slseg Loc Loc)))
+            (BLeaf Bool (
+                   (slst Loc)
+                   (slseg Loc Loc)))
             (Loc Int (LocLeaf))
-            (LocLeaf Int (x y nil
-                         (nxt x))))
+            (LocLeaf Int (x y nil)))
 
 )
 

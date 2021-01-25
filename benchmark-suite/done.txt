@@ -2,27 +2,32 @@
    Lemma: dlst(x) => lst(x)
    SyGuS synthesis: 0.9s
    Constraint-based synthesis: 1.42s
+   dlist-list
 
 2. Theorem: slst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
    Lemma: slst(x) => lst(x)
    SyGuS synthesis: 1.01s
    Constraint-based synthesis: 1.69s
+   slist-list
 
 3. Theorem: sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret))
    Lemma: sdlst(x) => dlst(x)
    SyGuS synthesis: 2.83s
    Constraint-based synthesis: 3.06s
+   sdlist-dlist
 
 4. Theorem: sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret) /\ slst(ret))
    Lemmas: sdlst(x) => dlst(x)
            sdlst(x) => slst(x)
    SyGuS synthesis: 3.68s
    Constraint-based synthesis: 7.29s
+   sdlist-dlist-and-slist
 
 5. Theorem: listlen(x, l) => (If(l == 1, ret == x, ret == nxt(x)), list(x))
    Lemmas: listlen(x, l) => list(x)
    SyGuS synthesis: 0.92s
    Constraint-based synthesis: 1.13s
+   listlen-list
 
 6. {v1 = v2}
    while (v1 != nil) do
@@ -33,6 +38,7 @@
    Lemma: reach(x) => v2(x) == v1(x) \/ v2(x) == c)
    SyGuS synthesis: 2961.88s
    Constraint-based synthesis: 16.26s
+   reachability
 
 7. {v1 = v2}
    while (v1 != nil) do
@@ -43,6 +49,7 @@
    Lemma: reach(x) => v2(x) == v1(x)
    SyGuS synthesis: 199.06s
    Constraint-based synthesis: 8.57s
+   reachability2
 
 8. {v1 = v2}
    while (v1 != c) do
@@ -53,6 +60,7 @@
    Lemma: reach(x) => v2(x) == v1(x)
    SyGuS synthesis: 626.50s
    Constraint-based synthesis: 8.32s
+   reachability3
 
 9. {v1 = v2}
    while (v1 != c) do
@@ -63,6 +71,7 @@
    Lemma: reach(x) => v2(x) == v1(x)
    SyGuS synthesis: 298.09s
    Constraint-based synthesis: 7.24s
+   reachability4
 
 10. {v1 = n(v2)}
     while (v1 != nil) do
@@ -73,6 +82,7 @@
     Lemma: reach(x) => n(v2(x)) == v1(x) \/ v2(x) == c)
     SyGuS synthesis: 3898.42s
     Constraint-based synthesis: 15.89s
+    reachability5
 
 11. {v1 = n(v2)}
     while (v1 != nil) do
@@ -83,17 +93,20 @@
     Lemma: reach(x) => n(v2(x)) == v1(x)
     SyGuS synthesis: 234.85s
     Constraint-based synthesis: 8.55s
+    reachability6
 
 12. Theorem: lseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => list(ret)))
     Lemma: lseg(x, y) => (list(y) == list(x))
     SyGuS synthesis: 12.92s
     Constraint-based synthesis: 16.85s
+    lseg-nil-list
 
 13. Theorem: slseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => slist(ret)))
     Lemma checked: slseg(x, y) => (slist(x) == slist(y))
     Lemma synthesized slseg(x, y) => (slist(y) => slist(x))
     SyGuS synthesis: 9.94
     Constraint-based synthesis: 7.99s
+    slseg-nil-list
 
 14. Theorem: lseg(x, y) => (list(y) /\ x != c /\ next(y) == z => (lseg(x, z) /\ list(z)))
     Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
@@ -235,3 +248,36 @@
             even_lst(x) => (x != nil => odd_lst(nxt(x)))
     SyGuS synthesis: 49.16s
     Constraint-based synthesis: 14.84s
+
+39. Theorem: lsegy(x) => (key(x) != k => lsegz_p(x))
+    Note: lseg defs are unary and primed defs use internally a nxt' def where
+          nxt'(x) := If(x = y, z, nxt(x))
+    Lemma: lsegy(x) => lsegz_p(x)
+    SyGuS synthesis: 1.67s
+    Constraint-based synthesis: 3.07s
+
+40. Theorem: tree(x) => (If(x == nil, ret == nil, ret == lft(x)) => dag(ret))
+    Lemma: tree(x) => dag(x)
+    SyGuS synthesis: 2.59s
+    Constraint-based synthesis: 2.93s
+    tree-dag
+
+41. Theorem: tree_p(x) => (reach_lr(x,y) => tree_p(y))
+    Lemma: reach_lr(x,y) => (tree_p(x) => tree_p(y))
+    SyGuS synthesis: 195.05s
+    Constraint-based synthesis: 19.69s
+    tree-parent-reach
+
+42. Theorem: tree_p(x) => (parent(x) == nil => tree(x))
+    Lemma: tree_p(x) => tree(x)
+    SyGuS synthesis: 1.51s
+    Constraint-based synthesis: 1.64s
+    tree-parent-tree
+
+43. Theorem: tree_p(x) => (reach_lr(x,y) => tree(y))
+    Lemmas: reach_lr(x,y) => (tree_p(x) => tree_p(y))
+            tree_p(x) => tree(x)
+    SyGuS synthesis: 32.56s
+    Constraint-based synthesis: 26.68s
+    tree-parent-reach-tree
+    Note: Can use one or both of lemma from 41/42 to ease synthesis for this example

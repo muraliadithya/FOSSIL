@@ -1,29 +1,36 @@
 ;; lemma to synthesize
 ;; TODO: must be generated from problem parameters
 (synth-fun lemma ((x Int) (y Int) (z Int)) Bool
-           ((Start Bool) (B1 Bool) (B2 Bool) (B3 Bool) (BLeaf Bool))
+           ((Start Bool) (B1 Bool) (BLeaf Bool))
 
            ((Start Bool (B1
-                  (=> B1 B1)))
-            (B1 Bool (B2
-                (=> B2 B2)))
-            (B2 Bool (B3
-                (=> B3 B3)))
-            (B3 Bool (BLeaf
+                   (and B1 B1)
+                   (=> B1 B1)))
+            (B1 Bool (BLeaf
+                (and BLeaf BLeaf)
                 (=> BLeaf BLeaf)))
             (BLeaf Bool (
+                   (not (= x x))
                    (not (= x y))
-                   (= (parent y) z)
-                   ; (member x (htree_p x))
-                   ; (member x (htree_p y))
-                   ; (member x (htree_p z))
+                   (not (= x z))
+                   (not (= y y))
+                   (not (= y z))
+                   (not (= z z))
+                   (= (parent z) x)
+                   (= (parent z) y)
+                   (= (parent z) z)
+                   (member x (htree_p x))
+                   (member x (htree_p y))
+                   (member x (htree_p z))
                    (member y (htree_p x))
-                   ; (member y (htree_p y))
-                   ; (member y (htree_p z))
-                   ; (member z (htree_p x))
-                   ; (member z (htree_p y))
-                   ; (member z (htree_p z))
-                   (tree_p x))))
+                   (member y (htree_p y))
+                   (member y (htree_p z))
+                   (member z (htree_p x))
+                   (member z (htree_p y))
+                   (member z (htree_p z))
+                   (tree_p x)
+                   (tree_p y)
+                   (tree_p z))))
 )
 
 (synth-fun rswitch () Int

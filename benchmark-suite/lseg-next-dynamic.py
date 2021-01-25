@@ -13,19 +13,24 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 # declarations
-x, y, x_p, y_p = Vars('x y x_p y_p', fgsort)
+x = Var('x', fgsort)
 nil, yc, zc = Consts('nil yc zc', fgsort)
 k = Const('k', intsort)
 nxt = Function('nxt', fgsort, fgsort)
-lseg = RecFunction('lseg', fgsort, fgsort, boolsort)
-lseg_p = RecFunction('lseg_p', fgsort, fgsort, boolsort)
+lsegy = RecFunction('lsegy', fgsort, boolsort)
+lsegz = RecFunction('lsegz', fgsort, boolsort)
+lsegy_p = RecFunction('lsegy_p', fgsort, boolsort)
+lsegz_p = RecFunction('lsegz_p', fgsort, boolsort)
 key = Function('key', fgsort, intsort)
-AddRecDefinition(lseg, (x, y) , If(x == y, True, lseg(nxt(x), y)))
-AddRecDefinition(lseg_p, (x_p, y_p) , If(x_p == y_p, True, lseg_p(If(x_p == yc, zc, nxt(x_p)), y_p)))
+AddRecDefinition(lsegy, x , If(x == yc, True, lsegy(nxt(x))))
+AddRecDefinition(lsegz, x , If(x == zc, True, lsegz(nxt(x))))
+# lsegy_p, lsegz_p defs reflect change of nxt(y) == z
+AddRecDefinition(lsegy_p, x , If(x == yc, True, lsegy_p(If(x == yc, zc, nxt(x)))))
+AddRecDefinition(lsegz_p, x , If(x == zc, True, lsegz_p(If(x == yc, zc, nxt(x)))))
 AddAxiom((), nxt(nil) == nil)
 
 # vc
-goal = Implies(lseg(x, yc), Implies(key(x) != k, lseg_p(x, zc)))
+goal = Implies(lsegy(x), Implies(key(x) != k, lsegz_p(x)))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -37,10 +42,12 @@ else:
 
 # hardcoded lemma
 lemma_params = (x,)
-lemma_body = Implies(lseg(x, yc), lseg_p(x, zc))
+lemma_body = Implies(lsegy(x), lsegz_p(x))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas
+np_solver.options.instantiation_mode = proveroptions.bounded_depth
+np_solver.options.depth = 2
 solution = np_solver.solve(make_pfp_formula(lemma_body))
 if not solution.if_sat:
     print('lemma is valid')

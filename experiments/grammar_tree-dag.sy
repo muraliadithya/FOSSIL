@@ -1,17 +1,17 @@
-(synth-fun lemma ((x Int) (nil Int)) Bool
-
+(synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
            ((Start Bool) (B1 Bool) (Loc Int))
 
            ((Start Bool (B1
                    (=> B1 B1)))
             (B1 Bool (
-                (lstlen_bool Loc) (lst Loc)))
-            (Loc Int (x nil)))
+                (dag Loc)
+                (tree Loc)))
+           (Loc Int (x y nil)))
+
 )
 
 (synth-fun rswitch () Int
-
            ((Start Int))
            ((Start Int (0 1)))
-
 )
+

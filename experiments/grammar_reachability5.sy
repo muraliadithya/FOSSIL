@@ -5,27 +5,19 @@
 
            ((Start Bool) (B1 Bool) (Progvar Int) (Progvar1 Int) (Progstate Int))
 
-           ((Start Bool
-                  (B1
+           ((Start Bool (B1
                    (and B1 B1)
                    (or B1 B1)))
-            (B1 Bool
-                  ((= Progvar Progvar)))
-            (Progvar Int 
-                  (Progvar1
-                  (n Progvar1)
-                  ))
-            (Progvar1 Int
-                      (c nil
+            (B1 Bool (
+                (= Progvar Progvar)))
+            (Progvar Int (Progvar1
+                  (n Progvar1)))
+            (Progvar1 Int (c nil
                       (v1 Progstate)
-                      (v2 Progstate)
-                      ))
-            (Progstate Int (
-            	    x
-                   )))
+                      (v2 Progstate)))
+            (Progstate Int (x)))
 
 )
-
 
 (synth-fun rswitch () Int
 

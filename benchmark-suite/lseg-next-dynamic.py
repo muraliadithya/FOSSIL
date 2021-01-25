@@ -13,19 +13,19 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 # declarations
-x, y, z, x_p, y_p = Vars('x y z x_p y_p', fgsort)
-nil = Const('nil', fgsort)
+x, y, x_p, y_p = Vars('x y x_p y_p', fgsort)
+nil, yc, zc = Consts('nil yc zc', fgsort)
 k = Const('k', intsort)
 nxt = Function('nxt', fgsort, fgsort)
 lseg = RecFunction('lseg', fgsort, fgsort, boolsort)
 lseg_p = RecFunction('lseg_p', fgsort, fgsort, boolsort)
 key = Function('key', fgsort, intsort)
 AddRecDefinition(lseg, (x, y) , If(x == y, True, lseg(nxt(x), y)))
-AddRecDefinition(lseg_p, (x_p, y_p) , If(x_p == y_p, True, lseg_p(If(x_p == y, z, nxt(x_p)), y_p)))
+AddRecDefinition(lseg_p, (x_p, y_p) , If(x_p == y_p, True, lseg_p(If(x_p == yc, zc, nxt(x_p)), y_p)))
 AddAxiom((), nxt(nil) == nil)
 
 # vc
-goal = Implies(lseg(x, y), Implies(key(x) != k, lseg_p(x, z)))
+goal = Implies(lseg(x, yc), Implies(key(x) != k, lseg_p(x, zc)))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -36,8 +36,8 @@ else:
     print('goal (no lemmas) is invalid')
 
 # hardcoded lemma
-lemma_params = (x,y,z)
-lemma_body = Implies(lseg(x, y), lseg_p(x, z))
+lemma_params = (x,)
+lemma_body = Implies(lseg(x, yc), lseg_p(x, zc))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas
@@ -55,9 +55,9 @@ else:
     print('goal (with lemmas) is invalid')
 
 # lemma synthesis
-v1, v2, v3 = Vars('v1 v2 v3', fgsort)
-lemma_grammar_args = [v1, v2, v3]
-lemma_grammar_terms = {v1, v2, v3, nxt(v2), nxt(nxt(v1))}
+v1 = Var('v1', fgsort)
+lemma_grammar_args = [v1, yc, zc]
+lemma_grammar_terms = {v1, yc, zc, nxt(yc), nxt(nxt(v1)), nxt(zc)}
 
 name = 'lseg-next-dynamic'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

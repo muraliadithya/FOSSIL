@@ -5,22 +5,22 @@
 
            ((Start Bool (B1
                    (=> B1 B1)))
-           (B1 Bool (BLeaf
-               (=> BLeaf BLeaf)))
-           (BLeaf Bool (
-                  (not (= x nil))
-                  (not (= y nil))
-                  (= Loc Loc)
-                  (= I I)
-                  (bst Loc)))
-           (I Int (
-                  (key Loc)
-                  (minr Loc)
-                  (maxr Loc)))
-           (Loc Int (x y nil
-                    (leftmost x)
-                    (leftmost y))))
-)
+            (B1 Bool (BLeaf
+                (=> BLeaf BLeaf)))
+            (BLeaf Bool (
+                   (not (= x nil))
+                   (not (= y nil))
+                   (= Loc Loc)
+                   (= I I)
+                   (bst Loc)))
+            (I Int (
+                   (key Loc)
+                   (minr Loc)
+                   (maxr Loc)))
+            (Loc Int (x y
+                     (leftmost x)
+                     (leftmost y))))
+ )
 
 (synth-fun rswitch () Int
            ((Start Int))

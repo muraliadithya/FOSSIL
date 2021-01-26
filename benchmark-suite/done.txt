@@ -307,3 +307,14 @@
     Constraint-based synthesis: 26.68s
     tree-parent-reach-tree
     Note: Can use one or both of lemma from 41/42 to ease synthesis for this example
+
+44. Theorem: lseg(x,y) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))
+    Lemma: lseg(x,y) => (lst(x) == lst(y))
+    SyGuS synthesis: 37.83s
+    Constraint-based synthesis: 15.01s
+
+45. Theorem: bst(x) => ((x != nil y != nil /\ lft(y) != nil /\ y \in hbst(x) /\ k == minr(x))
+                       => k == minr(lft(y)))
+    Lemma: bst(x) => (y \in hbst(x) => bst(y))
+    SyGuS synthesis: 7.17s
+    Constraint-based synthesis: 14.33s

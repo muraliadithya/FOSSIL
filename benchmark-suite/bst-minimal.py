@@ -52,23 +52,16 @@ else:
     print('goal (no lemmas) is invalid')
 
 # hardcoded lemmas
-lemma1_params = (x,y)
-lemma1_body = Implies(bst(x), Implies(IsMember(y, hbst(x)), bst(y)))
-lemma2_params = (x,)
-lemma2_body = Implies(bst(x), Implies(x != nil, minr(x) <= maxr(x)))
-lemmas = {(lemma1_params, lemma1_body), (lemma2_params, lemma2_body)}
+lemma_params = (x,y)
+lemma_body = Implies(bst(x), Implies(IsMember(y, hbst(x)), bst(y)))
+lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas
-solution = np_solver.solve(make_pfp_formula(lemma1_body))
+solution = np_solver.solve(make_pfp_formula(lemma_body))
 if not solution.if_sat:
-    print('lemma 1 is valid')
+    print('lemma is valid')
 else:
-    print('lemma 1 is invalid')
-solution = np_solver.solve(make_pfp_formula(lemma2_body))
-if not solution.if_sat:
-    print('lemma 2 is valid')
-else:
-    print('lemma 2 is invalid')
+    print('lemma is invalid')
 
 # check validity with natural proof solver and hardcoded lemmas
 # TODO: lemmas not sufficient

@@ -1,18 +1,24 @@
 ;; lemma to synthesize
 ;; TODO: must be generated from problem parameters
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
-           ((Start Bool) (B1 Bool) (S (Set Int)) (Loc Int))
+           ((Start Bool) (B1 Bool) (Loc Int))
 
            ((Start Bool (B1
                   (=> B1 B1)))
-           (B1 Bool
-                  ((not (= Loc Loc))
-                   (member Loc S)
-                   (tree Loc)
-                   (reach Loc Loc)))
-           (S (Set Int)
-                  ((htree Loc)))
-           (Loc Int (x y nil)))
+            (B1 Bool (
+                (not (= Loc Loc))
+                (member x (htree x))
+                (member x (htree y))
+                (member x (htree nil))
+                (member y (htree x))
+                (member y (htree y))
+                (member y (htree nil))
+                (member nil (htree x))
+                (member nil (htree y))
+                (member nil (htree nil))
+                (tree Loc)
+                (reach Loc Loc)))
+            (Loc Int (x y nil)))
 )
 
 (synth-fun rswitch () Int

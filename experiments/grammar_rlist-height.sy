@@ -3,11 +3,9 @@
            ((Start Bool) (B1 Bool) (BLeaf Bool) (I Int) (ILeaf Int) (Loc Int) (LocLeaf Int))
 
            ((Start Bool (B1
-                   (=> B1 B1)
-                   (and B1 B1)))
+                   (=> B1 B1)))
             (B1 Bool (BLeaf
-                (=> BLeaf BLeaf)
-                (and BLeaf BLeaf)))
+                (=> BLeaf BLeaf)))
             (BLeaf Bool (
                    (red Loc)
                    (black Loc)

@@ -1,5 +1,3 @@
-;; lemma to synthesize
-;; TODO: must be generated from problem parameters
 (synth-fun lemma ((x Int) (y Int) (z Int)) Bool
            ((Start Bool) (BLeaf Bool) (Loc Int) (LocLeaf Int))
 

@@ -5,16 +5,22 @@
 
            ((Start Bool (B1
                   (=> B1 B1)))
-           (B1 Bool
-                  ((<= I I)
-                   (member x (hbst x))
-                   (member x (hbst y))
-                   (member y (hbst x))
-                   (member y (hbst y))))
+           (B1 Bool (
+               (<= I I)
+               (not (= Loc nil))
+               (member x (hbst x))
+               (member x (hbst y))
+               (member x (hbst nil))
+               (member y (hbst x))
+               (member y (hbst y))
+               (member y (hbst nil))
+               (member nil (hbst x))
+               (member nil (hbst y))
+               (member nil (hbst nil))))
            (I Int (
-                  (key Loc)
-                  (minr Loc)
-                  (maxr Loc)))
+              (key Loc)
+              (minr Loc)
+              (maxr Loc)))
            (Loc Int (x y nil)))
 )
 

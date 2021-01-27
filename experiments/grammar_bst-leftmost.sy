@@ -1,15 +1,12 @@
-;; lemma to synthesize
-;; TODO: must be generated from problem parameters
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
-           ((Start Bool) (B1 Bool) (BLeaf Bool) (I Int) (Loc Int))
+           ((Start Bool) (B1 Bool) (BLeaf Bool) (I Int) (Loc Int) (LocLeaf Int))
 
            ((Start Bool (B1
                    (=> B1 B1)))
             (B1 Bool (BLeaf
                 (=> BLeaf BLeaf)))
             (BLeaf Bool (
-                   (not (= x nil))
-                   (not (= y nil))
+                   (not (= LocLeaf nil))
                    (= Loc Loc)
                    (= I I)
                    (bst Loc)))
@@ -17,9 +14,10 @@
                    (key Loc)
                    (minr Loc)
                    (maxr Loc)))
-            (Loc Int (x y
-                     (leftmost x)
-                     (leftmost y))))
+            (Loc Int (LocLeaf
+                 (leftmost LocLeaf)))
+            (LocLeaf Int (x y nil)))
+
  )
 
 (synth-fun rswitch () Int

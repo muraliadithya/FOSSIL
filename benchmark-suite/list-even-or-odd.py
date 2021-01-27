@@ -41,9 +41,7 @@ else:
     print('goal (no lemmas) is invalid')
 
 # hardcoded lemma
-# TODO: lemma does not go through. need greater depth?
 lemma_params = (x,)
-# even_lst(nxt(x)) => odd_lst(nil) is equivalent to Not(even_lst(nxt(x)))
 lemma1_body = Implies(lst(x),
                       Implies(Implies(even_lst(nxt(x)), odd_lst(nil)),
                               even_lst(x)))

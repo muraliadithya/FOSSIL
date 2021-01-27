@@ -6,8 +6,9 @@
            ((Start Bool (
                   (=> BLeaf BLeaf)))
            (BLeaf Bool (
-                  (not (= LocLeaf LocLeaf))
-                  (lseg LocLeaf Loc)))
+                  (not (= Loc nil))
+                  (lseg Loc Loc)
+                  (cyclic Loc)))
            (Loc Int (LocLeaf
                     (nxt LocLeaf)))
            (LocLeaf Int (x y nil)))

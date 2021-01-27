@@ -1,5 +1,3 @@
-;; lemma to synthesize
-;; TODO: must be generated from problem parameters
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
            ((Start Bool) (BLeaf Bool) (I Int) (Loc Int))
 
@@ -10,8 +8,13 @@
                   (not (= Loc nil))
                   (member x (hbst x))
                   (member x (hbst y))
+                  (member x (hbst nil))
                   (member y (hbst x))
                   (member y (hbst y))
+                  (member y (hbst nil))
+                  (member nil (hbst x))
+                  (member nil (hbst y))
+                  (member nil (hbst nil))
                   (bst Loc)))
            (I Int (
                   (key Loc)

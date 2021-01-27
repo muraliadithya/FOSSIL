@@ -110,13 +110,13 @@
 
 14. Theorem: lseg(x, y) => (lst(y) /\ x != c /\ nxt(y) == z => (lseg(x, z) /\ lst(z)))
      Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
-     SyGuS synthesis: 901.26s (large grammar restriction)
+     SyGuS synthesis: 901.26s
      Constraint-based synthesis: 11.67s
      lseg-trans
 
 15. Theorem: lseg(x, y) => (key(x) != k /\ lseg(y, z) => lseg(x, z))
     Lemma: lseg(x, y) => (lseg(y, z) => lseg(x, z))
-    SyGuS synthesis: 1711.89s (large grammar restriction)
+    SyGuS synthesis: 1711.89s
     Constraint-based synthesis: 27.33s
     lseg-trans2
 
@@ -214,7 +214,7 @@
 
 29. Theorem: lst(x) => (key(x) != k /\ y \in hlst(x) => lseg(x,y))
     Lemma: lst(x) => (y \in hlst(x) => lseg(x,y))
-    SyGuS synthesis: 1270.54s (restricted grammar)
+    SyGuS synthesis: 1270.54s
     Constraint-based synthesis: 36.83s
     list-hlist-lseg
 
@@ -265,7 +265,7 @@
     Lemma: bst(x) => (x != nil => key(leftmost(x)) == minr(x))
     SyGuS synthesis: Timeout after 1 hr
     Constraint-based synthesis: 162.49s
-    bst-leftmost
+    bst-leftmost???
 
 38. Theorem: lst(x) => (even_lst(x) \/ odd_lst(x))
     Lemmas: lst(x) => (Not(even_lst(nxt(x))) => even_lst(x))
@@ -312,9 +312,18 @@
     Lemma: lseg(x,y) => (lst(x) == lst(y))
     SyGuS synthesis: 37.83s
     Constraint-based synthesis: 15.01s
+    lseg-list
 
 45. Theorem: bst(x) => ((x != nil y != nil /\ lft(y) != nil /\ y \in hbst(x) /\ k == minr(x))
                        => k == minr(lft(y)))
     Lemma: bst(x) => (y \in hbst(x) => bst(y))
     SyGuS synthesis: 7.17s
     Constraint-based synthesis: 14.33s
+    bst-minimal
+
+46. Theorem: bst(x) => ((x != nil y != nil /\ rght(y) != nil /\ y \in hbst(x) /\ k == maxr(x))
+                       => k == maxr(lft(y)))
+    Lemma: bst(x) => (y \in hbst(x) => bst(y))
+    SyGuS synthesis: 7.17s
+    Constraint-based synthesis: 14.33s
+    bst-maximal

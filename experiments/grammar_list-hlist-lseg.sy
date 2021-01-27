@@ -1,16 +1,21 @@
-;; lemma to synthesize - simplified grammar
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
 
-           ((Start Bool) (BLeaf Bool) (S (Set Int)) (Loc Int))
+           ((Start Bool) (BLeaf Bool) (Loc Int))
 
            ((Start Bool
                   ((=> BLeaf BLeaf)))
-           (BLeaf Bool
-                  ((member Loc S)
+            (BLeaf Bool (
+                   (member x (hlst x))
+                   (member x (hlst y))
+                   (member x (hlst nil))
+                   (member y (hlst x))
+                   (member y (hlst y))
+                   (member y (hlst nil))
+                   (member nil (hlst x))
+                   (member nil (hlst y))
+                   (member nil (hlst nil))
                    (lst Loc)
                    (lseg Loc Loc)))
-            (S (Set Int)
-                  ((hlst Loc)))
             (Loc Int (x y nil)))
 )
 

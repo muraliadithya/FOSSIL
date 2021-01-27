@@ -1,15 +1,12 @@
 (synth-fun lemma ((x Int) (nil Int)) Bool
 
-           ((Start Bool) (B1 Bool) (I2 Int) (I1 Int))
+           ((Start Bool) (B1 Bool) (Loc Int))
 
            ((Start Bool (B1
-                   (=> B1 B1)
-                   (and B1 B1)
-                   (not B1)))
-            (B1 Bool ((lst I2) (odd_lst I2) (even_lst I2)))
-            (I2 Int (I1
-                (nxt I1)))
-            (I1 Int (x nil)))
+                   (=> B1 B1)))
+            (B1 Bool (
+                (lst Loc) (odd_lst Loc) (even_lst Loc)))
+            (Loc Int (x nil)))
 )
 
 (synth-fun rswitch () Int

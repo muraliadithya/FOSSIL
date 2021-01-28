@@ -199,7 +199,7 @@ def z3Preamble():
     return insert_def + '\n' + member_def + '\n' + empset_def + '\n'
 
 # write output to a file that can be parsed by CVC4 SyGuS
-def getSygusOutput(lemmas, total_lemmas, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
+def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
     # Make log folder if it does not exist already
     os.makedirs(options.log_file_path, exist_ok=True)
 
@@ -213,7 +213,9 @@ def getSygusOutput(lemmas, total_lemmas, lemma_args, goal, problem_instance_name
         print('VC has been proven. Lemmas used to prove original vc:')
         for lemma in lemmas:
             print(lemma[1])
-        print('Total lemmas proposed: ' + str(total_lemmas))
+        print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
+        if options.experimental_prefetching_switch == 'on':
+            print('Total time charged: ' + str(final_out['time_charged']) + 's')
         exit(0)
 
     goal_extraction_terms = config_params.get('goal_extraction_terms', None)
@@ -313,11 +315,9 @@ def getSygusOutput(lemmas, total_lemmas, lemma_args, goal, problem_instance_name
     # Optionally prefetching a bunch of lemmas to check each one rather than iterating through each one.
     if options.experimental_prefetching_switch == 'on':
         # Must include a parameter in the overall call for number of lemmas to be prefetched
-        # Currently hardcoded
-        prefetch_count = config_params['prefetch_count']
-        print('pf count: ' + str(prefetch_count))
+        # Currently hardcoded to be -1 (meaning only prefetch_timeout comes into play)
+        prefetch_count = config_params.get('prefetch_count', -1)
         prefetch_timeout = config_params['prefetch_timeout']
-        print('pf timeout: ' + str(prefetch_timeout))
         k_lemmas_file = '{}/{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
         if options.constraint_based_solver == 'on':
             proc = subprocess.Popen('minisy {} --smtsolver=z3 --stream'.format(out_file),
@@ -334,7 +334,7 @@ def getSygusOutput(lemmas, total_lemmas, lemma_args, goal, problem_instance_name
         try:
             # Timeout given is given in seconds.
             # Currently hardcoded. Must make it a parameter
-            standard_out, standard_err = prefetch_proc.communicate(timeout=60)
+            standard_out, standard_err = prefetch_proc.communicate(timeout=prefetch_timeout)
         except subprocess.TimeoutExpired:
             prefetch_proc.kill()
         proc.kill()

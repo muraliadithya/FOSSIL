@@ -73,18 +73,19 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     config_params['goal_extraction_terms'] = goal_extraction_terms
 
     # for prefetching
-    config_params['prefetch_count'] = 20
-    config_params['prefetch_timeout'] = 10
+    config_params['prefetch_timeout'] = 5
 
     # continuously get valid lemmas until goal has been proven
-    total_lemmas = 0
+    final_out = {}
+    final_out['total_lemmas'] = 0
+    final_out['time_charged'] = 0
     while True:
-        lemmas = getSygusOutput(valid_lemmas, total_lemmas, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
+        lemmas = getSygusOutput(valid_lemmas, final_out, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
         if lemmas is None or lemmas == []:
             exit('Instance failed.')
         for i in range(0, len(lemmas)//2):
             lemma = [lemmas[i*2], lemmas[i*2+1]]
-            total_lemmas += 1
+            final_out['total_lemmas'] += 1
             # convert CVC4 versions of membership, insertion to z3py versions
             SetIntSort = SetSort(IntSort())
             membership = Function('membership', IntSort(), SetIntSort, BoolSort())
@@ -107,7 +108,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     
             if options.verbose == 'on':
                 print('proposed lemma: {}'.format(str(z3py_lemma_body)))
-                print('total lemmas so far: ' + str(total_lemmas))
+                print('total lemmas so far: ' + str(final_out['total_lemmas']))
             if z3py_lemma in invalid_lemmas or z3py_lemma in valid_lemmas:
                 if options.verbose == 'on':
                     print('lemma has already been proposed')
@@ -157,5 +158,9 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 break
             # Update countermodels and prefetch parameters before next round of synthesis
             config_params['cex_models'] = cex_models
-        config_params['prefetch_count'] = config_params['prefetch_count'] * 2
+        proportion = (i + 1) / (len(lemmas) // 2)
+        addl_time_charged = config_params['prefetch_timeout'] * proportion
+        final_out['time_charged'] += addl_time_charged
+        if options.verbose == 'on':
+            print('time charged: ' + str(final_out['time_charged']))
         config_params['prefetch_timeout'] = config_params['prefetch_timeout'] * 2

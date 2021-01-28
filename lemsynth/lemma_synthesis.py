@@ -311,28 +311,41 @@ def getSygusOutput(lemmas, total_lemmas, lemma_args, goal, problem_instance_name
         out.write('(check-synth)')
         out.close()
     # Optionally prefetching a bunch of lemmas to check each one rather than iterating through each one.
-    # DO NOT use prefetching. Code is not updated to handle current sygus output.
     if options.experimental_prefetching_switch == 'on':
         # Must include a parameter in the overall call for number of lemmas to be prefetched
         # Currently hardcoded
-        prefetch_count = config_params.get('prefetch_count', 1)
-        k_lemmas_file = '{}{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
-        sygus_proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-        prefetch_proc = subprocess.Popen(['python3', 'prefetch_lemmas.py', k_lemmas_file, str(prefetch_count)], stdin=sygus_proc.stdout, stdout=subprocess.PIPE, universal_newlines=True)
+        prefetch_count = config_params['prefetch_count']
+        print('pf count: ' + str(prefetch_count))
+        prefetch_timeout = config_params['prefetch_timeout']
+        print('pf timeout: ' + str(prefetch_timeout))
+        k_lemmas_file = '{}/{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
+        if options.constraint_based_solver == 'on':
+            proc = subprocess.Popen('minisy {} --smtsolver=z3 --stream'.format(out_file),
+                                    shell=True, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, universal_newlines=True)
+        else:
+            proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    universal_newlines=True)            
+        prefetch_proc = subprocess.Popen(['python3', 'lemsynth/prefetch_lemmas.py',
+                                          k_lemmas_file, str(prefetch_count)],
+                                         stdin=proc.stdout, stdout=subprocess.PIPE,
+                                         universal_newlines=True)
         try:
             # Timeout given is given in seconds.
             # Currently hardcoded. Must make it a parameter
             standard_out, standard_err = prefetch_proc.communicate(timeout=60)
         except subprocess.TimeoutExpired:
             prefetch_proc.kill()
-        sygus_proc.kill()
+        proc.kill()
         with open(k_lemmas_file, 'r') as k_lemmas:
             lemmas = k_lemmas.readlines()
             # Lemmas are returned as strings. Possibly terminated by '\n'
             # Removing possible '\n' before returning
             lemmas = [lemma[:-1] if lemma[-1] == '\n' else lemma for lemma in lemmas]
             # List of lemmas returned in string format
-            return lemmas
+            synth_results = [ res[:-1] + ' )' for res in lemmas ]
+            return synth_results
     else:
         if options.constraint_based_solver == 'on':
             proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file),

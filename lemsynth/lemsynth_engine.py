@@ -175,6 +175,21 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.verbose == 'on':
                     print('proposed lemma was proven.')
                 valid_lemmas.add(z3py_lemma)
+                if i + 1 == len(lemmas)//2:
+                    goal_fo_solver = NPSolver()
+                    goal_fo_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
+                    goal_npsolution = goal_fo_solver.solve(goal, valid_lemmas)
+                    if not goal_npsolution.if_sat:
+                        # Lemmas generated up to this point are useful. Exit.
+                        print('VC has been proven. Lemmas used to prove original vc:')
+                        for lem in valid_lemmas:
+                            print(lem[1])
+                        print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
+                        if options.experimental_prefetching_switch == 'on':
+                            total_time = final_out['time_charged'] + final_out['lemma_time']
+                            print('Total time charged: ' + str(total_time) + 's')
+                        exit(0)
+
                 # Reset countermodels and invalid lemmas to [] because we have additional information to retry those proofs.
                 cex_models = []
                 invalid_lemmas = []

@@ -14,6 +14,7 @@ from naturalproofs.prover_utils import get_foreground_terms
 from naturalproofs.utils import get_all_subterms
 from naturalproofs.extensions.finitemodel import FiniteModel
 
+import time
 
 def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None, annctx=default_annctx):
     if options.aggressive_debug:
@@ -40,7 +41,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     lemma_grammar_terms = get_all_subterms(lemma_grammar_terms)
     valid_lemmas = set()
     invalid_lemmas = []
-    use_cex_models = config_params.get('use_cex_models', False)
+    use_cex_models = options.use_cex_models
     cex_models = config_params.get('cex_models', [])
 
     # check if goal is fo provable
@@ -73,7 +74,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     config_params['goal_extraction_terms'] = goal_extraction_terms
 
     # for prefetching
-    config_params['prefetch_timeout'] = 5
+    config_params['prefetch_timeout'] = 450
 
     # continuously get valid lemmas until goal has been proven
     final_out = {}
@@ -84,6 +85,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         if lemmas is None or lemmas == []:
             exit('Instance failed.')
         for i in range(0, len(lemmas)//2):
+            pre_validation = time.time()
             lemma = [lemmas[i*2], lemmas[i*2+1]]
             final_out['total_lemmas'] += 1
             # convert CVC4 versions of membership, insertion to z3py versions
@@ -95,8 +97,18 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
             replace_fcts = {membership: IsMember}
     
             # testing translation of lemma
-            rhs_lemma = translateLemma(lemma[0], lemma_grammar_args, addl_decls, swap_fcts, replace_fcts, annctx)
-            index = int(lemma[1].split(' ')[-2])
+            if options.experimental_prefetching_switch == 'on':
+                start_time = lemmas[0].split(': ')[0]
+                curr_time = lemma[0].split(': ')[0]
+                lemma_time = float(curr_time) - float(start_time)
+                final_out['lemma_time'] = lemma_time
+                rhs_pre = lemma[0].split(': ')[1]
+                lhs_pre = lemma[1].split(': ')[1]
+            else:
+                rhs_pre = lemma[0]
+                lhs_pre = lemma[1]
+            rhs_lemma = translateLemma(rhs_pre, lemma_grammar_args, addl_decls, swap_fcts, replace_fcts, annctx)
+            index = int(lhs_pre.split(' ')[-2])
             recs = get_boolean_recursive_definitions()
             lhs = recs[index]
             lhs_arity = lhs.arity()
@@ -121,14 +133,25 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                               'have terms of lesser height.') 
                     exit('Instance failed.')
                 else:
+                    post_validation = time.time()
+                    validation_time = post_validation - pre_validation
+                    final_out['time_charged'] += validation_time
                     if options.verbose == 'on':
                         print('Countermodels not enabled. Retrying lemma synthesis.')
+                        print('Current lemma handled in: ' + str(validation_time) + 's')
+                        print('Time charged so far: ' + str(final_out['time_charged']) + 's')
                     continue
             pfp_lemma = make_pfp_formula(z3py_lemma_body)
             lemmaprover = NPSolver()
             lemmaprover.options.instantiation_mode = proveroptions.manual_instantiation
             lemmaprover.options.terms_to_instantiate = lemma_instantiation_terms
             lemma_npsolution = lemmaprover.solve(pfp_lemma, valid_lemmas)
+            post_validation = time.time()
+            validation_time = post_validation - pre_validation
+            final_out['time_charged'] += validation_time
+            if options.verbose == 'on':
+                print('Current lemma handled in: ' + str(validation_time) + 's')
+                print('Time charged so far: ' + str(final_out['time_charged']) + 's')
             if lemma_npsolution.if_sat:
                 if options.verbose == 'on':
                     print('proposed lemma cannot be proved.')
@@ -155,12 +178,21 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 # Reset countermodels and invalid lemmas to [] because we have additional information to retry those proofs.
                 cex_models = []
                 invalid_lemmas = []
-                break
+                if options.experimental_prefetching_switch == 'on':
+                    continue
+                else:
+                    break
             # Update countermodels and prefetch parameters before next round of synthesis
             config_params['cex_models'] = cex_models
-        proportion = (i + 1) / (len(lemmas) // 2)
-        addl_time_charged = config_params['prefetch_timeout'] * proportion
-        final_out['time_charged'] += addl_time_charged
-        if options.verbose == 'on':
-            print('time charged: ' + str(final_out['time_charged']))
-        config_params['prefetch_timeout'] = config_params['prefetch_timeout'] * 2
+
+        # reset everything and increase prefetching timeout if streaming is on
+        if options.experimental_prefetching_switch == 'on':
+            final_out['time_charged'] = 0
+            if config_params['prefetch_timeout'] >= 3600:
+                exit('Timeout reached. Exiting')
+            else:
+                config_params['prefetch_timeout'] *= 2
+            final_out['total_lemmas'] = 0
+            valid_lemmas = set()
+            invalid_lemmas = []
+

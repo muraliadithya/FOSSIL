@@ -1,6 +1,8 @@
 import fileinput
 import sys
 
+import time
+
 # Writes to a file everytime it gets something from the input stream for num_lines number of lines
 # Filename and num_lines are passed as arguments to the script
 
@@ -17,6 +19,7 @@ open(outfile_name,'w').close()
 with fileinput.input(files='-') as f:
     for line in f:
         outfile_handle = open(outfile_name,'a')
+        outfile_handle.write(str(time.time()) + ': ')
         outfile_handle.write(line)
         outfile_handle.close()
         line_counter = line_counter + 1

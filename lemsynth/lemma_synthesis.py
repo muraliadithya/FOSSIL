@@ -215,7 +215,8 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             print(lemma[1])
         print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
         if options.experimental_prefetching_switch == 'on':
-            print('Total time charged: ' + str(final_out['time_charged']) + 's')
+            total_time = final_out['time_charged'] + final_out['lemma_time']
+            print('Total time charged: ' + str(total_time) + 's')
         exit(0)
 
     goal_extraction_terms = config_params.get('goal_extraction_terms', None)

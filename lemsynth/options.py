@@ -7,11 +7,12 @@ import importlib_resources
 ###############################################################################
 # Setting lemma synthesis options here. DO NOT MODIFY.
 # DO NOT switch on prefetching. Code is not updated to handle current sygus output.
-experimental_prefetching_switch = 'on'
-use_cex_models = 'off'
-exclude_set_type_definitions_switch = 'on'
-constraint_based_solver = 'off'
-verbose = 'on'
+experimental_prefetching_switch = 'off'
+use_cex_models = False
+constraint_based_solver = 'on'
+verbose = 'off'
+
+exclude_set_type_definitions_switch = 'off'
 ###############################################################################
 
 log_file_path = os.path.abspath(importlib_resources.files('lemsynth')/'../logs')

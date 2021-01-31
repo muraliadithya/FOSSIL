@@ -1,12 +1,9 @@
 (synth-fun lemma ((x Int) (nil Int)) Bool
 
-           ((Start Bool) (B1 Bool) (BLeaf Bool) (Loc Int) (LocLeaf Int))
+           ((Start Bool) (Loc Int) (LocLeaf Int))
 
-           ((Start Bool (B1
-                   (=> B1 B1)))
-            (B1 Bool (BLeaf
-                (=> BLeaf BLeaf)))
-            (BLeaf Bool (
+           ((Start Bool (
+                   (=> Start Start)
                    (not (= Loc nil))
                    (lst Loc)
                    (odd_lst Loc)

@@ -1,11 +1,8 @@
 (synth-fun lemma ((x Int) (k Int) (nil Int)) Bool
-           ((Start Bool) (B1 Bool) (BLeaf Bool) (I Int) (Loc Int))
+           ((Start Bool) (I Int) (Loc Int))
 
-           ((Start Bool (B1
-                   (=> B1 BLeaf)))
-            (B1 Bool (BLeaf
-                (=> BLeaf BLeaf)))
-            (BLeaf Bool (
+           ((Start Bool (
+                   (=> Start Start)
                    (not (= Loc nil))
                    (<= I I)
                    (member k (keys Loc))

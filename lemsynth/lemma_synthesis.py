@@ -320,14 +320,12 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         prefetch_count = config_params.get('prefetch_count', -1)
         prefetch_timeout = config_params['prefetch_timeout']
         k_lemmas_file = '{}/{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
-        if options.constraint_based_solver == 'on':
-            proc = subprocess.Popen('minisy {} --smtsolver=z3 --stream'.format(out_file),
-                                    shell=True, stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, universal_newlines=True)
-        else:
+        if options.constraint_based_solver == 'off':
             proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file],
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    universal_newlines=True)            
+                                    universal_newlines=True)
+        else:
+            exit('Streaming unsupported with constraint-based-solver.')
         prefetch_proc = subprocess.Popen(['python3', 'lemsynth/prefetch_lemmas.py',
                                           k_lemmas_file, str(prefetch_count)],
                                          stdin=proc.stdout, stdout=subprocess.PIPE,

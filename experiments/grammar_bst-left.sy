@@ -8,7 +8,8 @@
             (BLeaf Bool (
                    (not (= Loc nil))
                    (<= I I)
-                   (member k (keys Loc))
+                   (member k (keys x))
+                   (member k (keys nil))
                    (bst Loc)))
             (I Int (k
                    (minr Loc)

@@ -30,7 +30,9 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                     And(bst(lft(x)),
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
-                                                key(x) <= minr(rght(x)))))))))
+                                                And(key(x) <= minr(rght(x)),
+                                                    SetIntersect(hbst(lft(x)), hbst(rght(x)))
+                                                    == fgsetsort.lattice_bottom))))))))
 AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
                              SetAdd(SetUnion(hbst(lft(x)), hbst(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)

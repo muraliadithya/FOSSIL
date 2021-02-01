@@ -138,8 +138,9 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     final_out['time_charged'] += validation_time
                     if options.verbose == 'on':
                         print('Countermodels not enabled. Retrying lemma synthesis.')
-                        print('Current lemma handled in: ' + str(validation_time) + 's')
-                        print('Time charged so far: ' + str(final_out['time_charged']) + 's')
+                        if options.experimental_prefetching_switch == 'on':
+                            print('Current lemma handled in: ' + str(validation_time) + 's')
+                            print('Time charged so far: ' + str(final_out['time_charged']) + 's')
                     continue
             pfp_lemma = make_pfp_formula(z3py_lemma_body)
             lemmaprover = NPSolver()
@@ -149,7 +150,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
             post_validation = time.time()
             validation_time = post_validation - pre_validation
             final_out['time_charged'] += validation_time
-            if options.verbose == 'on':
+            if options.verbose == 'on' and options.experimental_prefetching_switch == 'on':
                 print('Current lemma handled in: ' + str(validation_time) + 's')
                 print('Time charged so far: ' + str(final_out['time_charged']) + 's')
             if lemma_npsolution.if_sat:

@@ -22,16 +22,25 @@ tree = RecFunction('tree', fgsort, boolsort)
 minr = RecFunction('minr', fgsort, intsort)
 maxr = RecFunction('maxr', fgsort, intsort)
 bst = RecFunction('bst', fgsort, boolsort)
+htree = RecFunction('htree', fgsort, fgsetsort)
 AddRecDefinition(minr, x, If(x == nil, 100, min_intsort(key(x), minr(lft(x)), minr(rght(x)))))
 AddRecDefinition(maxr, x, If(x == nil, -1, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
 AddRecDefinition(tree, x, If(x == nil, True, And(tree(lft(x)), tree(rght(x)))))
+AddRecDefinition(tree, x, If(x == nil, True,
+                             And(SetIntersect(htree(lft(x)), htree(rght(x)))
+                                 == fgsetsort.lattice_bottom,
+                                 And(tree(lft(x)), tree(rght(x))))))
 AddRecDefinition(bst, x, If(x == nil, True,
                             And(0 < key(x),
                                 And(key(x) < 100,
                                     And(bst(lft(x)),
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
-                                                key(x) <= minr(rght(x)))))))))
+                                                And(key(x) <= minr(rght(x)),
+                                                    SetIntersect(htree(lft(x)), htree(rght(x)))
+                                                    == fgsetsort.lattice_bottom))))))))
+AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
+                              SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 

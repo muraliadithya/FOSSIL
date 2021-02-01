@@ -1,10 +1,8 @@
 (synth-fun lemma ((x Int) (yc Int) (zc Int)) Bool
-           ((Start Bool) (BLeaf Bool) (Loc Int))
+           ((Start Bool) (Loc Int))
 
-           ((Start Bool
-                  (BLeaf
-                  (=> BLeaf BLeaf)))
-           (BLeaf Bool (
+           ((Start Bool (
+                  (=> Start Start)
                   (lsegy Loc)
                   (lsegz Loc)
                   (lsegy_p Loc)

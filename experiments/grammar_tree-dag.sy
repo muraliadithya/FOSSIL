@@ -1,11 +1,10 @@
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
-           ((Start Bool) (B1 Bool) (Loc Int))
+           ((Start Bool) (Loc Int))
 
-           ((Start Bool (B1
-                   (=> B1 B1)))
-            (B1 Bool (
-                (dag Loc)
-                (tree Loc)))
+           ((Start Bool (
+                   (=> Start Start)
+                   (dag Loc)
+                   (tree Loc)))
            (Loc Int (x y nil)))
 
 )

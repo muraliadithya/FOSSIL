@@ -1,13 +1,10 @@
 ;; lemma to synthesize
 ;; TODO: must be generated from problem parameters
 (synth-fun lemma ((x Int) (y Int) (k Int) (nil Int)) Bool
-           ((Start Bool) (B1 Bool) (BLeaf Bool) (I Int) (Loc Int))
+           ((Start Bool) (I Int) (Loc Int))
 
-           ((Start Bool (B1
-                   (=> B1 B1)))
-            (B1 Bool (BLeaf
-                (=> BLeaf BLeaf)))
-            (BLeaf Bool (
+           ((Start Bool (
+                   (=> Start Start)
                    (= I I)
                    (not (= Loc Loc))
                    (member k (keys x))

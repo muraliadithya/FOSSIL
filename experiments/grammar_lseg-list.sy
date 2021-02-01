@@ -3,11 +3,10 @@
 
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
 
-           ((Start Bool) (BLeaf Bool) (Loc Int))
+           ((Start Bool) (Loc Int))
 
-           ((Start Bool (BLeaf
-                   (=> BLeaf BLeaf)))
-            (BLeaf Bool (
+           ((Start Bool (
+                   (=> Start Start)
                    (lst Loc)
                    (lseg Loc Loc)))
             (Loc Int (x y nil)))

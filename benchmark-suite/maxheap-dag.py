@@ -49,7 +49,7 @@ else:
 
 # hardcoded lemmas
 lemma_params = (x,)
-lemma_body = Implies(maxheap(x), tree(x))
+lemma_body = Implies(maxheap(x), dag(x))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas

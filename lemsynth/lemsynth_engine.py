@@ -40,7 +40,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     lemma_grammar_terms = get_all_subterms(lemma_grammar_terms)
     valid_lemmas = set()
     invalid_lemmas = []
-    use_cex_models = config_params.get('use_cex_models', False)
+    use_cex_models = config_params.get('use_cex_models', True)
     cex_models = config_params.get('cex_models', [])
 
     # check if goal is fo provable

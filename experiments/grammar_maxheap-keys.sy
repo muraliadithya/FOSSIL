@@ -8,9 +8,8 @@
                   (member k (keys nil))))
            (I Int (k
               (key Loc)))
-           (Loc Int (x nil
-                (lft x)
-                (rght x))))
+           (Loc Int (x nil)))
+
 )
 
 (synth-fun rswitch () Int

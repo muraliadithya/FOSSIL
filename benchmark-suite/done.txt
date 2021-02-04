@@ -300,7 +300,7 @@
     Constraint-based synthesis: 1.64s
     tree-parent-tree
 
-43. Theorem: tree_p(x) => (reach_lr(x,y) => tree(y))
+43. Theorem: tree_p(x) => (parent(x) == nil => (reach_lr(x,y) => tree(y)))
     Lemmas: reach_lr(x,y) => (tree_p(x) => tree_p(y))
             tree_p(x) => tree(x)
     SyGuS synthesis: 32.56s
@@ -327,3 +327,16 @@
     SyGuS synthesis: 7.17s
     Constraint-based synthesis: 14.33s
     bst-maximal
+
+47. Theorem: maxheap(x) => (If(x == nil, ret == nil, ret == lft(x)) => tree(ret))
+    maxheap-tree
+
+48. Theorem: maxheap(x) => (If(x == nil, ret == nil, ret == lft(x)) => dag(ret))
+    maxheap-dag
+
+49. Theorem: maxheap(x) => (key(x) != k => (y \in htree(x) => key(y) <= key(x)))
+    maxheap-htree-key
+
+50. Theorem: maxheap(x) => (lft(x) != nil => (k \in keys(x) => k <= key(x)))
+    maxheap-keys
+

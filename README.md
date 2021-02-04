@@ -19,6 +19,11 @@
 
 ## Experiments
 
+- To run all the benchmarks, simply run `./test_all.sh` in the top-level directory
+  - Command `timeout` is needed. On MacOS, run the following in order to obtain the `timeout` command:
+    - `brew install coreutils`
+    - `sudo ln -s /usr/local/bin/gtimeout /usr/local/bin/timeout`
+
 - The benchmarks are in the `experiments` directory.
 - To run all benchmarks first change the directory to `experiments` and then run `make -s -i`
   - NOTE: Ignoring the `-i` flag will cause `make` to abort if any of the examples fail.

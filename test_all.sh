@@ -18,11 +18,11 @@ function final_report () {
   fi
 }
 
-for file in `ls benchmark-suite/*.py`
+for file in `ls benchmark-suite/sdlist-*.py`
   do
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)
-    gtimeout 3600 python3 $file
+    timeout 3600 python3 $file
     exit_code=$?
     END=$(date +%s)
     DIFF=$(( $END - $START ))

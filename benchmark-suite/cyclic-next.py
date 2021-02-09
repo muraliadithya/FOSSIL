@@ -8,6 +8,7 @@ from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
 from naturalproofs.prover import NPSolver
 import naturalproofs.proveroptions as proveroptions
+from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
@@ -23,21 +24,43 @@ AddRecDefinition(lseg, (x, y) , If(x == y, True,
 AddRecDefinition(cyclic, x, And(x != nil, lseg(nxt(x), x)))
 AddAxiom((), nxt(nil) == nil)
 
-# Problem parameters
+# vc
 goal = Implies(cyclic(x), cyclic(nxt(x)))
 
-# hardcoded lemmas
-# TODO: lemmas not sufficient
-lemma_params = (x,y)
-lemma1_body = Implies(lseg(x,y), Implies(y != nil, x != nil))
-lemma2_body = Implies(lseg(x,y), Implies(y != nil, lseg(x, nxt(y))))
-lemmas = {(lemma_params, lemma1_body), (lemma_params, lemma2_body)}
-
-# check validity with natural proof solver
+# check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
+solution = np_solver.solve(make_pfp_formula(goal))
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
+
+# hardcoded lemmas
+lemma_params = (x,y)
+lemma_body = Implies(lseg(x,y), Implies(y != nil, lseg(x, nxt(y))))
+lemmas = {(lemma_params, lemma_body)}
+
+# check validity of lemmas
+solution = np_solver.solve(make_pfp_formula(lemma_body))
+if not solution.if_sat:
+    print('lemma is valid')
+else:
+    print('lemma is invalid')
+
+# check validity with natural proof solver and hardcoded lemmas
+np_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
-    print('goal is valid')
+    print('goal (with lemmas) is valid')
 else:
-    print('goal is invalid')
+    print('goal (with lemmas) is invalid')
     
+# lemma synthesis
+v1, v2 = Vars('v1 v2', fgsort)
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, v2, nil, nxt(v2), nxt(nxt(v1)), nxt(nil)}
+
+name = 'cyclic-next'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

@@ -8,7 +8,7 @@ set_param('model.compact', False)
 import lemsynth.options as options
 import lemsynth.true_models
 from lemsynth.induction_constraints import generate_pfp_constraint
-from lemsynth.cvc4_compliance import cvc4_complicant_formula_sexpr
+from lemsynth.cvc4_compliance import cvc4_compliant_formula_sexpr
 
 from naturalproofs.decl_api import get_uct_signature, get_boolean_recursive_definitions, is_expr_fg_sort
 from naturalproofs.prover import NPSolver
@@ -53,7 +53,10 @@ def translateSet(s, fct_range):
         else:
             val = str(i)
         out += '(insert ' + val + ' '
-    out += '(as emptyset (' + fct_range + '))'
+    if options.constraint_based_solver == 'on':
+        out += 'empIntSet'
+    else:
+        out += '(as emptyset (' + fct_range + '))'
     for i in s:
         out += ')'
     return out
@@ -93,7 +96,10 @@ def translateModelsSets(models, set_defs):
                 set_translate = translateSet(model[fct_name][elt], fct_range)
                 curr_model_body += '  (ite (and ' + args + ') ' + set_translate + '\n'
             body += curr_model_body
-        body += '  (as emptyset (' + fct_range + '))'
+        if options.constraint_based_solver == 'on':
+            body += '  empIntSet'
+        else:
+            body += '  (as emptyset (' + fct_range + '))'
         for model in models:
             for elt in model[fct_name]:
                 body += ')'
@@ -170,7 +176,7 @@ def generateCexConstraints(model, lemma_args, annctx):
     # TODO: NOTE: only one universally quantified variable in desired lemma for now
     for i in range(len(recs)):
         pfp_formula = generate_pfp_constraint(recs[i], lemma_args, model, annctx)
-        pfp_formula_sexpr = cvc4_complicant_formula_sexpr(pfp_formula)
+        pfp_formula_sexpr = cvc4_compliant_formula_sexpr(pfp_formula)
         curr_constraint = '(=> (= rswitch {0}) {1})'.format(i, pfp_formula_sexpr)
         constraints = constraints + curr_constraint
     out = '(constraint (and {0}))\n'.format(constraints)
@@ -184,9 +190,18 @@ def generateAllCexConstraints(models, lemma_args, annctx):
         out = out + generateCexConstraints(model, lemma_args, annctx)
     return out
 
+# preamble for running with z3 (using arrays instead of sets)
+def z3Preamble():
+    insert_def = '(define-fun insert ((x Int) (y (Array Int Bool))) (Array Int Bool)\n'
+    insert_def += '(store y x true)\n)'
+    member_def = '(define-fun member ((x Int) (y (Array Int Bool))) Bool\n'
+    member_def += '(select y x)\n)'
+    empset_def = '(define-fun empIntSet () (Array Int Bool)\n'
+    empset_def += '((as const (Array Int Bool)) false)\n)'
+    return insert_def + '\n' + member_def + '\n' + empset_def + '\n'
 
 # write output to a file that can be parsed by CVC4 SyGuS
-def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
+def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
     # Make log folder if it does not exist already
     os.makedirs(options.log_file_path, exist_ok=True)
 
@@ -209,6 +224,10 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
         print('VC has been proven. Lemmas used to prove original vc:')
         for lemma in lemmas:
             print(lemma[1])
+        print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
+        if options.experimental_prefetching_switch == 'on':
+            total_time = final_out['time_charged'] + final_out['lemma_time']
+            print('Total time charged: ' + str(total_time) + 's')
         exit(0)
 
     goal_extraction_terms = config_params.get('goal_extraction_terms', None)
@@ -277,8 +296,9 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
 
     sygus_model_definitions = sygusBigModelEncoding(all_models, vocab, set_defs, annctx)
     with open(out_file, 'w') as out:
-        out.write('(set-logic ALL)')
-        out.write('\n')
+        if options.constraint_based_solver == 'on':
+            out.write(z3Preamble())
+            out.write('\n')
         out.write(';; combination of true models and false model\n')
         out.write(sygus_model_definitions)
         out.write('\n\n')
@@ -305,65 +325,63 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
         out.write('(check-synth)')
         out.close()
     # Optionally prefetching a bunch of lemmas to check each one rather than iterating through each one.
-    # DO NOT use prefetching. Code is not updated to handle current sygus output.
     if options.experimental_prefetching_switch == 'on':
         # Must include a parameter in the overall call for number of lemmas to be prefetched
-        # Currently hardcoded
-        prefetch_count = config_params.get('prefetch_count', 1)
-        k_lemmas_file = '{}{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
-        sygus_proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-        prefetch_proc = subprocess.Popen(['python3', 'prefetch_lemmas.py', k_lemmas_file, str(prefetch_count)], stdin=sygus_proc.stdout, stdout=subprocess.PIPE, universal_newlines=True)
+        # Currently hardcoded to be -1 (meaning only prefetch_timeout comes into play)
+        prefetch_count = config_params.get('prefetch_count', -1)
+        prefetch_timeout = config_params['prefetch_timeout']
+        k_lemmas_file = '{}/{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
+        if options.constraint_based_solver == 'off':
+            proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    universal_newlines=True)
+        else:
+            exit('Streaming unsupported with constraint-based-solver.')
+        prefetch_proc = subprocess.Popen(['python3', 'lemsynth/prefetch_lemmas.py',
+                                          k_lemmas_file, str(prefetch_count)],
+                                         stdin=proc.stdout, stdout=subprocess.PIPE,
+                                         universal_newlines=True)
         try:
             # Timeout given is given in seconds.
             # Currently hardcoded. Must make it a parameter
-            standard_out, standard_err = prefetch_proc.communicate(timeout=60)
+            standard_out, standard_err = prefetch_proc.communicate(timeout=prefetch_timeout)
         except subprocess.TimeoutExpired:
             prefetch_proc.kill()
-        sygus_proc.kill()
+        proc.kill()
         with open(k_lemmas_file, 'r') as k_lemmas:
             lemmas = k_lemmas.readlines()
             # Lemmas are returned as strings. Possibly terminated by '\n'
             # Removing possible '\n' before returning
             lemmas = [lemma[:-1] if lemma[-1] == '\n' else lemma for lemma in lemmas]
             # List of lemmas returned in string format
-            return lemmas
+            synth_results = [ res[:-1] + ' )' for res in lemmas ]
+            return synth_results
     else:
         if options.constraint_based_solver == 'on':
-            grammars, smt_file = replace_grammars(out_file)
-            # print(grammars)
-            # print(smt_file)
-            # Hack around constraint-based solver not replacing constraint with assert
-            with open(smt_file, 'r') as f:
-                smt_file_string = f.read()
-                smt_file_string = smt_file_string.replace('constraint', 'assert')
-                smt_file_string = smt_file_string.replace('check-synth', 'check-sat')
-                # print(smt_file_string)
-            with open(smt_file,'w') as f:
-                f.write(smt_file_string.replace('constraint', 'assert'))
-            # End of hack
-            proc = subprocess.Popen('cvc4 {} -m --lang=smt2'.format(smt_file), shell=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
-            cvc4_out, err = proc.communicate()
-            print(cvc4_out)
-            if cvc4_out == '':
+            proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file),
+                                    shell=True, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, universal_newlines=True)
+            out, err = proc.communicate()
+            # Convert output to string
+            out, err = str(out), str(err)
+            # print('out:{} err:{}'.format(out, err))
+            if out == '':
                 print(err)
                 return None
+            satisfiability = out.split('\n')[0]
+            if satisfiability in {'unsat', 'unknown'}:
+                print('Synthesis solver returns {}. Exiting.'.format(satisfiability))
+                return None
             else:
-                cvc4_lines = cvc4_out.split('\n')
-                if cvc4_lines[0] == 'sat':
-                    model = {}
-                    for line in cvc4_lines:
-                        if 'define-fun' in line:
-                            line = line.split(' ')
-                            model[line[1]] = line[4][:-1] == 'true'
-                    print('sat\n')
-                    for G in grammars:
-                        G.print_lemma(model=model, ind=True)
-                        print('')
-                else:
-                    print('unsat')
+                # Post processing
+                synth_results = '\n'.join(out.split('\n')[1:])
+                synth_results = ['(define-fun' + res for res in synth_results.split('(define-fun')[1:]]
+                synth_results = [' '.join([part for part in res.split('\n') if part != '']) for res in synth_results]
+                return synth_results
         else:
-            proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+            proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    universal_newlines=True)
             cvc4_out, err = proc.communicate()
             if cvc4_out == '':
                 print(err)
@@ -373,4 +391,6 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
                 return None
             else:
                 lemma = str(cvc4_out).split('\n')[1:][:-1]
-                return lemma
+                synth_results = [ res[:-1] + ' )' for res in lemma ]
+                return synth_results
+

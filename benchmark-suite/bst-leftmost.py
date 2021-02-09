@@ -7,10 +7,11 @@ from z3 import IsMember, IsSubset, SetUnion, SetIntersect, SetComplement, EmptyS
 from naturalproofs.prover import NPSolver
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
+from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
-# Declarations
+# declarations
 x = Var('x', fgsort)
 y, nil = Consts('y nil', fgsort)
 k = Const('k', intsort)
@@ -20,6 +21,7 @@ rght = Function('rght', fgsort, fgsort)
 minr = Function('minr', fgsort, intsort)
 maxr = Function('maxr', fgsort, intsort)
 bst = RecFunction('bst', fgsort, boolsort)
+hbst = RecFunction('hbst', fgsort, fgsetsort)
 leftmost = RecFunction('leftmost', fgsort, fgsort)
 AddRecDefinition(minr, x, If(x == nil, 100, min_intsort(key(x), minr(lft(x)), minr(rght(x)))))
 AddRecDefinition(maxr, x, If(x == nil, -1, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
@@ -29,22 +31,55 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                     And(bst(lft(x)),
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
-                                                key(x) <= minr(rght(x)))))))))
+                                                And(key(x) <= minr(rght(x)),
+                                                    SetIntersect(hbst(lft(x)), hbst(rght(x)))
+                                                    == fgsetsort.lattice_bottom))))))))
+AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
+                             SetAdd(SetUnion(hbst(lft(x)), hbst(rght(x))), x)))
 AddRecDefinition(leftmost, x, If(x == nil, x,
                                  If(lft(x) == nil, x, leftmost(lft(x)))))
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
-# TODO: this does not compile. Somthing with the key(y) == minr(x) expression.
-# I think it might have to do with x being a variable and y being a constant.
-goal = Implies(bst(x), Implies(And(x != nil, y == leftmost(x)), key(y) == minr(x)))
+# vc
+goal = Implies(bst(x), Implies(And(And(x != nil, key(x) != k),
+                                   y == leftmost(x)),
+                               key(y) == minr(x)))
 
-lemmas = {((), True)}
+# check validity with natural proof solver and no hardcoded lemmas
+np_solver = NPSolver()
+solution = np_solver.solve(make_pfp_formula(goal))
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
+
+# hardcoded lemmas
+lemma_params = (x,)
+lemma_body = Implies(bst(x), Implies(x != nil, key(leftmost(x)) == minr(x)))
+lemmas = {(lemma_params, lemma_body)}
+
+# check validity of lemmas
+solution = np_solver.solve(make_pfp_formula(lemma_body))
+if not solution.if_sat:
+    print('lemma is valid')
+else:
+    print('lemma is invalid')
 
 # check validity with natural proof solver
 np_solver = NPSolver()
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
-    print('goal is valid')
+    print('goal (with lemmas) is valid')
 else:
-    print('goal is invalid')
+    print('goal (with lemmas) is invalid')
+
+# lemma synthesis
+v1, v2 = Vars('v1 v2', fgsort)
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, v2, nil, leftmost(rght(v1)), leftmost(v1), leftmost(lft(v1)), leftmost(v2), leftmost(nil)}
+
+name = 'bst-leftmost'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

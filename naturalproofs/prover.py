@@ -4,7 +4,7 @@
 import z3
 
 from naturalproofs.AnnotatedContext import default_annctx
-from naturalproofs.decl_api import get_recursive_definition, get_all_axioms
+from naturalproofs.decl_api import get_recursive_definition, get_all_axioms, is_expr_fg_sort
 import naturalproofs.proveroptions as proveroptions
 from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate
 
@@ -71,6 +71,12 @@ class NPSolver:
         axioms = get_all_axioms(self.annctx)
         if lemmas is None:
             lemmas = set()
+        else:
+            # Check that each bound parameter in all of the lemmas are of the foreground sort
+            for lemma in lemmas:
+                bound_vars, lemma_body = lemma
+                if not all(is_expr_fg_sort(bound_var, annctx=self.annctx) for bound_var in bound_vars):
+                    raise TypeError('Bound variables of lemma: {} must be of the foreground sort'.format(lemma_body))
         fo_abstractions = axioms | recdef_unfoldings | lemmas
         # Negate the goal
         neg_goal = z3.Not(goal)

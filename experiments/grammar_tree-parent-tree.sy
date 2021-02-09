@@ -1,0 +1,15 @@
+(synth-fun lemma ((x Int) (nil Int)) Bool
+           ((Start Bool) (Loc Int))
+
+           ((Start Bool (
+                   (=> Start Start)
+                   (tree Loc)
+                   (tree_p Loc)))
+            (Loc Int (x nil)))
+)
+
+(synth-fun rswitch () Int
+           ((Start Int))
+           ((Start Int (0 1)))
+)
+

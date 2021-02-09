@@ -5,12 +5,14 @@ from z3 import And, Or, Not, Implies, If
 from z3 import IsMember, IsSubset, SetUnion, SetIntersect, SetComplement, EmptySet, SetAdd
 
 from naturalproofs.prover import NPSolver
+import naturalproofs.proveroptions as proveroptions
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFunction, AddRecDefinition, AddAxiom
+from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
-# Declarations
+# declarations
 x = Var('x', fgsort)
 nil = Const('nil', fgsort)
 k = Const('k', intsort)
@@ -18,9 +20,10 @@ key = Function('key', fgsort, intsort)
 keys = Function('keys', fgsort, intsetsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
-minr = Function('minr', fgsort, intsort)
-maxr = Function('maxr', fgsort, intsort)
+minr = RecFunction('minr', fgsort, intsort)
+maxr = RecFunction('maxr', fgsort, intsort)
 bst = RecFunction('bst', fgsort, boolsort)
+hbst = RecFunction('hbst', fgsort, fgsetsort)
 AddRecDefinition(minr, x, If(x == nil, 100, min_intsort(key(x), minr(lft(x)), minr(rght(x)))))
 AddRecDefinition(maxr, x, If(x == nil, -1, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
 AddRecDefinition(bst, x, If(x == nil, True,
@@ -29,27 +32,65 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                     And(bst(lft(x)),
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
-                                                key(x) <= minr(rght(x)))))))))
+                                                And(key(x) <= minr(rght(x)),
+                                                    SetIntersect(hbst(lft(x)), hbst(rght(x)))
+                                                    == fgsetsort.lattice_bottom))))))))
+AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
+                             SetAdd(SetUnion(hbst(lft(x)), hbst(rght(x))), x)))
 AddRecDefinition(keys, x, If(x == nil, fgsetsort.lattice_bottom,
                              SetAdd(SetUnion(keys(lft(x)), keys(rght(x))), key(x))))
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
-# Problem parameters
-goal = Implies(bst(x), Implies(And(IsMember(k, keys(x)), k < key(x)), IsMember(k, keys(lft(x)))))
 
-# hardcoded lemma
-# TODO: does not go through since lemma parameters must all be fgsort
-lemma_params = (x,k)
-lemma_body = Implies(bst(x), Implies(IsMember(k, keys(x)),
-                                     And(minr(x) <= k, k <= maxr(x))))
-lemmas = {(lemma_params, lemma_body)}
+# vc
+goal = Implies(bst(x), Implies(And(IsMember(k, keys(x)), k < key(x), x != nil), IsMember(k, keys(lft(x)))))
+
+# check validity with natural proof solver and no hardcoded lemmas
+np_solver = NPSolver()
+solution = np_solver.solve(make_pfp_formula(goal))
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
+
+# hardcoded lemmas
+lemma_params = (x,)
+lemma1_body = Implies(bst(x), Implies(And(IsMember(k, keys(x)), x != nil), minr(x) <= k))
+lemma2_body = Implies(bst(x), Implies(And(IsMember(k, keys(x)), x != nil), k <= maxr(x)))
+lemmas = {(lemma_params, lemma1_body), (lemma_params, lemma2_body)}
+
+# check validity of lemmas
+solution = np_solver.solve(make_pfp_formula(lemma1_body))
+if not solution.if_sat:
+    print('lemma 1 is valid')
+else:
+    print('lemma 1 is invalid')
+solution = np_solver.solve(make_pfp_formula(lemma2_body))
+if not solution.if_sat:
+    print('lemma 2 is valid')
+else:
+    print('lemma 2 is invalid')
 
 # check validity with natural proof solver
 np_solver = NPSolver()
+# If this mode is not specified the proof won't go through because the VC does
+# not contain rght(x), which needs to be among the terms used for
+# instantiation. Can also use manual instantiation mode, but that can't help
+# with lemma synthesis.
+np_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
-    print('goal is valid')
+    print('goal (with lemmas) is valid')
 else:
-    print('goal is invalid')
+    print('goal (with lemmas) is invalid')
 
+# lemma synthesis
+v = Var('v', fgsort)
+lemma_grammar_args = [v, k, nil]
+lemma_grammar_terms = {v, k, nil, rght(rght(v)), rght(lft(v))}
+
+name = 'bst-left'
+grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

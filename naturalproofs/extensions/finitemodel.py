@@ -29,7 +29,7 @@ z3.set_param('model.compact', False)
 from naturalproofs.AnnotatedContext import default_annctx 
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import get_vocabulary, get_uct_signature
-from naturalproofs.utils import get_all_subterms
+from naturalproofs.prover_utils import get_foreground_terms
 from naturalproofs.extensions.finitemodel_utils import transform_fg_universe, collect_fg_universe
 
 
@@ -62,8 +62,8 @@ class FiniteModel:
         # TODO: the assumption is that uninterpreted functions have arguments only from the foreground sort. Must handle
         #  cases where uninterpreted functions have arguments in other domains, primarily integers.
         # Subterm-close the given terms assuming one-way functions
-        # TODO: checks for all terms being of the foreground sort.
-        subterm_closure = get_all_subterms(terms)
+        # get_foreground_terms already performs subterm closure
+        subterm_closure = get_foreground_terms(terms)
         elems = {smtmodel.eval(term, model_completion=True) for term in subterm_closure}
         if vocabulary is None:
             vocabulary = get_vocabulary(annctx)

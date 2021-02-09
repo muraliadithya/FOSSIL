@@ -32,7 +32,7 @@ def instantiate(bound_formulas, terms):
     return instantiated_set
 
 
-def _get_foreground_terms_aux(expr, annctx=default_annctx):
+def _get_foreground_terms_aux(expr, annctx):
     # Auxiliary function for get_foreground_terms collecting foreground terms from one expression.
     # Recursively break down expression and check if it is of the foreground sort. If it is, add it to the accumulator.
     fg_set = {expr} if is_expr_fg_sort(expr, annctx) else set()
@@ -42,13 +42,13 @@ def _get_foreground_terms_aux(expr, annctx=default_annctx):
     else:
         children = expr.children()
         for child in children:
-            fg_set = fg_set.union(_get_foreground_terms_aux(child))
+            fg_set = fg_set.union(_get_foreground_terms_aux(child, annctx))
     return fg_set
 
 
 def get_foreground_terms(exprs, annctx=default_annctx):
     """
-    Return the set of terms in any expression in exprs that are of the foreground sort.  
+    Return the subterm-closed set of terms in any expression in exprs that are of the foreground sort.  
     :param exprs: z3.ExprRef or set of z3.ExprRef  
     :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext  
     :return: set of z3.ExprRef  

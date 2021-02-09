@@ -1,26 +1,19 @@
-;; lemma to synthesize
-;; TODO: must be generated from problem parameters
-
 (synth-fun lemma ((x Int) (nil Int)) Bool
 
-           ((Start Bool) (I Int))
+           ((Start Bool) (Loc Int))
 
-           ((Start Bool
-                  ((=> Start Start)
+           ((Start Bool (
+                   (=> Start Start)
                    (and Start Start)
-                   (or Start Start)
-                   (not Start)
-                   (dlst I) (slst I) (sdlst I)))
-            (I Int (x nil
-                   (nxt I)
-                   (prv I))))
-
+                   (slst Loc)
+                   (dlst Loc)
+                   (sdlst Loc)))
+            (Loc Int (x nil)))
 )
 
 (synth-fun rswitch () Int
 
            ((Start Int))
-
            ((Start Int (0 1 2)))
 
 )

@@ -1,24 +1,17 @@
-;; grammar for lemma to synthesize
 (synth-fun lemma ((x Int) (nil Int)) Bool
+           ((Start Bool) (Loc Int))
 
-           ((Start Bool) (I Int))
-
-           ((Start Bool
-                  ((=> Start Start)
-                   (and Start Start)
-                   (or Start Start)
-                   (not Start)
-                   (maxheap I) (tree I)))
-            (I Int (x nil
-                   (left I)
-                   (right I)
-                   (key I))))
+           ((Start Bool (
+                   (=> Start Start)
+                   (tree Loc)
+                   (maxheap Loc)))
+            (Loc Int (x nil
+                 (lft x)
+                 (rght x))))
 
 )
 
 (synth-fun rswitch () Int
-
            ((Start Int))
            ((Start Int (0 1)))
-
 )

@@ -37,8 +37,8 @@ def lemma_instantiation_terms(lemma_args, lemma_grammar_terms, annctx):
     example_lemmas = representative_lemmas(lemma_args, lemma_grammar_terms, annctx=annctx)
     pfp_formulas = {make_pfp_formula(lemma, annctx=annctx) for lemma in example_lemmas}
     instantiation_terms = get_foreground_terms(pfp_formulas)
-    subterm_closed_instantiation_terms = get_all_subterms(instantiation_terms)
-    return subterm_closed_instantiation_terms
+    # get_foreground_terms already performs subterm closure
+    return instantiation_terms
 
 
 # Terms for extracting a finite model from proof attempt of goal

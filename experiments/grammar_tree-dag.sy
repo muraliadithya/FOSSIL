@@ -1,0 +1,16 @@
+(synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
+           ((Start Bool) (Loc Int))
+
+           ((Start Bool (
+                   (=> Start Start)
+                   (dag Loc)
+                   (tree Loc)))
+           (Loc Int (x y nil)))
+
+)
+
+(synth-fun rswitch () Int
+           ((Start Int))
+           ((Start Int (0 1)))
+)
+

@@ -90,7 +90,7 @@ class AnnotatedContext:
     def add_vocabulary_annotation(self, funcdeclref):
         """
         Adds an annotation to the __vocabulary_annotation__ in self. The annotation is a z3.FuncDeclRef  
-        :param annotation: z3.FuncDeclRef object  
+        :param funcdeclref: z3.FuncDeclRef object  
         :return: None  
         """
         if not isinstance(funcdeclref, z3.FuncDeclRef):

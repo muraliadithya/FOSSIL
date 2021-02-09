@@ -1,0 +1,24 @@
+(synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
+           ((Start Bool) (I Int) (Loc Int))
+
+           ((Start Bool (
+                  (=> Start Start)
+                  (<= I I)
+                  (member x (htree x))
+                  (member x (htree y))
+                  (member x (htree nil))
+                  (member y (htree x))
+                  (member y (htree y))
+                  (member y (htree nil))
+                  (member nil (htree x))
+                  (member nil (htree y))
+                  (member nil (htree nil))))
+           (I Int (
+              (key Loc)))
+           (Loc Int (x y nil)))
+)
+
+(synth-fun rswitch () Int
+           ((Start Int))
+           ((Start Int (0)))
+)

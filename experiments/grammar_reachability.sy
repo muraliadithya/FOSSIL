@@ -3,28 +3,20 @@
 ;; The meaning is a bag of states where each state is a conjunction of equality/disequality atoms
 (synth-fun lemma ((x Int) (nil Int) (s Int) (c Int)) Bool
 
-           ((Start Bool) (Progvar Int) (Progstate Int))
+           ((Start Bool) (Progvar Int) (Progvar1 Int) (Progstate Int))
 
-           ((Start Bool
-                  (
+           ((Start Bool (Start
                    (and Start Start)
                    (or Start Start)
-                   ;(not Start)
                    (= Progvar Progvar)))
-            (Progvar Int 
-                  (
-                    c 
-                   nil
-                   (v1 Progstate)
-                   (v2 Progstate)
-                   (n Progvar)
-                   ))
-            (Progstate Int (
-            	    x
-                   )))
+            (Progvar Int (Progvar1
+                  (n Progvar1)))
+            (Progvar1 Int (c nil
+                      (v1 Progstate)
+                      (v2 Progstate)))
+            (Progstate Int (x)))
 
 )
-
 
 (synth-fun rswitch () Int
 

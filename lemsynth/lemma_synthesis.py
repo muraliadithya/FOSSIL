@@ -17,8 +17,6 @@ from naturalproofs.extensions.finitemodel import recover_value
 from naturalproofs.extensions.finitemodel import FiniteModel
 from naturalproofs.decl_api import get_vocabulary, is_var_decl
 
-from  constraint_solver.lem_syn import replace_grammars
-
 
 # Add constraints from each model into the given solver
 # Look through model's function entries and adds each input-output constraint

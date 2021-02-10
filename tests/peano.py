@@ -41,14 +41,15 @@ orig_pfp_goal = make_pfp_formula(orig_goal)
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, zero]
 lemma_grammar_terms = {v1, v2, zero, succ(v1), succ(v2), succ(zero), 
-                       pred(v1),  pred(v2), pred(zero)}
+                       pred(v1),  pred(v2), pred(zero), plus(succ(zero), succ(pred(v1))), plus(succ(zero), succ(v1))}
 
 name = 'peano'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 config_params = dict()
 config_params['goal_instantiation_mode_override'] = proveroptions.manual_instantiation
-# config_params['goal_instantiation_terms'] = {x, y, succ(x), succ(y), pred(x), pred(y)}
-solveProblem(lemma_grammar_args, lemma_grammar_terms, orig_pfp_goal, name, grammar_string)
+
+config_params['goal_instantiation_terms'] = {x, y, succ(x), succ(y), pred(x), pred(y)}
+solveProblem(lemma_grammar_args, lemma_grammar_terms, orig_pfp_goal, name, grammar_string, config_params)
 
 exit(0)
 

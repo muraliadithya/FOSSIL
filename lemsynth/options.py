@@ -10,10 +10,9 @@ import importlib_resources
 experimental_prefetching_switch = 'off'
 use_cex_models = True
 constraint_based_solver = 'on'
-verbose = 'off'
+verbose = 'on'
 
 exclude_set_type_definitions_switch = 'off'
-constraint_based_solver = 'on'
 ###############################################################################
 
 log_file_path = os.path.abspath(importlib_resources.files('lemsynth')/'../logs')

@@ -41,7 +41,7 @@ orig_pfp_goal = make_pfp_formula(orig_goal)
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, zero]
 lemma_grammar_terms = {v1, v2, zero, succ(v1), succ(v2), succ(zero), 
-                       pred(v1),  pred(v2), pred(zero), plus(succ(zero), succ(pred(v1))), plus(succ(zero), succ(v1))}
+                       pred(v1),  pred(v2), pred(zero), plus(succ(zero), succ(pred(v1))), plus(succ(zero), succ(v1)), plus(v1, zero), plus(plus(v1, v2), zero), plus(plus(v2, v1), zero), plus(v2, zero)}
 
 name = 'peano'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
@@ -49,50 +49,51 @@ config_params = dict()
 config_params['goal_instantiation_mode_override'] = proveroptions.manual_instantiation
 
 config_params['goal_instantiation_terms'] = {x, y, succ(x), succ(y), pred(x), pred(y)}
-solveProblem(lemma_grammar_args, lemma_grammar_terms, orig_pfp_goal, name, grammar_string, config_params)
+# print(orig_pfp_goal)
+solveProblem(lemma_grammar_args, lemma_grammar_terms, orig_pfp_goal, name, grammar_string)
 
 exit(0)
 
-# # adt pfp of goal
-# orig_pfp_goal = make_pfp_formula(orig_goal)
-# orig_np_solver = NPSolver()
-# orig_solution = orig_np_solver.solve(orig_pfp_goal)
-# print('Commutativity of addition: no lemma')
-# if not orig_solution.if_sat:
-#     print(' -- goal is valid')
-# else:
-#     print(' -- goal is invalid')
-# 
-# # adt pfp of base case lemma: x + zero = x
-# base_lemma_params = (x,)
-# base_lemma = Implies(nat(x), plus(x, zero) == x)
-# base_pfp_goal = make_pfp_formula(base_lemma)
-# base_np_solver = NPSolver()
-# base_solution = base_np_solver.solve(base_pfp_goal)
-# print('Lemma for inductive case: x + zero = x')
-# if not base_solution.if_sat:
-#     print(' -- lemma is valid')
-# else:
-#     print(' -- lemma is invalid')
-# 
-# # adt pfp of inductive case lemma: x + S y = S (x + y)
-# ind_lemma_params = (x, y)
-# ind_lemma = Implies(nat(x), Implies(nat(y), plus(x, succ(y)) == succ(plus(x, y))))
-# ind_pfp_goal = make_pfp_formula(ind_lemma)
-# ind_np_solver = NPSolver()
-# ind_solution = ind_np_solver.solve(ind_pfp_goal)
-# print('Lemma for inductive case: x + S y = S (x + y)')
-# if not ind_solution.if_sat:
-#     print(' -- lemma is valid')
-# else:
-#     print(' -- lemma is invalid')
-# 
-# # adding lemmas to solver
-# lemmas = {(base_lemma_params, base_lemma), (ind_lemma_params, ind_lemma)}
-# final_np_solver = NPSolver()
-# final_solution = final_np_solver.solve(orig_pfp_goal, lemmas)
-# print('Original goal with lemmas assumed:')
-# if not final_solution.if_sat:
-#     print(' -- goal is valid')
-# else:
-#     print(' -- goal is invalid')
+# adt pfp of goal
+orig_pfp_goal = make_pfp_formula(orig_goal)
+orig_np_solver = NPSolver()
+orig_solution = orig_np_solver.solve(orig_pfp_goal)
+print('Commutativity of addition: no lemma')
+if not orig_solution.if_sat:
+    print(' -- goal is valid')
+else:
+    print(' -- goal is invalid')
+
+# adt pfp of base case lemma: x + zero = x
+base_lemma_params = (x,)
+base_lemma = Implies(nat(x), plus(x, zero) == x)
+base_pfp_goal = make_pfp_formula(base_lemma)
+base_np_solver = NPSolver()
+base_solution = base_np_solver.solve(base_pfp_goal)
+print('Lemma for inductive case: x + zero = x')
+if not base_solution.if_sat:
+    print(' -- lemma is valid')
+else:
+    print(' -- lemma is invalid')
+
+# adt pfp of inductive case lemma: x + S y = S (x + y)
+ind_lemma_params = (x, y)
+ind_lemma = Implies(nat(x), Implies(nat(y), plus(x, succ(y)) == succ(plus(x, y))))
+ind_pfp_goal = make_pfp_formula(ind_lemma)
+ind_np_solver = NPSolver()
+ind_solution = ind_np_solver.solve(ind_pfp_goal)
+print('Lemma for inductive case: x + S y = S (x + y)')
+if not ind_solution.if_sat:
+    print(' -- lemma is valid')
+else:
+    print(' -- lemma is invalid')
+
+# adding lemmas to solver
+lemmas = {(base_lemma_params, base_lemma), (ind_lemma_params, ind_lemma)}
+final_np_solver = NPSolver()
+final_solution = final_np_solver.solve(orig_pfp_goal, lemmas)
+print('Original goal with lemmas assumed:')
+if not final_solution.if_sat:
+    print(' -- goal is valid')
+else:
+    print(' -- goal is invalid')

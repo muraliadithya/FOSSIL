@@ -227,6 +227,9 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             total_time = final_out['time_charged'] + final_out['lemma_time']
             print('Total time charged: ' + str(total_time) + 's')
         exit(0)
+    else:
+        if options.verbose == 'on':
+            print('Goal has not been proven yet. Continuing.')
 
     goal_extraction_terms = config_params.get('goal_extraction_terms', None)
     if goal_extraction_terms is not None:

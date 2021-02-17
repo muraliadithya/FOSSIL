@@ -33,24 +33,20 @@ AddRecDefinition(plus, (x, y), If(x == zero, y, succ(plus(pred(x), y))))
 AddAxiom(x, pred(succ(x)) == x)
 AddAxiom(x, succ(x) != zero)
 AddAxiom(x, Implies(x != zero, succ(pred(x)) == x))
+AddAxiom(x, Implies(nat(x), plus(x, zero) == x))
+# AddAxiom((x,y), Implies(nat(x), Implies(nat(y), plus(x, succ(y)) == succ(plus(x, y)))))
 
-orig_goal = Implies(nat(x), Implies(nat(y), plus(x, y) == plus(y, x)))
-# adt pfp of goal
-orig_pfp_goal = make_pfp_formula(orig_goal)
+curr_goal = Implies(nat(x), Implies(nat(y), plus(x, y) == plus(y, x)))
+orig_goal = make_pfp_formula(curr_goal)
+print(orig_goal)
 
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, zero]
-lemma_grammar_terms = {v1, v2, zero, succ(v1), succ(v2), succ(zero), 
-                       pred(v1),  pred(v2), pred(zero), plus(succ(zero), succ(pred(v1))), plus(succ(zero), succ(v1)), plus(v1, zero), plus(plus(v1, v2), zero), plus(plus(v2, v1), zero), plus(v2, zero)}
+lemma_grammar_terms = {v1, v2, zero, plus(v1, v2), succ(v2), plus(v1, succ(v2)), succ(plus(v1, v2)), plus(v1, zero), plus(v2, v1), succ(v1), plus(v2, succ(v1)), succ(plus(v2, v1)), plus(v2, zero)}
 
 name = 'peano'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
-config_params = dict()
-config_params['goal_instantiation_mode_override'] = proveroptions.manual_instantiation
-
-config_params['goal_instantiation_terms'] = {x, y, succ(x), succ(y), pred(x), pred(y)}
-# print(orig_pfp_goal)
-solveProblem(lemma_grammar_args, lemma_grammar_terms, orig_pfp_goal, name, grammar_string)
+solveProblem(lemma_grammar_args, lemma_grammar_terms, orig_goal, name, grammar_string)
 
 exit(0)
 

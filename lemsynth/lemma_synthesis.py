@@ -238,8 +238,9 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             # Otherwise finite model extraction will not work
             remaining_terms = goal_npsolution.extraction_terms - goal_extraction_terms
             if remaining_terms != set():
-                raise ValueError('Lemma terms is too small. '
-                                 'Terms remaining after instantiation: {}'.format(remaining_terms))
+                # raise ValueError('Lemma terms is too small. '
+                #                  'Terms remaining after instantiation: {}'.format(remaining_terms))
+                print('Lemma terms too small.')
         else:
             warnings.warn('The set of terms in the proof of the goal is likely to vary. '
                           'Tool may produce false negatives.')

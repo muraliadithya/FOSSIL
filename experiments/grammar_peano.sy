@@ -3,11 +3,8 @@
            ((Start Bool))
 
            ((Start Bool (
-                   (= (plus x zero) x)
-                   (= (plus x (succ y)) (succ (plus x y)))
-                   (nat x)
-                   (nat y)
-                   (=> Start Start))))
+                   (=> (nat y) (= (plus x (succ y)) (succ (plus x y))))
+                   (= (plus x zero) x))))
 
 )
 

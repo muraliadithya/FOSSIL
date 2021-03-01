@@ -102,7 +102,7 @@ class NPSolver:
                               instantiation_terms=instantiation_terms, options=options)
         # Automatic instantiation modes
         # Untracked lemma instantiation strategy
-        if options.instantiation_mode == proveroptions.depth_one_untracked_lemma_instantiation:
+        if options.instantiation_mode == proveroptions.depth_one_stratified_instantiation:
             conservative_fo_abstractions = axioms | recdef_unfoldings
             tracked_instantiations = instantiate(conservative_fo_abstractions, initial_terms)
             if tracked_instantiations != set():

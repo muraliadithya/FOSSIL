@@ -6,7 +6,6 @@ from z3 import *
 set_param('model.compact', False)
 
 import lemsynth.options as options
-import lemsynth.true_models
 from lemsynth.induction_constraints import generate_pfp_constraint
 from lemsynth.cvc4_compliance import cvc4_compliant_formula_sexpr
 
@@ -51,13 +50,14 @@ def translateSet(s, fct_range):
         else:
             val = str(i)
         out += '(insert ' + val + ' '
-    if options.constraint_based_solver == 'on':
+    if options.synthesis_solver == options.minisy:
         out += 'empIntSet'
     else:
         out += '(as emptyset (' + fct_range + '))'
     for i in s:
         out += ')'
     return out
+
 
 # translate tuple of args to conjunction of equalities in smt format
 def translateArgs(elt):
@@ -70,6 +70,7 @@ def translateArgs(elt):
         out += '(= x!' + str(i) + ' ' + val + ') '
     return out[:-1]
 
+
 # get header of set function
 def getHeader(fct, fct_range):
     out = '(define-fun ' + fct.name() + ' ('
@@ -78,6 +79,7 @@ def getHeader(fct, fct_range):
     out = out[:-1] + ') '
     out += '(' + fct_range + ')'
     return out
+
 
 # translate models of fully evaluated sets to smtlib format
 def translateModelsSets(models, set_defs):
@@ -94,7 +96,7 @@ def translateModelsSets(models, set_defs):
                 set_translate = translateSet(model[fct_name][elt], fct_range)
                 curr_model_body += '  (ite (and ' + args + ') ' + set_translate + '\n'
             body += curr_model_body
-        if options.constraint_based_solver == 'on':
+        if options.synthesis_solver == options.minisy:
             body += '  empIntSet'
         else:
             body += '  (as emptyset (' + fct_range + '))'
@@ -146,28 +148,6 @@ def generateFalseConstraints(model, lemma_args, terms, annctx):
     return out
 
 
-# # Generate constraints corresponding to one true model for SyGuS
-# def generateTrueConstraints(model, const, fcts_z3):
-#     constraints = ''
-#     const_values = ' '.join([str(modelDictEval(model, constant_symbol)) for constant_symbol in const])
-#     elems = model['elems']
-#     for elem in elems:
-#         # TODO: only one universally quantified variable in desired lemma for now
-#         recs = fcts_z3['recpreds-loc_1_int_bool']
-#         for i in range(len(recs)):
-#             curr_constraint = '(=> (= rswitch {0}) (=> ({1} {2}) (lemma {2} {3})))\n'.format(i, str(recs[i]), elem, const_values)
-#             constraints = constraints + curr_constraint
-#     out = '(constraint (and {0}))\n'.format(constraints)
-#     return out
-# 
-# # Generate constraints corresponding to all true models for SyGuS
-# def generateAllTrueConstraints(models, const, fcts_z3):
-#     out = ''
-#     for model in models:
-#         out = out + generateTrueConstraints(model, const, fcts_z3)
-#     return out
-
-
 def generateCexConstraints(model, lemma_args, annctx):
     constraints = ''
     recs = get_boolean_recursive_definitions()
@@ -188,6 +168,7 @@ def generateAllCexConstraints(models, lemma_args, annctx):
         out = out + generateCexConstraints(model, lemma_args, annctx)
     return out
 
+
 # preamble for running with z3 (using arrays instead of sets)
 def z3Preamble():
     insert_def = '(define-fun insert ((x Int) (y (Array Int Bool))) (Array Int Bool)\n'
@@ -198,6 +179,7 @@ def z3Preamble():
     empset_def += '((as const (Array Int Bool)) false)\n)'
     return insert_def + '\n' + member_def + '\n' + empset_def + '\n'
 
+
 # write output to a file that can be parsed by CVC4 SyGuS
 def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
     # Make log folder if it does not exist already
@@ -205,47 +187,46 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
 
     out_file = '{}/out_{}.sy'.format(options.log_file_path, problem_instance_name)
 
-    goal_fo_solver = NPSolver()
-    goal_instantiation_mode = config_params.get('goal_instantiation_mode_override', None)
-    if goal_instantiation_mode is None:
-        goal_fo_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
-    elif goal_instantiation_mode == proveroptions.manual_instantiation:
-        goal_terms_to_instantiate = config_params.get('goal_instantiation_terms', None)
-        if goal_terms_to_instantiate is None:
-            raise ValueError('Manual instantiation mode override for goal. '
-                             'config_params must have a \'goal_instantiation_terms\' field.')
-        goal_fo_solver.options.terms_to_instantiate = goal_terms_to_instantiate
+    goal_fo_solver = config_params.get('goal_solver', None)
+    if goal_fo_solver is None:
+        raise Exception('Something is wrong. A fixed solver object for the goal is needed. Consult an expert.')
 
     goal_npsolution = goal_fo_solver.solve(goal, lemmas)
     if not goal_npsolution.if_sat:
         # Lemmas generated up to this point are useful. Exit.
-        print('VC has been proven. Lemmas used to prove original vc:')
+        print('Goal has been proven. Lemmas used to prove goal:')
         for lemma in lemmas:
             print(lemma[1])
-        print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
-        if options.experimental_prefetching_switch == 'on':
+        if options.verbose >= 10:
+            print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
+        if options.streaming_synthesis_swtich:
             total_time = final_out['time_charged'] + final_out['lemma_time']
-            print('Total time charged: ' + str(total_time) + 's')
+            if options.verbose > 0:
+                print('Total time charged: ' + str(total_time) + 's')
         exit(0)
     else:
         if options.verbose == 'on':
             print('Goal has not been proven yet. Continuing.')
 
-    goal_extraction_terms = config_params.get('goal_extraction_terms', None)
-    if goal_extraction_terms is not None:
-        if options.debug:
-            # Goal extraction terms must be a superset of actual extraction terms
-            # Otherwise finite model extraction will not work
-            remaining_terms = goal_npsolution.extraction_terms - goal_extraction_terms
-            if remaining_terms != set():
-                # raise ValueError('Lemma terms is too small. '
-                #                  'Terms remaining after instantiation: {}'.format(remaining_terms))
-                print('Lemma terms too small.')
-        else:
-            warnings.warn('The set of terms in the proof of the goal is likely to vary. '
-                          'Tool may produce false negatives.')
-            goal_extraction_terms = goal_npsolution.extraction_terms
-    goal_instantiation_terms = config_params.get('goal_npsolution_instantiation_terms', goal_npsolution.instantiation_terms)
+    # Temprarily disabling caching or overriding of goal instantiation or extraction terms
+    # goal_extraction_terms = config_params.get('goal_extraction_terms', None)
+    # if goal_extraction_terms is not None:
+    #     if options.debug:
+    #         # Goal extraction terms must be a superset of actual extraction terms
+    #         # Otherwise finite model extraction will not work
+    #         remaining_terms = goal_npsolution.extraction_terms - goal_extraction_terms
+    #         if remaining_terms != set():
+    #             raise ValueError('Lemma terms is too small. '
+    #                              'Terms remaining after instantiation: {}'.format(remaining_terms))
+    #     else:
+    #         warnings.warn('The set of terms in the proof of the goal is likely to vary. '
+    #                       'Tool may produce false negatives.')
+    #         goal_extraction_terms = goal_npsolution.extraction_terms
+    # goal_instantiation_terms = config_params.get('goal_npsolution_instantiation_terms', 
+    #                                              goal_npsolution.instantiation_terms)
+
+    goal_instantiation_terms = goal_npsolution.instantiation_terms
+    goal_extraction_terms = goal_npsolution.extraction_terms
 
     false_finitemodel = FiniteModel(goal_npsolution.model, goal_extraction_terms, annctx=annctx)
 
@@ -281,24 +262,16 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             # Add model to cex_models_with_offset
             cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
         cex_models = cex_models_with_offset
-    # true_model_offset = accumulated_offset
-
-    # elems = config_params.get('elems', [])
 
     all_models = [cex_model.finitemodel for cex_model in cex_models] + [false_finitemodel.finitemodel]
 
     vocab = get_vocabulary(annctx)
-    if options.exclude_set_type_definitions_switch == 'on':
-        # To assess whether removing set type definitions will help in cases 
-        # where the lemma does not feature set reasoning.
-        set_defs = {}
-    else:
-        set_defs = {func for func in vocab if 'Array' in str(func.range())}
+    set_defs = {func for func in vocab if 'Array' in str(func.range())}
     vocab = vocab.difference(set_defs)
 
     sygus_model_definitions = sygusBigModelEncoding(all_models, vocab, set_defs, annctx)
     with open(out_file, 'w') as out:
-        if options.constraint_based_solver == 'on':
+        if options.synthesis_solver == options.minisy:
             out.write(z3Preamble())
             out.write('\n')
         out.write(';; combination of true models and false model\n')
@@ -327,26 +300,25 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write('(check-synth)')
         out.close()
     # Optionally prefetching a bunch of lemmas to check each one rather than iterating through each one.
-    if options.experimental_prefetching_switch == 'on':
+    if options.streaming_synthesis_swtich:
         # Must include a parameter in the overall call for number of lemmas to be prefetched
-        # Currently hardcoded to be -1 (meaning only prefetch_timeout comes into play)
+        # Currently hardcoded to be -1, so streaming can only be interrupted by timeout
         prefetch_count = config_params.get('prefetch_count', -1)
-        prefetch_timeout = config_params['prefetch_timeout']
+        # Default streaming timeout is 
+        streaming_timeout = config_params['streaming_timeout']
         k_lemmas_file = '{}/{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
-        if options.constraint_based_solver == 'off':
-            proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file],
-                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    universal_newlines=True)
-        else:
-            exit('Streaming unsupported with constraint-based-solver.')
-        prefetch_proc = subprocess.Popen(['python3', 'lemsynth/prefetch_lemmas.py',
-                                          k_lemmas_file, str(prefetch_count)],
-                                         stdin=proc.stdout, stdout=subprocess.PIPE,
+        if options.synthesis_solver != options.cvc4sy:
+            raise RuntimeError('Streaming only supported wtih CVC4Sy.')
+        proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                universal_newlines=True)
+        prefetch_proc = subprocess.Popen(['python3', 'lemsynth/prefetch_lemmas.py', 
+                                          k_lemmas_file, str(prefetch_count)], 
+                                         stdin=proc.stdout, stdout=subprocess.PIPE, 
                                          universal_newlines=True)
         try:
             # Timeout given is given in seconds.
-            # Currently hardcoded. Must make it a parameter
-            standard_out, standard_err = prefetch_proc.communicate(timeout=prefetch_timeout)
+            standard_out, standard_err = prefetch_proc.communicate(timeout=streaming_timeout)
         except subprocess.TimeoutExpired:
             prefetch_proc.kill()
         proc.kill()
@@ -356,10 +328,10 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             # Removing possible '\n' before returning
             lemmas = [lemma[:-1] if lemma[-1] == '\n' else lemma for lemma in lemmas]
             # List of lemmas returned in string format
-            synth_results = [ res[:-1] + ' )' for res in lemmas ]
+            synth_results = [res[:-1] + ' )' for res in lemmas]
             return synth_results
     else:
-        if options.constraint_based_solver == 'on':
+        if options.synthesis_solver == options.minisy:
             proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file),
                                     shell=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, universal_newlines=True)

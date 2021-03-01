@@ -48,7 +48,7 @@ else:
     print('lemma is invalid')
 
 # check validity with natural proof solver and hardcoded lemmas
-np_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
+np_solver.options.instantiation_mode = proveroptions.depth_one_stratified_instantiation
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
     print('goal (with lemmas) is valid')

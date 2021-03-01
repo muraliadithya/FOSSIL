@@ -30,4 +30,4 @@ fixed_depth = 0
 bounded_depth = 1
 infinite_depth = 2
 manual_instantiation = 3
-depth_one_untracked_lemma_instantiation = 4
+depth_one_stratified_instantiation = 4

@@ -4,18 +4,20 @@
 import os
 import importlib_resources
 
+# SyGuS solver that supports only ground constraints and uses constraint-solving methods
+minisy = 'minisy'
+# Enumerative general-purpose SyGuS solver
+cvc4sy = 'cvc4sy'
+
 ###############################################################################
 # Setting lemma synthesis options here. DO NOT MODIFY.
-# DO NOT switch on prefetching. Code is not updated to handle current sygus output.
-experimental_prefetching_switch = 'off'
+streaming_synthesis_swtich = False
 use_cex_models = True
-constraint_based_solver = 'on'
-verbose = 'off'
-
-exclude_set_type_definitions_switch = 'off'
+synthesis_solver = minisy
+# Verbosity as a positive number. 0 is completely silent.
+verbose = 10
 ###############################################################################
 
 log_file_path = os.path.abspath(importlib_resources.files('lemsynth')/'../logs')
 
 debug = True
-aggressive_debug = False

@@ -4,6 +4,7 @@ import z3
 from naturalproofs.utils import transform_expression
 import lemsynth.options as options
 
+
 def cvc4_compliant_formula_sexpr(formula):
     # Replace z3's select with cvc4's member
     # Order of arguments is reverse
@@ -16,7 +17,7 @@ def cvc4_compliant_formula_sexpr(formula):
     z3_emptyset_str = '((as const (Array Int Bool)) false)'
     cvc4_emptyset_str = '(as emptyset (Set Int) )'
     z3_emptyset_str_new = 'empIntSet'
-    if options.constraint_based_solver == 'on':
+    if options.synthesis_solver == options.minisy:
         new_formula_sexpr = formula_sexpr.replace(z3_emptyset_str, z3_emptyset_str_new)
     else:
         new_formula_sexpr = formula_sexpr.replace(z3_emptyset_str, cvc4_emptyset_str)

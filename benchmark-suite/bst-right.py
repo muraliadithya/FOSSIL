@@ -74,7 +74,7 @@ np_solver = NPSolver()
 # not contain rght(x), which needs to be among the terms used for
 # instantiation. Can also use manual instantiation mode, but that can't help
 # with lemma synthesis.
-np_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
+np_solver.options.instantiation_mode = proveroptions.depth_one_stratified_instantiation
 solution = np_solver.solve(goal, lemmas)
 if not solution.if_sat:
     print('goal (with lemmas) is valid')

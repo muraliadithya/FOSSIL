@@ -1,4 +1,6 @@
 from z3 import *
+import time
+import warnings
 
 import lemsynth.grammar_utils as grammar
 from lemsynth.lemma_synthesis import getSygusOutput
@@ -14,7 +16,6 @@ from naturalproofs.prover_utils import get_foreground_terms
 from naturalproofs.utils import get_all_subterms
 from naturalproofs.extensions.finitemodel import FiniteModel
 
-import time
 
 def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None, annctx=default_annctx):
     # Extract relevant parameters for running the verification-synthesis engine from config_params
@@ -25,9 +26,34 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     invalid_lemmas = []
     cex_models = []
 
-    # check if goal is fo provable
+    # Determine proof mode for goal
+    goal_instantiation_mode = config_params.get('goal_instantiation_mode', None)
+    supported_goal_instantiation_modes = {proveroptions.manual_instantiation, 
+                                          proveroptions.depth_one_stratified_instantiation, 
+                                          proveroptions.fixed_depth}
+    if goal_instantiation_mode is None:
+        # depth one stratified instantiation by default
+        goal_instantiation_mode = proveroptions.depth_one_stratified_instantiation
+    elif goal_instantiation_mode not in supported_goal_instantiation_modes:
+        # The set of instantiation terms must stay constant
+        # TODO: check for unsoundness of algorithm if instantiation mode has automatic adaptive depth.
+        # If the check passes there is no need for this branch of the condition.
+        raise ValueError('Unsupported or unknown proof (instantiation) mode for goal.')
+
+    # Create properly configured solver object that checks the goal in the presence of 0 or more lemmas
+    # IMPORTANT: this is the solver object that will always be used to attempt proving the goal. Doing this 
+    # standardises the configuration used to prove the goal and ensures that the changes made to the 
+    # solver object are reflected everywhere in the pipeline.
     goal_fo_solver = NPSolver()
-    goal_fo_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
+    goal_fo_solver.options.instantiation_mode = goal_instantiation_mode
+    if goal_instantiation_mode == proveroptions.manual_instantiation:
+        goal_manual_instantiation_terms = config_params.get('goal_instantiation_terms', None)
+        if goal_manual_instantiation_terms is None:
+            raise ValueError('Instantiation terms must be specified for goal in manual mode.')
+        goal_fo_solver.options.terms_to_instantiate = goal_manual_instantiation_terms
+    config_params['goal_solver'] = goal_fo_solver
+
+    # check if goal is fo provable
     goal_fo_npsolution = goal_fo_solver.solve(goal)
     if goal_fo_npsolution.if_sat:
         print('goal is not first-order provable.')
@@ -38,6 +64,9 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     # check if goal is fo provable using its own pfp
     pfp_of_goal = make_pfp_formula(goal)
     goal_pfp_solver = NPSolver()
+    goal_pfp_solver.options.instantiation_mode = goal_instantiation_mode
+    if goal_instantiation_mode == proveroptions.manual_instantiation:
+        warnings.warn('Manual instantiation mode: PFP of goal will be proved using the same terms the goal itself.')
     goal_pfp_npsolution = goal_pfp_solver.solve(pfp_of_goal)
     if goal_pfp_npsolution.if_sat:
         print('goal cannot be proved using induction.')
@@ -45,14 +74,16 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         print('goal is provable using induction.')
         exit(0)
 
-    # Extract relevant instantiation/extraction terms given the grammar
+    # goal_npsolution_instantiation_terms = goal_fo_npsolution.extraction_terms
+    # config_params['goal_npsolution_instantiation_terms'] = goal_npsolution_instantiation_terms
+    # Temporarily disabling expanding the set of extraction terms depending on the grammar.
+    # goal_extraction_terms = grammar.goal_extraction_terms(goal_npsolution_instantiation_terms, 
+    #                                                       lemma_grammar_args, lemma_grammar_terms, annctx)
+    # config_params['goal_extraction_terms'] = goal_extraction_terms
+
+    # Extract relevant instantiation/extraction terms for lemmas given the grammar
+    # This set is constant
     lemma_instantiation_terms = grammar.lemma_instantiation_terms(lemma_grammar_args, lemma_grammar_terms, annctx)
-    # Extraction terms for goal must be computed from all instantiations of recursive definitions/axioms with goal terms
-    # Specific to depth_one_untracked_lemma_instantitation_mode because it can be reused
-    goal_npsolution_instantiation_terms = goal_fo_npsolution.extraction_terms
-    config_params['goal_npsolution_instantiation_terms'] = goal_npsolution_instantiation_terms
-    goal_extraction_terms = grammar.goal_extraction_terms(goal_npsolution_instantiation_terms, lemma_grammar_args, lemma_grammar_terms, annctx)
-    config_params['goal_extraction_terms'] = goal_extraction_terms
 
     # for streaming
     config_params['streaming_timeout'] = 450

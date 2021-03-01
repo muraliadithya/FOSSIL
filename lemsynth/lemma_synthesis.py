@@ -187,8 +187,9 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
 
     out_file = '{}/out_{}.sy'.format(options.log_file_path, problem_instance_name)
 
-    goal_fo_solver = NPSolver()
-    goal_fo_solver.options.instantiation_mode = proveroptions.depth_one_untracked_lemma_instantiation
+    goal_fo_solver = config_params.get('goal_solver', None)
+    if goal_fo_solver is None:
+        raise Exception('Something is wrong. A fixed solver object for the goal is needed. Consult an expert.')
     goal_npsolution = goal_fo_solver.solve(goal, lemmas)
     if not goal_npsolution.if_sat:
         # Lemmas generated up to this point are useful. Exit.
@@ -203,21 +204,25 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
                 print('Total time charged: ' + str(total_time) + 's')
         exit(0)
 
-    goal_extraction_terms = config_params.get('goal_extraction_terms', None)
-    if goal_extraction_terms is not None:
-        if options.debug:
-            # Goal extraction terms must be a superset of actual extraction terms
-            # Otherwise finite model extraction will not work
-            remaining_terms = goal_npsolution.extraction_terms - goal_extraction_terms
-            if remaining_terms != set():
-                raise ValueError('Lemma terms is too small. '
-                                 'Terms remaining after instantiation: {}'.format(remaining_terms))
-        else:
-            warnings.warn('The set of terms in the proof of the goal is likely to vary. '
-                          'Tool may produce false negatives.')
-            goal_extraction_terms = goal_npsolution.extraction_terms
-    goal_instantiation_terms = config_params.get('goal_npsolution_instantiation_terms', goal_npsolution.instantiation_terms)
+    # Temprarily disabling caching or overriding of goal instantiation or extraction terms
+    # goal_extraction_terms = config_params.get('goal_extraction_terms', None)
+    # if goal_extraction_terms is not None:
+    #     if options.debug:
+    #         # Goal extraction terms must be a superset of actual extraction terms
+    #         # Otherwise finite model extraction will not work
+    #         remaining_terms = goal_npsolution.extraction_terms - goal_extraction_terms
+    #         if remaining_terms != set():
+    #             raise ValueError('Lemma terms is too small. '
+    #                              'Terms remaining after instantiation: {}'.format(remaining_terms))
+    #     else:
+    #         warnings.warn('The set of terms in the proof of the goal is likely to vary. '
+    #                       'Tool may produce false negatives.')
+    #         goal_extraction_terms = goal_npsolution.extraction_terms
+    # goal_instantiation_terms = config_params.get('goal_npsolution_instantiation_terms', 
+    #                                              goal_npsolution.instantiation_terms)
 
+    goal_instantiation_terms = goal_npsolution.instantiation_terms
+    goal_extraction_terms = goal_npsolution.extraction_terms
     false_finitemodel = FiniteModel(goal_npsolution.model, goal_extraction_terms, annctx=annctx)
 
     use_cex_models = config_params.get('use_cex_models', True)

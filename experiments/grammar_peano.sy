@@ -4,7 +4,8 @@
 
            ((Start Bool (
                    (=> (nat y) (= (plus x (succ y)) (succ (plus x y))))
-                   (= (plus x zero) x))))
+                   (= (plus x zero) x)
+                   )))
 
 )
 

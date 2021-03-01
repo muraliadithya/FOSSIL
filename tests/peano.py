@@ -33,12 +33,12 @@ AddRecDefinition(plus, (x, y), If(x == zero, y, succ(plus(pred(x), y))))
 AddAxiom(x, pred(succ(x)) == x)
 AddAxiom(x, succ(x) != zero)
 AddAxiom(x, Implies(x != zero, succ(pred(x)) == x))
-AddAxiom(x, Implies(nat(x), plus(x, zero) == x))
+# AddAxiom(x, Implies(nat(x), plus(x, zero) == x))
 # AddAxiom((x,y), Implies(nat(x), Implies(nat(y), plus(x, succ(y)) == succ(plus(x, y)))))
 
-curr_goal = Implies(nat(x), Implies(nat(y), plus(x, y) == plus(y, x)))
-orig_goal = make_pfp_formula(curr_goal)
-print(orig_goal)
+thm_to_prove = Implies(nat(x), Implies(nat(y), plus(x, y) == plus(y, x)))
+goal = make_pfp_formula(thm_to_prove)
+# print(goal)
 
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, zero]
@@ -46,14 +46,21 @@ lemma_grammar_terms = {v1, v2, zero, plus(v1, v2), succ(v2), plus(v1, succ(v2)),
 
 name = 'peano'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
-solveProblem(lemma_grammar_args, lemma_grammar_terms, orig_goal, name, grammar_string)
+
+config_params = {}
+# Uncomment this line for fixed_depth=1 mode
+# config_params['goal_instantiation_mode'] = proveroptions.fixed_depth  # Default depth is 1
+# Uncomment these two lines for manual instantiation mode
+config_params['goal_instantiation_mode'] = proveroptions.manual_instantiation
+config_params['goal_instantiation_terms'] = {x, y, succ(x), succ(y), pred(x), pred(y)}
+# If you comment out both things above, the goal takes too long to prove
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params)
 
 exit(0)
 
-# adt pfp of goal
-orig_pfp_goal = make_pfp_formula(orig_goal)
+# proving without lemmas
 orig_np_solver = NPSolver()
-orig_solution = orig_np_solver.solve(orig_pfp_goal)
+orig_solution = orig_np_solver.solve(goal)
 print('Commutativity of addition: no lemma')
 if not orig_solution.if_sat:
     print(' -- goal is valid')
@@ -87,7 +94,9 @@ else:
 # adding lemmas to solver
 lemmas = {(base_lemma_params, base_lemma), (ind_lemma_params, ind_lemma)}
 final_np_solver = NPSolver()
-final_solution = final_np_solver.solve(orig_pfp_goal, lemmas)
+final_np_solver.options.instantiation_mode = proveroptions.manual_instantiation
+final_np_solver.options.terms_to_instantiate = {x, y, succ(x), succ(y), pred(x), pred(y)}
+final_solution = final_np_solver.solve(goal, lemmas)
 print('Original goal with lemmas assumed:')
 if not final_solution.if_sat:
     print(' -- goal is valid')

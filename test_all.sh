@@ -18,7 +18,7 @@ function final_report () {
   fi
 }
 
-for file in `ls benchmark-suite/sdlist-*.py`
+for file in `ls benchmark-suite/l*.py`
   do
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)

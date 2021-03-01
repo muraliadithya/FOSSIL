@@ -51,6 +51,10 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         if goal_manual_instantiation_terms is None:
             raise ValueError('Instantiation terms must be specified for goal in manual mode.')
         goal_fo_solver.options.terms_to_instantiate = goal_manual_instantiation_terms
+    elif goal_instantiation_mode == proveroptions.fixed_depth:
+        # Default depth is 1
+        goal_instantiation_depth = config_params.get('goal_instantiation_depth', 1)
+        goal_fo_solver.options.depth = goal_instantiation_depth
     config_params['goal_solver'] = goal_fo_solver
 
     # check if goal is fo provable

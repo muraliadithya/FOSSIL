@@ -42,7 +42,7 @@ goal = make_pfp_formula(thm_to_prove)
 
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, zero]
-lemma_grammar_terms = {v1, v2, zero, plus(v1, v2), succ(v2), plus(v1, succ(v2)), succ(plus(v1, v2)), plus(v1, zero), plus(v2, v1), succ(v1), plus(v2, succ(v1)), succ(plus(v2, v1)), plus(v2, zero)}
+lemma_grammar_terms = {v1, v2, zero, plus(v1, v2), succ(v2), plus(v1, succ(v2)), succ(plus(v1, v2)), plus(v1, zero), plus(v2, v1), succ(v1), plus(v2, succ(v1)), succ(plus(v2, v1)), plus(v2, zero), plus(zero, zero), succ(zero), plus(plus(zero, zero), succ(zero)), plus(zero, succ(v2)), plus(v1, plus(zero, zero)), plus(pred(v1), plus(zero, zero)), plus(zero, plus(v2, zero)), plus(pred(v1), plus(zero, v2)), plus(v1, plus(zero, v2)), plus(zero, v2), succ(plus(zero, zero)), plus(v2, v2), plus(plus(v2, v2), succ(v2)), plus(plus(v1, zero), v2), plus(pred(v1), pred(v1)), plus(plus(pred(v1), zero), v2), plus(v1, v1), plus(succ(zero), succ(zero))}
 
 name = 'peano'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

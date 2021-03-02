@@ -1,11 +1,22 @@
 (synth-fun lemma ((x Int) (y Int) (zero Int)) Bool
 
-           ((Start Bool))
+           ((Start Bool) (I Int) (I1 Int) (ILeaf Int))
 
            ((Start Bool (
-                   (=> (nat y) (= (plus x (succ y)) (succ (plus x y))))
-                   (= (plus x zero) x)
-                   )))
+                   (=> Start Start)
+                   (= I I)
+                   (nat y)
+                   ))
+            (I Int (I1
+               (plus I1 I1)
+               (succ I1)
+               ))
+            (I1 Int (ILeaf
+                (plus ILeaf ILeaf)
+                (succ ILeaf)
+                ))
+            (ILeaf Int (x y zero))
+            )
 
 )
 

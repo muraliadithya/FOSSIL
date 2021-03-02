@@ -52,7 +52,7 @@ config_params = {}
 # config_params['goal_instantiation_mode'] = proveroptions.fixed_depth  # Default depth is 1
 # Uncomment these two lines for manual instantiation mode
 config_params['goal_instantiation_mode'] = proveroptions.manual_instantiation
-config_params['goal_instantiation_terms'] = {x, y, succ(x), succ(y), pred(x), pred(y)}
+config_params['goal_instantiation_terms'] = {x, y, pred(x)}
 # If you comment out both things above, the goal takes too long to prove
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params)
 

@@ -22,6 +22,8 @@ class Options:
         self.instantiation_mode = bounded_depth
         self.depth = 1
         self.terms_to_instantiate = None
+        # Model extraction configurations
+        self.minimal_extraction_terms = False
 
 
 # Defined constants for options
@@ -31,3 +33,4 @@ bounded_depth = 1
 infinite_depth = 2
 manual_instantiation = 3
 depth_one_stratified_instantiation = 4
+

@@ -88,7 +88,7 @@ class NPSolver:
         extraction_terms = initial_terms
         instantiation_terms = set()
         # Instantiate and check for provability according to options
-        # Handle manual instantiation mode first
+        # Handle manual instantiation modes first
         if options.instantiation_mode == proveroptions.manual_instantiation:
             terms_to_instantiate = options.terms_to_instantiate
             instantiations = instantiate(fo_abstractions, terms_to_instantiate)
@@ -98,6 +98,8 @@ class NPSolver:
             z3solver.add(instantiations)
             if_sat = _solver_check(z3solver)
             model = z3solver.model() if if_sat else None
+            if options.minimal_extraction_terms:
+                extraction_terms = instantiation_terms
             return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms, 
                               instantiation_terms=instantiation_terms, options=options)
         # Automatic instantiation modes

@@ -1,0 +1,190 @@
+adi@adi-ThinkPad-P51s:~/Documents/FOSSIL$ time python3 adt-tests/peano.py 
+goal is not first-order provable.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v1 == zero))
+total lemmas so far: 1
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v2 == zero))
+total lemmas so far: 2
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(zero, zero)) ==
+                plus(succ(v2), succ(v2))))
+total lemmas so far: 3
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v1 == plus(v1, zero)))
+total lemmas so far: 4
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2), zero == plus(v2, succ(v1))))
+total lemmas so far: 5
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v1 == v2))
+total lemmas so far: 6
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), zero == v1))
+total lemmas so far: 7
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v2, succ(zero)) == plus(v2, succ(v1))))
+total lemmas so far: 8
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(zero, succ(v1)) == succ(plus(zero, v1))))
+total lemmas so far: 9
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(v2, v2)) == succ(plus(zero, zero))))
+total lemmas so far: 10
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), zero == v1))
+total lemmas so far: 11
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v2, succ(v2)) == plus(zero, zero)))
+total lemmas so far: 12
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(v2, v2)) == plus(succ(v2), v2)))
+total lemmas so far: 13
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(succ(v2), zero) == succ(plus(v2, zero))))
+total lemmas so far: 14
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v1, succ(zero)) == succ(plus(zero, v1))))
+total lemmas so far: 15
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v1 == plus(zero, v1)))
+total lemmas so far: 16
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v2, succ(v1)) == plus(v2, succ(zero))))
+total lemmas so far: 17
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v1 == zero))
+total lemmas so far: 18
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v2 == zero))
+total lemmas so far: 19
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(zero, zero)) ==
+                plus(succ(zero), zero)))
+total lemmas so far: 20
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), zero == plus(zero, zero)))
+total lemmas so far: 21
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), zero == plus(v2, v2)))
+total lemmas so far: 22
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v1 == zero))
+total lemmas so far: 23
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2), zero == plus(v2, succ(v2))))
+total lemmas so far: 24
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(v1, v2)) == plus(succ(v2), v1)))
+total lemmas so far: 25
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(v1, zero)) == plus(succ(zero), v1)))
+total lemmas so far: 26
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(zero, succ(zero)) ==
+                succ(plus(zero, zero))))
+total lemmas so far: 27
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v1, succ(v1)) == succ(plus(v1, v1))))
+total lemmas so far: 28
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v1 == zero))
+total lemmas so far: 29
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v2 == zero))
+total lemmas so far: 30
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(v1, v2)) == plus(succ(v1), v2)))
+total lemmas so far: 31
+proposed lemma was proven.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v2, succ(v2)) == plus(zero, zero)))
+total lemmas so far: 32
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v1 == zero))
+total lemmas so far: 33
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1), Implies(nat(v2), v2 == zero))
+total lemmas so far: 34
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v1, succ(v1)) == succ(plus(v1, v1))))
+total lemmas so far: 35
+proposed lemma cannot be proved.
+proposed lemma: Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v1, succ(v2)) == plus(succ(v1), v2)))
+total lemmas so far: 36
+proposed lemma was proven.
+Goal has been proven. Lemmas used to prove goal:
+Implies(nat(v1),
+        Implies(nat(v2),
+                plus(zero, succ(v1)) == succ(plus(zero, v1))))
+Implies(nat(v1), Implies(nat(v2), zero == plus(zero, zero)))
+Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(v1, v2)) == plus(succ(v1), v2)))
+Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v1, succ(v2)) == plus(succ(v1), v2)))
+Implies(nat(v1), Implies(nat(v2), v1 == plus(zero, v1)))
+Implies(nat(v1), Implies(nat(v2), v1 == plus(v1, zero)))
+Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(v2, v2)) == plus(succ(v2), v2)))
+Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(zero, zero)) ==
+                plus(succ(zero), zero)))
+Implies(nat(v1),
+        Implies(nat(v2),
+                succ(plus(v1, zero)) == plus(succ(zero), v1)))
+Implies(nat(v1),
+        Implies(nat(v2),
+                plus(zero, succ(zero)) ==
+                succ(plus(zero, zero))))
+Implies(nat(v1),
+        Implies(nat(v2),
+                plus(succ(v2), zero) == succ(plus(v2, zero))))
+Implies(nat(v1),
+        Implies(nat(v2),
+                plus(v1, succ(zero)) == succ(plus(zero, v1))))
+Total lemmas proposed: 36
+
+real	143m44.702s
+user	142m57.725s
+sys	0m9.666s
+

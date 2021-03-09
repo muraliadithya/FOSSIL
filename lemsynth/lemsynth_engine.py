@@ -170,6 +170,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
             lemmaprover = NPSolver()
             lemmaprover.options.instantiation_mode = proveroptions.manual_instantiation
             lemmaprover.options.terms_to_instantiate = lemma_instantiation_terms
+            lemmaprover.options.minimal_extraction_terms = True
             lemma_npsolution = lemmaprover.solve(pfp_lemma, valid_lemmas)
             post_validation = time.time()
             validation_time = post_validation - pre_validation

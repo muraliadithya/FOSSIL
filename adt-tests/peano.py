@@ -42,7 +42,21 @@ goal = make_pfp_formula(thm_to_prove)
 
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, zero]
-lemma_grammar_terms = {v1, v2, zero, plus(v1, v2), succ(v2), plus(v1, succ(v2)), succ(plus(v1, v2)), plus(v1, zero), plus(v2, v1), succ(v1), plus(v2, succ(v1)), succ(plus(v2, v1)), plus(v2, zero), plus(zero, zero), succ(zero), plus(plus(zero, zero), succ(zero)), plus(zero, succ(v2)), plus(v1, plus(zero, zero)), plus(pred(v1), plus(zero, zero)), plus(zero, plus(v2, zero)), plus(pred(v1), plus(zero, v2)), plus(v1, plus(zero, v2)), plus(zero, v2), succ(plus(zero, zero)), plus(v2, v2), plus(plus(v2, v2), succ(v2)), plus(plus(v1, zero), v2), plus(pred(v1), pred(v1)), plus(plus(pred(v1), zero), v2), plus(v1, v1), plus(succ(zero), succ(zero))}
+# lemma_grammar_terms = {v1, v2, zero, plus(v1, v2), succ(v2), plus(v1, succ(v2)), succ(plus(v1, v2)), plus(v1, zero), 
+#                        plus(v2, v1), succ(v1), plus(v2, succ(v1)), succ(plus(v2, v1)), plus(v2, zero), 
+#                        plus(zero, zero), succ(zero), plus(plus(zero, zero), succ(zero)), plus(zero, succ(v2)), 
+#                        plus(v1, plus(zero, zero)), plus(pred(v1), plus(zero, zero)), plus(zero, plus(v2, zero)), 
+#                        plus(pred(v1), plus(zero, v2)), plus(v1, plus(zero, v2)), plus(zero, v2), 
+#                        succ(plus(zero, zero)), plus(v2, v2), plus(plus(v2, v2), succ(v2)), plus(plus(v1, zero), v2), 
+#                        plus(pred(v1), pred(v1)), plus(plus(pred(v1), zero), v2), plus(v1, v1), 
+#                        plus(succ(zero), succ(zero)), plus(succ(zero), succ(v2))}
+
+ILeaf = {v1, v2, zero}
+I1 = {succ(x) for x in ILeaf} | ILeaf
+I2 = {plus(x, y) for x in ILeaf for y in ILeaf}
+I = {plus(x, y) for x in I1 for y in I1} | {succ(x) for x in I2} | ILeaf
+lemma_grammar_terms = I
+# {v1, v2, zero, plus(zero, zero), succ(plus(zero, zero)), succ(zero), plus(succ(zero), succ(zero))}
 
 name = 'peano'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
@@ -95,7 +109,7 @@ else:
 lemmas = {(base_lemma_params, base_lemma), (ind_lemma_params, ind_lemma)}
 final_np_solver = NPSolver()
 final_np_solver.options.instantiation_mode = proveroptions.manual_instantiation
-final_np_solver.options.terms_to_instantiate = {x, y, succ(x), succ(y), pred(x), pred(y)}
+final_np_solver.options.terms_to_instantiate = {x, y, pred(x)}
 final_solution = final_np_solver.solve(goal, lemmas)
 print('Original goal with lemmas assumed:')
 if not final_solution.if_sat:

@@ -1,0 +1,21 @@
+(synth-fun lemma ((x Int) (zero Int)) Bool
+
+           ((Start Bool) (I Int) (ILeaf Int))
+
+           ((Start Bool (
+                   (= I I)
+                   (=> Start Start)))
+            (I Int (ILeaf
+               (succ (succ (plus ILeaf ILeaf)))
+               (plus (succ ILeaf) (succ ILeaf))))
+            (ILeaf Int (x)))
+
+)
+
+(synth-fun rswitch () Int
+
+           ((Start Int))
+
+           ((Start Int (0)))
+
+)

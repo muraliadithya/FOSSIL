@@ -35,16 +35,15 @@ AddRecDefinition(double, x, If(x == zero, zero, succ(succ(double(pred(x))))))
 AddAxiom(x, pred(succ(x)) == x)
 AddAxiom(x, succ(x) != zero)
 AddAxiom(x, Implies(x != zero, succ(pred(x)) == x))
-# AddAxiom(x, succ(succ(plus(x, x))) == plus(succ(x), succ(x)))
 
-# AddAxiom(x, Implies(nat(x), double(zero) == plus(zero, zero)))
-# AddAxiom(x, Implies(nat(x), double(succ(x)) == plus(succ(x), succ(x))))
+# lemma
+AddAxiom((x, y), plus(x, succ(y)) == succ(plus(x, y)))
 
 orig_goal = make_pfp_formula(Implies(nat(x), double(x) == plus(x, x)))
 
 v = Var('v', fgsort)
 lemma_grammar_args = [v, zero]
-lemma_grammar_terms = {v, zero, plus(succ(pred(v)), succ(pred(v))), plus(succ(v), succ(v)), succ(pred(v)), succ(v), succ(succ(pred(v))), succ(succ(v)), plus(v, v), plus(pred(v), pred(v)), succ(succ(plus(pred(v), pred(v)))), succ(succ(plus(v, v))), succ(plus(pred(v), pred(v))), succ(plus(v, v))}
+lemma_grammar_terms = {v, zero}
 name = 'double'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 solveProblem(lemma_grammar_args, lemma_grammar_terms, orig_goal, name, grammar_string)

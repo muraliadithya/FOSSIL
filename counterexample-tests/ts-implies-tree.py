@@ -3,11 +3,11 @@ from counterexample_utils import *
 import sys
 
 """
-Return the set of counterexamples for "ts(x,y) => list(x,y)" lemma.
+Return the set of counterexamples for "ts(x,y) => tree(x)" lemma.
 These are generated using the z3Py interface and are unique up to isomorphism given any particular choice of
 instantiation for the negated lemma.
-Specifiying --N val in terminal call will enact an underlying set with val-many elements distinct from nil.
-Specifying --p will print the particular counterexamples.
+Specifiying -N val in terminal call will enact an underlying set with val-many elements distinct from nil.
+Specifying -p will print the particular counterexamples.
 """
 
 # Functions to replace Z3 macros
@@ -22,8 +22,8 @@ def tree(x):
 
 
 # Manage terminal options
-N = int(sys.argv[sys.argv.index('--N')+1]) if '--N' in sys.argv[:-1] else 3
-prnt = '--p' in sys.argv
+N = int(sys.argv[sys.argv.index('-N')+1]) if '-N' in sys.argv[:-1] else 3
+prnt = '-p' in sys.argv
 
 # Initiate z3py variables
 lft = Function('lft', IntSort(), IntSort())

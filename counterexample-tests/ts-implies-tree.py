@@ -12,13 +12,15 @@ Specifying -p will print the particular counterexamples.
 
 # Functions to replace Z3 macros
 def tsrankdec(x, y):
-    ts_def = ts(x,y) == Or(x == y, ts(lft(x), y), ts(rht(x), y))
-    rank_def = Implies(x != y, And(ts(lft(x), y) == (rank(lft(x), y) < rank(x, y)),
-                                   ts(rht(x), y) == (rank(rht(x), y) < rank(x, y))))
-    return And(ts_def, rank_def)
-
-def tree(x):
-    return And(ts(x, nil), ts(lft(x), nil), ts(rht(x), nil))
+    ts_def = ts(x, y) == Or(x == y,
+                            And(lft(x) != x, ts(lft(x), y)),
+                            And(rht(x) != x, ts(rht(x), y)))
+    rank_dec = Implies(x != y, And(Implies(lft(x) != x, rank(lft(x), y) < rank(x, y)),
+                                   Implies(rht(x) != x, rank(rht(x), y) < rank(x, y))))
+    tree_def = tree(x) == Implies(x != nil, And(Implies(lft(x) == rht(x), lft(x) == nil),
+                                                lft(x) != x, rht(x) != x,
+                                                tree(lft(x)), tree(rht(x))))
+    return And(ts_def, rank_dec, tree_def)
 
 
 # Manage terminal options
@@ -30,6 +32,7 @@ lft = Function('lft', IntSort(), IntSort())
 rht = Function('rht', IntSort(), IntSort())
 ts = Function('ts', IntSort(), IntSort(), BoolSort())
 rank = Function('rank', IntSort(), IntSort(), IntSort())
+tree = Function('tree', IntSort(), BoolSort())
 S = Ints(' '.join(['x'+str(i) for i in range(1,N+1)]))
 nil = Int('nil')
 Snil = [nil] + S
@@ -49,10 +52,10 @@ ts_rank_def = [tsrankdec(a, b) for a in Snil for b in Snil]
 intuitive = [a == i for i,a in enumerate(Snil)]
 
 # Assert the negation of proposed lemma to generate counterexample models
+x = Snil[1]
 y = Snil[2] if N > 1 else Snil[1]
 neg_lemma = [
-    ts(Snil[1], y),
-    Not(tree(Snil[1]))
+    Not(Implies(ts(x,y), tree(x))),
 ]
 
 # Initiate solver and add assertions

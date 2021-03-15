@@ -13,7 +13,7 @@ Specifying --p will print the particular counterexamples.
 # Functions to replace Z3 macros
 def lsrankdec(x, y):
     ls_def = ls(x,y) == Or(x == y, ls(nxt(x), y))
-    rankdec_def = Implies(x != y, ls(nxt(x), y) == (rank(nxt(x), y) < rank(x, y)))
+    rankdec_def = Or(x == y, ls(nxt(x), y) == (rank(nxt(x), y) < rank(x, y)))
     return And(ls_def, rankdec_def)
 
 def lst(x):

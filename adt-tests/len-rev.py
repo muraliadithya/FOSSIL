@@ -33,15 +33,18 @@ rev = RecFunction('rev', fgsort, fgsort)
 AddRecDefinition(append, (x, y), If(x == nil, y, cons(head(x), append(tail(x), y))))
 AddRecDefinition(rev, x, If(x == nil, nil, append(rev(tail(x)), cons(head(x), nil))))
 
+length = RecFunction('length', fgsort, intsort)
+AddRecDefinition(length, x, If(x == nil, 0, length(tail(x)) + 1))
+
 # axioms
 AddAxiom(x, head(cons(hx, x)) == hx)
 AddAxiom(x, tail(cons(hx, x)) == x)
 AddAxiom(x, cons(hx, x) != nil)
 
 # lemma
-AddAxiom(x, rev(append(x, cons(hx, nil))) == cons(hx, rev(x)))
+AddAxiom(x, length(append(x, cons(hx, nil))) == length(x) + 1)
 
-orig_goal = make_pfp_formula(Implies(lst(x), rev(rev(x)) == x))
+orig_goal = make_pfp_formula(Implies(lst(x), length(rev(x)) == length(x)))
 
 v = Var('v', fgsort)
 lemma_grammar_args = [v, nil]

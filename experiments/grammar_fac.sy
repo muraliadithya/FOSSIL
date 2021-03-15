@@ -9,12 +9,15 @@
                    ))
             (I Int (I1
                (mult I1 I1)
-                    (mult I1 I1)`
                (succ I1)
+               (fac I1)
+               (qfac I1 I1)
                ))
             (I1 Int (ILeaf
                 (mult ILeaf ILeaf)
                 (succ ILeaf)
+                (fac ILeaf)
+                (qfac ILeaf ILeaf)
                 ))
             (ILeaf Int (x y zero))
             )

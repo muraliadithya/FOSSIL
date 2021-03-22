@@ -11,7 +11,7 @@ def counterexample_engine(s, m_funcs, S, prnt=False):
     """
     cexs = []
     N = len(S)
-    while s.check().__repr__() == 'sat':
+    while s.check() == CheckSatResult(Z3_L_TRUE):
         # Obtain satisfying model and encode as the image of nxt on S
         m = s.model()
         funcs = [z3_func(m[m_func].as_list()) for m_func in m_funcs]

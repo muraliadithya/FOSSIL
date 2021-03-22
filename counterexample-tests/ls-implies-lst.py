@@ -3,9 +3,7 @@ from counterexample_utils import *
 import sys
 
 """
-Return the set of counterexamples for "ls(x,y) => list(x)" lemma.
-These are generated using the z3Py interface and are unique up to isomorphism given any particular choice of
-instantiation for the negated lemma.
+Return the set of counterexamples for "ls(x,y) => lst(x)"/"(=> (ls x y) (lst x))" lemma, generated using the z3Py interface.
 Specifiying -N val in terminal call will enact an underlying set with val-many elements distinct from nil.
 Specifying -p will print the particular counterexamples.
 """

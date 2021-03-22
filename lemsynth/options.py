@@ -16,6 +16,8 @@ use_cex_models = True
 synthesis_solver = minisy
 # Verbosity as a positive number. 0 is completely silent.
 verbose = 10
+
+use_cex_true_models = False
 ###############################################################################
 
 log_file_path = os.path.abspath(importlib_resources.files('lemsynth')/'../logs')

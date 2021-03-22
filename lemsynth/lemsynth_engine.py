@@ -195,6 +195,11 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     extraction_terms = lemma_npsolution.extraction_terms
                     cex_model = FiniteModel(lemma_npsolution.model, extraction_terms, annctx=annctx)
                     cex_models = cex_models + [cex_model]
+                if options.use_cex_true_models:
+                    print('using true counterexample models')
+                    z3_true_cex_model = get_true_cex_model(z3py_lemma)
+                    true_cex_model = FiniteModel(z3_true_cex_model[0], z3_true_cex_model[1], annctx=annctx)
+                    config_params['true_cex_model'] = true_cex_model
             else:
                 if options.verbose >= 3:
                     print('proposed lemma was proven.')

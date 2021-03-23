@@ -1,6 +1,5 @@
 from counterexample_utils import *
 from z3 import *
-import re
 
 
 # Initialize signature

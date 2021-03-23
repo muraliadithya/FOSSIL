@@ -264,25 +264,25 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
         cex_models = cex_models_with_offset
 
-    all_models = [cex_model.finitemodel for cex_model in cex_models] + [false_finitemodel.finitemodel]
-
     # Add true counterexample model to true models if use_cex_true_models is True
+    true_cex_models = config_params.get('true_cex_models', [])
     if options.use_cex_true_models:
-        true_cex_model = config_params['true_cex_model']
-        # Deepcopy the countermodels so the originals are not affected
-        true_cex_offset_model = true_cex_model.copy()
-        # Make the universe of the model positive and shift the model by accumulated offset
-        true_cex_model_universe = true_cex_offset_model.get_fg_elements()
-        non_negative_offset = min(true_cex_model_universe)
-        if non_negative_offset >= 0:
-            non_negative_offset = 0
-        true_cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
-        # Compute new accumulated offset
-        accumulated_offset = max(true_cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
-        true_cex_model = true_cex_offset_model
+        true_cex_models_with_offset = []
+        for true_cex_model in true_cex_models:
+            # Deepcopy the countermodels so the originals are not affected
+            true_cex_offset_model = true_cex_model.copy()
+            # Make the universe of the model positive and shift the model by accumulated offset
+            true_cex_model_universe = true_cex_offset_model.get_fg_elements()
+            non_negative_offset = min(true_cex_model_universe)
+            if non_negative_offset >= 0:
+                non_negative_offset = 0
+            true_cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
+            # Compute new accumulated offset
+            accumulated_offset = max(true_cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
+            true_cex_models_with_offset = true_cex_models_with_offset + [true_cex_offset_model]
+        true_cex_models = true_cex_models_with_offset
 
-    if options.use_cex_true_models:
-        all_models += [true_cex_model]
+    all_models = [cex_model.finitemodel for cex_model in cex_models] + [true_cex_model for true_cex_model in true_cex_models] + [false_finitemodel.finitemodel]      
 
     vocab = get_vocabulary(annctx)
     set_defs = {func for func in vocab if 'Array' in str(func.range())}
@@ -313,7 +313,10 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write('\n')
         out.write(';; constraints from true counterexample models\n')
         if options.use_cex_true_models:
-            true_constraints = generateConstraints(true_cex_model, lemma_args, true_cex_model_universe, True, annctx)
+            true_constraints = ''
+            for true_cex_model in true_cex_models:
+                curr_true_constraint = generateConstraints(true_cex_model, lemma_args, true_cex_model_universe, True, annctx)
+                true_constraints += curr_true_constraint + '\n'
         else:
             true_constraints = ''
         out.write(true_constraints)

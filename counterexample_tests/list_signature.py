@@ -1,4 +1,4 @@
-from counterexample_utils import *
+from counterexample_tests.counterexample_utils import *
 from z3 import *
 
 

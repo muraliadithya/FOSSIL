@@ -2,24 +2,30 @@ from counterexample_utils import *
 from z3 import *
 import re
 
-def counterexemplify(lemma_smt, lemma_vars, N, exact=False):
+
+# Initialize signature
+ls = Function('ls', IntSort(), IntSort(), BoolSort())
+nil = Int('nil')
+# Initialize macros representing conservative extension
+def lst(x):
+    return ls(x, nil)
+
+
+def counterexemplify(lemma, lemma_vars, N, exact=False, additional_constraints=[]):
     """
-    Generate a counterexample model for a proposed lemma.
-    :param lemma_smt: string proposal lemma in SMT-Lib format, variables demarked inside curly braces (e.g. {x})
-    :param lemma_vars: list of string variable names appearing in lemma_smt
+    Generate a counterexample model for a proposed lemma in the language of lists.
+    :param lemma: Z3Py object encoding proposal lemma
+    :param lemma_vars: list of Z3Py variables appearing in lemma_smt; these should not include any 'xi' for i=1,...,N
     :param N: natural number upper bound for model
     :param exact: Bool denoting parameter N as an exact model size (if True) or an upper bound (if False)
+    :param additional_constraints: List of Z3Py objects representing additional constraints
     :return: Z3Py model of counterexample
-    :return: list of Z3Py variables used to instantiate proposed lemma negation
+    :return: list of integers comprising underlying set
     """
-    neg_lemma, inst_vars = convert_smt_z3(lemma_smt, lemma_vars)
-    
-    # Initiate z3py variables
+    # Initialize Z3Py objects
     nxt = Function('nxt', IntSort(), IntSort())
-    ls = Function('ls', IntSort(), IntSort(), BoolSort())
     rank = Function('rank', IntSort(), IntSort(), IntSort())
     S = Ints(' '.join(['x'+str(i) for i in range(1,N+1)]))
-    nil = Int('nil')
     Snil = [nil] + S
     
     # Functions to replace Z3 macros
@@ -27,9 +33,6 @@ def counterexemplify(lemma_smt, lemma_vars, N, exact=False):
         ls_def = ls(x,y) == Or(x == y, ls(nxt(x), y))
         rank_def = Implies(x != y, ls(nxt(x), y) == (rank(nxt(x), y) < rank(x, y)))
         return And(ls_def, rank_def)
-
-    def lst(x):
-        return ls(x, nil)
 
     # Construct assertion lists
     # Ensure rank interpretations are nonnegative, and moreover zero on the diagonal
@@ -44,8 +47,8 @@ def counterexemplify(lemma_smt, lemma_vars, N, exact=False):
         intuitive = [a == i for i,a in enumerate(Snil)]
     else:
         intuitive = [And(a <= i, 0 <= a) for i,a in enumerate(Snil)]
-    # Ensure lemma instantiation variables are in underlying set
-    instantiate = [Or([v == xi for xi in S]) for v in inst_vars]
+    # Ensure lemma instantiation variables are in underlying set but not Nil
+    instantiate = [Or([v == xi for xi in S]) for v in lemma_vars]
     
     s = Solver()
     s.add(intuitive)
@@ -53,22 +56,16 @@ def counterexemplify(lemma_smt, lemma_vars, N, exact=False):
     s.add(nonneg_ranks)
     s.add(nxt_def)
     s.add(ls_rank_def)
-    s.add(neg_lemma)
+    s.add(additional_constraints)
+    # Constrain with negation of proposed lemma to force counterexample
+    s.add(Not(lemma))
     
-    print(s.check() == CheckSatResult(Z3_L_TRUE))
-    return s.model(), inst_vars
+    if s.check() == CheckSatResult(Z3_L_TRUE):
+        cex_model = s.model()
+        # Return set of assignments for Snil variables
+        elements = {cex_model.eval(v) for v in Snil}
+    else:
+        cex_model = None
+        elements = set()
     
-def convert_smt_z3(lemma, lemma_vars):
-    """
-    Convert SMT-Lib formatted text to Z3Py object with new variable assignment.
-    :param lemma_smt: string proposal lemma in SMT-Lib format, variables demarked inside curly braces (e.g. {x})
-    :param lemma_vars: list of string variable names appearing in lemma_smt
-    :return: Z3Py object encoding instantiated lemma negation
-    :return: list of Z3Py variables used to instantiate proposed lemma negation
-    """
-    inst_vars = Ints(' '.join(['y_'+str(i+1) for i in range(len(lemma_vars))]))
-    rep = {'{'+var+'}': str(inst_vars[i]) for i,var in enumerate(lemma_vars)}
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile("|".join(rep.keys()))
-    lemma_z3 = pattern.sub(lambda m: rep[re.escape(m.group(0))], lemma)
-    return parse_smt2_string('(not {})'.format(lemma_z3)), inst_vars
+    return cex_model, elements

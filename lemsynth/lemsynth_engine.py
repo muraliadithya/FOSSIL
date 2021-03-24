@@ -200,8 +200,9 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.use_cex_true_models:
                     print('using true counterexample models')
                     params_list = [param for param in z3py_lemma_params]
-                    z3_true_cex_model = counterexemplify(z3py_lemma_body, params_list, 5)
-                    true_cex_model = FiniteModel(z3_true_cex_model, z3_true_cex_model[1], annctx=annctx)
+                    z3_true_cex_model = counterexemplify(z3py_lemma_body, params_list, 2)
+                    print(z3_true_cex_model)
+                    true_cex_model = FiniteModel(z3_true_cex_model[0], set(), annctx=annctx)
                     config_params['true_cex_model'] = true_cex_model
             else:
                 if options.verbose >= 3:

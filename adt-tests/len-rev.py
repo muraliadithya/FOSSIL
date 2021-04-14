@@ -12,8 +12,9 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
-x, y, tx = Vars('x y tx', fgsort)
-hx = Var('hx', intsort)
+x, y, tx, hx_nil, hx_tx, hxl_txl, txl = Vars('x y tx hx_nil hx_tx hxl_txl txl', fgsort)
+
+hx, hxl = Consts('hx hxl', intsort)
 
 # ADT definition of lists
 nil = Const('nil', fgsort)
@@ -37,14 +38,58 @@ length = RecFunction('length', fgsort, intsort)
 AddRecDefinition(length, x, If(x == nil, 0, length(tail(x)) + 1))
 
 # axioms
-AddAxiom(x, head(cons(hx, x)) == hx)
-AddAxiom(x, tail(cons(hx, x)) == x)
-AddAxiom(x, cons(hx, x) != nil)
+AddAxiom(hx_tx, Implies(head(hx_tx) == hx, hx_tx != nil))
 
-# lemma
-AddAxiom(x, length(append(x, cons(hx, nil))) == length(x) + 1)
+AddAxiom(hxl_txl, Implies(head(hxl_txl) == hxl, hxl_txl != nil))
 
-orig_goal = make_pfp_formula(Implies(lst(x), length(rev(x)) == length(x)))
+# lemma as axiom
+# AddAxiom((x, hx_nil), Implies(And(head(hx_nil) == hx, tail(hx_nil) == nil),
+#                               length(append(x, hx_nil)) == length(x) + 1))
+
+pfp_base = length(rev(nil)) == length(nil)
+pfp_ind = Implies(And(length(rev(tx)) == length(tx),
+                      And(head(hx_tx) == hx, tail(hx_tx) == tx)),
+                  length(rev(hx_tx)) == length(hx_tx))
+
+orig_goal = And(pfp_base, pfp_ind)
+
+# check validity with natural proof solver and no hardcoded lemmas
+np_solver = NPSolver()
+np_solver.options.instantiation_mode = proveroptions.depth_one_stratified_instantiation
+solution = np_solver.solve(orig_goal)
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
+
+# hardcoded lemma
+lemma_params = (x, hx_nil)
+lemma_body = Implies(And(head(hx_nil) == hx, tail(hx_nil) == nil),
+                     length(append(x, hx_nil)) == length(x) + 1)
+lemmas = {(lemma_params, lemma_body)}
+
+# check validity of lemmas
+lemma_body_base = Implies(And(head(hx_nil) == hx, tail(hx_nil) == nil),
+                          length(append(nil, hx_nil)) == length(nil) + 1)
+lemma_body_ind = Implies(Implies(And(head(hx_nil) == hx, tail(hx_nil) == nil),
+                                 length(append(txl, hx_nil)) == length(txl) + 1),
+                         Implies(And(head(hx_nil) == hx, tail(hx_nil) == nil),
+                                 Implies(And(head(hxl_txl) == hxl, tail(hxl_txl) == txl),
+                                         length(append(hxl_txl, hx_nil)) == length(hxl_txl) + 1)))
+lemma_body_goal = And(lemma_body_base, lemma_body_ind)
+solution = np_solver.solve(lemma_body_goal)
+if not solution.if_sat:
+    print('lemma is valid')
+else:
+    print(solution.model)
+    print('lemma is invalid')
+
+# check validity with natural proof solver and hardcoded lemmas
+solution = np_solver.solve(orig_goal, lemmas)
+if not solution.if_sat:
+    print('goal (with lemmas) is valid')
+else:
+    print('goal (with lemmas) is invalid')
 
 v = Var('v', fgsort)
 lemma_grammar_args = [v, nil]

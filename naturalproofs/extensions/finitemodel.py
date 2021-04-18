@@ -22,11 +22,13 @@ explicitly specified. Set to 'True' by default, so all offset computations will 
 
 import itertools
 import copy
+import json
 import z3
+
 # model.compact should be turned off to not get lambdas, only actual arrays/sets.
 z3.set_param('model.compact', False)
 
-from naturalproofs.AnnotatedContext import default_annctx 
+from naturalproofs.AnnotatedContext import default_annctx
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import get_vocabulary, get_uct_signature
 from naturalproofs.prover_utils import get_foreground_terms
@@ -122,9 +124,6 @@ class FiniteModel:
 
     # Some common functions on finite models
     def get_fg_elements(self):
-        # fg_elem_set = set()
-        # _ = transform_fg_universe(finite_model, lambda x: (fg_elem_set.add(x), x)[1], annctx)
-        # return fg_elem_set
         return self.fg_universe
 
     def add_fg_element_offset(self, offset_value):
@@ -134,7 +133,73 @@ class FiniteModel:
             self.fg_universe = {elem + offset_value for elem in self.fg_universe}
 
 
-# Helper functions for extract_finite_model
+def loadjsonstr(model_str, annctx):
+    """
+    Load a FiniteModel object from a JSON string.  
+    The JSON must contain  a mandatory entry keyed on the string "universe" with the value being 
+    a list of elements corresponding to the foreground universe (modeled as a finite set of integers).  
+    The other keys are the representations (typically names) of constant, relation, or function symbols. The value 
+    entry corresponding to a constant symbol is the valuation of the constant. The value entry corresponding 
+    to a relation or function symbol f is a list of entries where each entry is a list of the form 
+    [a1, a2, ...ak, b] such that f has arity k and f(a1, a2, ...ak) = b. The allowed types for aj and b 
+    in the inner list entries are int, bool, and list (to denote sets).  
+    Examples:  
+    >> s = '{"universe": [1,2,5,7], "y": [5], "lst": [[7, true], [5, false]], "hls": [7,[5,2,1]]}'  
+    >> loadjsonstr(s)  
+    The symbols must be declarations that are tracked by the annctx object.  
+    :param model_str: str  
+    :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext  
+    :return: FiniteModel  
+    """
+    description_dict = json.loads(model_str)
+    try:
+        universe = set(description_dict['universe'])
+        universe = {z3.IntVal(elem) for elem in universe}
+    except KeyError:
+        raise ValueError('JSON-formatted model must have an entry "universe" for the foreground universe.')
+    for funcdeclrepr in description_dict:
+        value = description_dict[funcdeclrepr]
+        if not type(value) != list:
+            # Constant symbol and corresponding value
+            description_dict[funcdeclrepr] = {(): value}
+        else:
+            value_dict = dict()
+            for entry in value:
+                # Change any list-type values denoting sets to sets
+                normalised_entry = [set(e) if type(e) == list else e for e in entry]
+                value_dict[tuple(normalised_entry[:-1])] = normalised_entry[-1]
+            description_dict[funcdeclrepr] = value_dict
+    # Restrict vocabulary to be those appearing as the keys in the dictionary
+    full_vocabulary = get_vocabulary(annctx)
+    vocabulary = {funcdecl for funcdecl in full_vocabulary if model_key_repr(funcdecl) in description_dict}
+    return _loaddict(description_dict, universe, annctx, vocabulary=vocabulary)
+
+
+def _loaddict(model_dict, fg_universe, annctx, vocabulary=None):
+    """
+    Load a FiniteModel object from a dictionary. The dictionary must be similar to the format specified 
+    for the attribute FiniteModel.finitemodel. The foreground universe is given as a set of z3.IntNumRef 
+    and serves as a proxy for the second positional argument ('terms') of the FiniteModel constructor. 
+    The names of the constant or function symbols appearing in the keys of the dictionary must correspond 
+    to those tracked by annctx, and can be explicitly specified using the optional vocabulary parameter.  
+    :param model_dict: dict {str -> any}  
+    :param fg_universe: set of z3.IntNumRef  
+    :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext  
+    :param vocabulary: set of z3.FuncDeclRef  
+    :return: FiniteModel  
+    """
+    if vocabulary is None:
+        vocabulary = get_vocabulary(annctx)
+    smt_encoding = load_as_constraint(model_dict, annctx, vocabulary)
+    sol = z3.Solver()
+    sol.add(smt_encoding)
+    encoding_status = sol.check()
+    if encoding_status != z3.sat:
+        raise ValueError('Model description is inconsistent.')
+    smtmodel = sol.model()
+    return FiniteModel(smtmodel, fg_universe, vocabulary=vocabulary, annctx=annctx)
+
+
 # Representation of keys in the finite model top-level dictionary.
 def model_key_repr(funcdeclref):
     # Should be equivalent to naturalproofs.AnnotatedContext._alias_annotation_key_repr(funcdeclref)
@@ -142,6 +207,7 @@ def model_key_repr(funcdeclref):
     return funcdeclref.name()
 
 
+# General helper function
 def _extract_value(value, uct_sort):
     """
     Converts the value of a concrete constant represented as a z3.ExprRef into a simple python type
@@ -185,7 +251,7 @@ def _extract_value(value, uct_sort):
                 extracted_set = extracted_set | ({entry.as_long()} if z3.is_true(if_belongs) else {})
             else:
                 raise ValueError('ArrayRef is constructed with neither Store nor K. Possible multidimensional arrays. '
-                                 'Unsupported.') 
+                                 'Unsupported.')
     else:
         raise ValueError('UCT Sort type not supported for extraction of models.')
 
@@ -214,3 +280,32 @@ def recover_value(value, uct_sort):
             expr = z3.SetAdd(expr, z3.IntVal(elem))
     else:
         raise ValueError('Sort not supported. Check for a list of available sorts in the naturalproofs.uct module.')
+
+
+def load_as_constraint(model_dict, annctx, vocabulary=None):
+    """
+    Encode a finite model into a formula/constraint. Any valuation that satisfies this constraint 
+    will extend the finite model.  
+    The model is given as a dictionary whose format is similar to the FiniteModel.finitemodel 
+    attribute. The signature of the model must be a subset of those declarations tracked by annctx, 
+    and can be explicitly specified using the vocabulary parameter. If vocabulary is None then the entire
+    vocabulary tracked by annctx is used.  
+    :param model_dict: dict {str -> any}  
+    :param vocabulary: set of z3.FuncDeclRef  
+    :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext  
+    :return: z3.ExprRef  
+    """
+    constraints = set()
+    if vocabulary is None:
+        vocabulary = get_vocabulary(annctx)
+    for funcdecl in vocabulary:
+        fct_name = model_key_repr(funcdecl)
+        uct_signature = get_uct_signature(funcdecl, annctx)
+        for input_arg in model_dict[fct_name]:
+            output_value = model_dict[fct_name][input_arg]
+            encoded_input_arg = tuple(recover_value(in_value, uct_sort) 
+                                      for in_value, uct_sort in zip(input_arg, uct_signature[:-1]))
+            encoded_output_value = recover_value(output_value, uct_signature[-1])
+            # arg must be unpacked as *arg before constructing the Z3 term
+            constraints.add(funcdecl(*encoded_input_arg) == encoded_output_value)
+    return constraints

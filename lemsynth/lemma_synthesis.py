@@ -225,9 +225,6 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
     goal_extraction_terms = goal_npsolution.extraction_terms
     false_finitemodel = FiniteModel(goal_npsolution.model, goal_extraction_terms, annctx=annctx)
 
-    use_cex_models = config_params.get('use_cex_models', True)
-    cex_models = config_params.get('cex_models', [])
-
     # Adding offsets to make sure: (i) all elements in all models are positive (ii) models do not overlap
     # Making the universe of the false model positive
     false_model_fg_universe = false_finitemodel.get_fg_elements()
@@ -239,24 +236,29 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         false_finitemodel.add_fg_element_offset(abs(non_negative_offset))
     false_model_relative_offset = max(false_model_fg_universe) + abs(non_negative_offset) + 1
 
-    # Add counterexample models to true models if use_cex_models is True
+    # Extract counterexample models from config_params with default value being []
+    if options.use_cex_models:
+        cex_models = config_params.get('cex_models', [])
+    else:
+        cex_models = []
+
+    # Add counterexample models to all models if there are any
     accumulated_offset = false_model_relative_offset
-    if use_cex_models:
-        cex_models_with_offset = []
-        for cex_model in cex_models:
-            # Deepcopy the countermodels so the originals are not affected
-            cex_offset_model = cex_model.copy()
-            # Make the universe of the model positive and shift the model by accumulated offset
-            cex_model_universe = cex_offset_model.get_fg_elements()
-            non_negative_offset = min(cex_model_universe)
-            if non_negative_offset >= 0:
-                non_negative_offset = 0
-            cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
-            # Compute new accumulated offset
-            accumulated_offset = max(cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
-            # Add model to cex_models_with_offset
-            cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
-        cex_models = cex_models_with_offset
+    cex_models_with_offset = []
+    for cex_model in cex_models:
+        # Deepcopy the countermodels so the originals are not affected
+        cex_offset_model = cex_model.copy()
+        # Make the universe of the model positive and shift the model by accumulated offset
+        cex_model_universe = cex_offset_model.get_fg_elements()
+        non_negative_offset = min(cex_model_universe)
+        if non_negative_offset >= 0:
+            non_negative_offset = 0
+        cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
+        # Compute new accumulated offset
+        accumulated_offset = max(cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
+        # Add model to cex_models_with_offset
+        cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
+    cex_models = cex_models_with_offset
 
     all_models = [cex_model.finitemodel for cex_model in cex_models] + [false_finitemodel.finitemodel]
 
@@ -277,7 +279,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write(grammar_string)
         out.write('\n')
         out.write(';; pfp constraints from counterexample models\n')
-        if use_cex_models:
+        if options.use_cex_models:
             cex_pfp_constraints = generateAllCexConstraints(cex_models, lemma_args, annctx)
             out.write(cex_pfp_constraints)
             out.write('\n')

@@ -23,6 +23,8 @@ explicitly specified. Set to 'True' by default, so all offset computations will 
 import itertools
 import copy
 import json
+import warnings
+
 import z3
 
 # model.compact should be turned off to not get lambdas, only actual arrays/sets.
@@ -65,7 +67,9 @@ class FiniteModel:
         #  cases where uninterpreted functions have arguments in other domains, primarily integers.
         # Subterm-close the given terms assuming one-way functions
         # get_foreground_terms already performs subterm closure
-        subterm_closure = get_foreground_terms(terms)
+        # Hack to use terms as explicit set rather than implicit set
+        # TODO: VERY IMPORTANT: Fix hack if this branch is to be merged into master
+        subterm_closure = get_foreground_terms(terms) | terms
         elems = {smtmodel.eval(term, model_completion=True) for term in subterm_closure}
         if vocabulary is None:
             vocabulary = get_vocabulary(annctx)
@@ -111,7 +115,7 @@ class FiniteModel:
         finitemodel_copy = copy.deepcopy(self.finitemodel)
         # Blank object
         # Init as defined will not do anything but assign the smtmodel field
-        copy_object = FiniteModel(smtmodel=self.smtmodel, terms={}, vocabulary=[], annctx=None)
+        copy_object = FiniteModel(smtmodel=self.smtmodel, terms=set(), vocabulary=[], annctx=None)
         copy_object.finitemodel = finitemodel_copy
         copy_object.smtmodel = self.smtmodel
         copy_object.vocabulary = self.vocabulary
@@ -132,6 +136,9 @@ class FiniteModel:
             self.offset = self.offset + offset_value
             self.fg_universe = {elem + offset_value for elem in self.fg_universe}
 
+    def as_constraint(self):
+        return load_as_constraint(self.finitemodel, self.annctx, self.vocabulary)
+
 
 def loadjsonstr(model_str, annctx):
     """
@@ -141,27 +148,50 @@ def loadjsonstr(model_str, annctx):
     The other keys are the representations (typically names) of constant, relation, or function symbols. The value 
     entry corresponding to a constant symbol is the valuation of the constant. The value entry corresponding 
     to a relation or function symbol f is a list of entries where each entry is a list of the form 
-    [a1, a2, ...ak, b] such that f has arity k and f(a1, a2, ...ak) = b. The allowed types for aj and b 
-    in the inner list entries are int, bool, and list (to denote sets).  
+    [a1, a2, ...ak, b] such that f has arity k and f(a1, a2, ...ak) = b. The allowed types for the various values 
+    (including the aj and b) are int, bool, and list (to denote sets).  
     Examples:  
-    >> s = '{"universe": [1,2,5,7], "y": [5], "lst": [[7, true], [5, false]], "hls": [7,[5,2,1]]}'  
+    >> s = '{"universe": [1,2,5,7], "y": 5, "lst": [[7, true], [5, false]], "hls": [7,[5,2,1]]}'  
     >> loadjsonstr(s)  
+    >> {'y': {(): 5}, 'lst': {(7,): True, (5,): False,}, 'hls': {'7': {1,2,5}}}
     The symbols must be declarations that are tracked by the annctx object.  
     :param model_str: str  
     :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext  
     :return: FiniteModel  
+    Optional entries in JSON string:
+    - assert: list of lists. Each inner list contains names of universally quantified variables 
+    followed by the assertion in SMT-Lib format. The assertion is expected to hold on the finite model.  
+    - assertfailure: list of lists. Each inner list contains names of universally quantified variables 
+    followed by the assertion in SMT-Lib format. The model is expected to fail the assertion.  
     """
     description_dict = json.loads(model_str)
     try:
         universe = set(description_dict['universe'])
         universe = {z3.IntVal(elem) for elem in universe}
+        del description_dict['universe']
     except KeyError:
         raise ValueError('JSON-formatted model must have an entry "universe" for the foreground universe.')
+    # See if any assertions are provided for checking
+    autocheck_asserts = description_dict.get('assert', None)
+    success_asserts = []
+    if autocheck_asserts is not None:
+        for *quantified_var_names, assertion in autocheck_asserts:
+            success_asserts.append((quantified_var_names, assertion))
+        del description_dict['assert']
+    autocheck_assertfails = description_dict.get('assertfailure', None)
+    failure_asserts = []
+    if autocheck_assertfails is not None:
+        for *quantified_var_names, assertion in autocheck_assertfails:
+            failure_asserts.append((quantified_var_names, assertion))
+        del description_dict['assertfailure']
     for funcdeclrepr in description_dict:
         value = description_dict[funcdeclrepr]
-        if not type(value) != list:
+        if type(value) != list:
             # Constant symbol and corresponding value
             description_dict[funcdeclrepr] = {(): value}
+        elif type(value) == list and (value == [] or type(value[0]) != list):
+            # Set-type constant symbol and corresponding value
+            description_dict[funcdeclrepr] = {(): set(value)}
         else:
             value_dict = dict()
             for entry in value:
@@ -172,7 +202,51 @@ def loadjsonstr(model_str, annctx):
     # Restrict vocabulary to be those appearing as the keys in the dictionary
     full_vocabulary = get_vocabulary(annctx)
     vocabulary = {funcdecl for funcdecl in full_vocabulary if model_key_repr(funcdecl) in description_dict}
-    return _loaddict(description_dict, universe, annctx, vocabulary=vocabulary)
+    finite_model_obj = _loaddict(description_dict, universe, annctx, vocabulary=vocabulary)
+    # Check if provided assertions hold or fail to hold on the model
+    for quantified_var_names, assertion in success_asserts:
+        # Assertion must hold
+        check_assertion(finite_model_obj, vocabulary, quantified_var_names, assertion, success=True)
+    for quantified_var_names, assertion in failure_asserts:
+        # Assertion must not hold
+        check_assertion(finite_model_obj, vocabulary, quantified_var_names, assertion, success=False)        
+    return finite_model_obj
+
+
+def check_assertion(finite_model, vocabulary, quantified_var_names, assertion, success):
+    """
+    Check if a finite model satisfies or fails to satisfy a universally quantified (over the foreground sort) 
+    assertion.  The assertion is given as a string in SMT-Lib format and a list of universally quantified 
+    variables must be provided. The assertion must belong to the fragment generated by the vocabulary 
+    parameter and variables with names in the list quantified_var_names.  
+    The expected success or failure of the assertion is given by the success parameter.  
+    :param finite_model: FiniteModel  
+    :param vocabulary: set of z3.FuncDeclRef  
+    :param quantified_var_names: list of str  
+    :param assertion: SMT-Lib str  
+    :param success: bool  
+    """
+    # Convert to z3 and check
+    decl_dict = {funcdeclref.name(): funcdeclref for funcdeclref in vocabulary}
+    # Hack since it is using the fact that foreground sort is represented by integers
+    # TODO (medium): fix hack or remove autocheck assertion feature
+    quantified_vars = z3.Ints(' '.join(quantified_var_names))
+    decl_dict.update({quantified_var_names[i]: quantified_vars[i] for i in range(len(quantified_var_names))})
+    z3_assertion = z3.parse_smt2_string(f'(assert {assertion})', decls=decl_dict)[0]
+    elems = finite_model.get_fg_elements()
+    sol = z3.Solver()
+    sol.add(finite_model.as_constraint())
+    # Find a valuation for the variables among elems such that the assertion is false
+    sol.add(z3.And([z3.Or([var == z3.IntVal(elem) for elem in elems]) for var in quantified_vars]))
+    sol.add(z3.Not(z3_assertion))
+    status = sol.check()
+    if status == z3.unknown:
+        warnings.warn(f'Assertion could not be checked; solver returns unknown: {assertion}')
+    if success and status == z3.sat:
+        raise TypeError(f'Model does not satisfy provided assertion: {assertion}')
+    elif not success and status == z3.unsat:
+        raise TypeError(f'Model does not fail on provided assertion: {assertion}')
+    return True
 
 
 def _loaddict(model_dict, fg_universe, annctx, vocabulary=None):
@@ -303,7 +377,7 @@ def load_as_constraint(model_dict, annctx, vocabulary=None):
         uct_signature = get_uct_signature(funcdecl, annctx)
         for input_arg in model_dict[fct_name]:
             output_value = model_dict[fct_name][input_arg]
-            encoded_input_arg = tuple(recover_value(in_value, uct_sort) 
+            encoded_input_arg = tuple(recover_value(in_value, uct_sort)
                                       for in_value, uct_sort in zip(input_arg, uct_signature[:-1]))
             encoded_output_value = recover_value(output_value, uct_signature[-1])
             # arg must be unpacked as *arg before constructing the Z3 term

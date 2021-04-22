@@ -43,14 +43,14 @@ grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.fo
 # Code stub that allows the usage of user-provided true counterexample models
 # NOTE: make sure config_params is defined, otherwise define an empty dictionary
 config_params = dict()
-with importlib_resources.path('experiments', 'interactive_cex') as interactive_cex_folder:
-    true_model_files = [f for f in os.listdir(interactive_cex_folder) if f.endswith('.json')]
-    true_models = []
-    for true_model_file in true_model_files:
-        true_model_jsonstr = open(os.path.join(interactive_cex_folder, true_model_file), 'r').read()
-        true_model = loadjsonstr(true_model_jsonstr, default_annctx)
-        true_models.append(true_model)
-    config_params['true_models'] = true_models
+interactive_cex_folder = 'experiments/interactive_cex'
+true_model_files = [f for f in os.listdir(interactive_cex_folder) if f.endswith('.json')]
+true_models = []
+for true_model_file in true_model_files:
+    true_model_jsonstr = open(os.path.join(interactive_cex_folder, true_model_file), 'r').read()
+    true_model = loadjsonstr(true_model_jsonstr, default_annctx)
+    true_models.append(true_model)
+config_params['true_models'] = true_models
 
 # NOTE: make sure to include config_params in the arguments to solveProblem as shown below
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=config_params)

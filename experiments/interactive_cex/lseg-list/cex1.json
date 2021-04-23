@@ -1,0 +1,22 @@
+{
+  "universe": [0,1],
+  "x": 0,
+  "y": 0,
+  "nil": 0,
+  "ret": 0,
+  "nxt": [
+    [1,1],
+    [0,0]
+  ],
+  "lst": [
+    [1, false],
+    [0, true]
+  ],
+  "lseg": [
+    [1,0, false],
+    [0,0, true],
+    [1,1, true],
+    [0,1, false]
+  ], 
+  "assertfailure": [["v1", "v2", "(=> (lst v1) (lseg v2 v1))"]]
+}

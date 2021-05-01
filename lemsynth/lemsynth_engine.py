@@ -192,6 +192,11 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                                          'Lemma: {}\n'
                                          'Terms needed after pfp computation: {}'
                                          ''.format(str(z3py_lemma_body), remaining_terms))
+                if not options.use_cex_models:
+                    # Exit since invalid lemma found. Counterexamples must be added.
+                    print('You are in the interactive mode. Please add a counterexample.')
+                    print('If you want to mix automatically generated counterexamples, set option use_cex_models.')
+                    exit(0)
                 invalid_lemmas = invalid_lemmas + [z3py_lemma]
                 if options.use_cex_models:
                     extraction_terms = lemma_npsolution.extraction_terms

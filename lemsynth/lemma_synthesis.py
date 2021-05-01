@@ -12,8 +12,7 @@ from lemsynth.cvc4_compliance import cvc4_compliant_formula_sexpr
 from naturalproofs.decl_api import get_uct_signature, get_boolean_recursive_definitions, is_expr_fg_sort
 from naturalproofs.prover import NPSolver
 import naturalproofs.proveroptions as proveroptions
-from naturalproofs.extensions.finitemodel import recover_value
-from naturalproofs.extensions.finitemodel import FiniteModel
+from naturalproofs.extensions.finitemodel import FiniteModel, recover_value
 from naturalproofs.decl_api import get_vocabulary, is_var_decl
 
 
@@ -148,6 +147,43 @@ def generateFalseConstraints(model, lemma_args, terms, annctx):
     return out
 
 
+# Generate constraints corresponding to a true model for SyGuS
+def generateTrueModelConstraints(model, lemma_args, elems, annctx):
+    const = [arg for arg in lemma_args if not is_var_decl(arg, annctx)]
+    const_values = [model.smtmodel.eval(cs, model_completion=True).as_long() + (model.offset if is_expr_fg_sort(cs, annctx) else 0) for cs in const]
+    const_values = ['(- ' + str(cv * -1) + ')' if cv < 0 else str(cv) for cv in const_values]
+    const_values = ' '.join(const_values)
+    constraints = ''
+    lemma_arity = len(lemma_args) - len(const)
+    args = itertools.product(elems, repeat=lemma_arity)
+    for arg in args:
+        curr = ''
+        recs = get_boolean_recursive_definitions()
+        arg_str = [str(elt) for elt in arg]
+        for i in range(len(recs)):
+            rec_arity = recs[i].arity()
+            rswitch = '(= rswitch {})'.format(i)
+            # Assuming first 'arity' arguments of lemma variables are arguments for recursive definition
+            lhs = '({} {})'.format(recs[i].name(), ' '.join(arg_str[:rec_arity]))
+            rhs = '(lemma {} {})'.format(' '.join(arg_str), const_values)
+            curr_constraint = '(=> {} (=> {} {}))\n'.format(rswitch, lhs, rhs)
+            curr = curr + curr_constraint
+        constraints = constraints + '(and {})\n'.format(curr)
+    out = '(constraint (and {}))\n'.format(constraints)
+    return out
+
+
+# Generate constraints corresponding to counterexample models
+def generateAllTrueModelConstraints(models, lemma_args, annctx):
+    out = ''
+    for model in models:
+        elems = model.get_fg_elements()
+        # Constraint is that the proposed lemma must hold on the entire model, i.e.,
+        # for all possible instantiations of all the elements in the model
+        out = out + generateTrueModelConstraints(model, lemma_args, elems, annctx)
+    return out
+
+
 def generateCexConstraints(model, lemma_args, annctx):
     constraints = ''
     recs = get_boolean_recursive_definitions()
@@ -230,9 +266,6 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
 
     false_finitemodel = FiniteModel(goal_npsolution.model, goal_extraction_terms, annctx=annctx)
 
-    use_cex_models = config_params.get('use_cex_models', True)
-    cex_models = config_params.get('cex_models', [])
-
     # Adding offsets to make sure: (i) all elements in all models are positive (ii) models do not overlap
     # Making the universe of the false model positive
     false_model_fg_universe = false_finitemodel.get_fg_elements()
@@ -242,28 +275,57 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
     else:
         false_finitemodel.recompute_offset = True
         false_finitemodel.add_fg_element_offset(abs(non_negative_offset))
+
+    # Start building a set of models with distinct foreground universes
+    all_models = [false_finitemodel.finitemodel]
     false_model_relative_offset = max(false_model_fg_universe) + abs(non_negative_offset) + 1
-
-    # Add counterexample models to true models if use_cex_models is True
     accumulated_offset = false_model_relative_offset
-    if use_cex_models:
-        cex_models_with_offset = []
-        for cex_model in cex_models:
-            # Deepcopy the countermodels so the originals are not affected
-            cex_offset_model = cex_model.copy()
-            # Make the universe of the model positive and shift the model by accumulated offset
-            cex_model_universe = cex_offset_model.get_fg_elements()
-            non_negative_offset = min(cex_model_universe)
-            if non_negative_offset >= 0:
-                non_negative_offset = 0
-            cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
-            # Compute new accumulated offset
-            accumulated_offset = max(cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
-            # Add model to cex_models_with_offset
-            cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
-        cex_models = cex_models_with_offset
 
-    all_models = [cex_model.finitemodel for cex_model in cex_models] + [false_finitemodel.finitemodel]
+    # Extract true models from config_params with default value being []
+    if options.use_true_models:
+        true_models = config_params.get('true_models', [])
+    else:
+        true_models = []
+    # Add true models to all models if there are any after adding appropriate offsets
+    true_models_with_offset = []
+    for true_model in true_models:
+        # Deepcopy the models so the originals are not affected
+        true_offset_model = true_model.copy()
+        # Make the universe of the model positive and shift the model by accumulated offset
+        true_model_universe = true_offset_model.get_fg_elements()
+        non_negative_offset = min(true_model_universe)
+        if non_negative_offset >= 0:
+            non_negative_offset = 0
+        true_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
+        # Compute new accumulated offset
+        accumulated_offset = max(true_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
+        # Add model to cex_models_with_offset
+        true_models_with_offset = true_models_with_offset + [true_offset_model]
+    true_models = true_models_with_offset
+    all_models = all_models + [true_model.finitemodel for true_model in true_models]
+
+    # Extract counterexample models from config_params with default value being []
+    if options.use_cex_models:
+        cex_models = config_params.get('cex_models', [])
+    else:
+        cex_models = []
+    # Add counterexample models to all models if there are any after adding appropriate offsets
+    cex_models_with_offset = []
+    for cex_model in cex_models:
+        # Deepcopy the countermodels so the originals are not affected
+        cex_offset_model = cex_model.copy()
+        # Make the universe of the model positive and shift the model by accumulated offset
+        cex_model_universe = cex_offset_model.get_fg_elements()
+        non_negative_offset = min(cex_model_universe)
+        if non_negative_offset >= 0:
+            non_negative_offset = 0
+        cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
+        # Compute new accumulated offset
+        accumulated_offset = max(cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
+        # Add model to cex_models_with_offset
+        cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
+    cex_models = cex_models_with_offset
+    all_models = all_models + [cex_model.finitemodel for cex_model in cex_models]
 
     vocab = get_vocabulary(annctx)
     set_defs = {func for func in vocab if 'Array' in str(func.range())}
@@ -282,7 +344,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write(grammar_string)
         out.write('\n')
         out.write(';; pfp constraints from counterexample models\n')
-        if use_cex_models:
+        if options.use_cex_models:
             cex_pfp_constraints = generateAllCexConstraints(cex_models, lemma_args, annctx)
             out.write(cex_pfp_constraints)
             out.write('\n')
@@ -293,9 +355,12 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write('\n')
         out.write('\n')
         out.write(';; constraints from true models\n')
-        true_constraints = ''
-        # true_constraints = generateAllTrueConstraints(true_models, lemma_args, fcts_z3)
-        out.write(true_constraints)
+        # true_constraints = ''
+        # out.write(true_constraints)
+        if options.use_true_models:
+            true_model_constraints = generateAllTrueModelConstraints(true_models, lemma_args, annctx)
+            out.write(true_model_constraints)
+            out.write('\n')
         out.write('\n')
         out.write('(check-synth)')
         out.close()

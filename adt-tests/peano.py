@@ -1,3 +1,5 @@
+import os
+
 import importlib_resources
 
 import z3
@@ -11,6 +13,9 @@ import naturalproofs.proveroptions as proveroptions
 from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
+
+from naturalproofs.AnnotatedContext import default_annctx
+from naturalproofs.extensions.finitemodel import loadjsonstr
 
 x, y = Vars('x y', fgsort)
 
@@ -42,14 +47,6 @@ goal = make_pfp_formula(thm_to_prove)
 
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, zero]
-# lemma_grammar_terms = {v1, v2, zero, plus(v1, v2), succ(v2), plus(v1, succ(v2)), succ(plus(v1, v2)), plus(v1, zero), 
-#                        plus(v2, v1), succ(v1), plus(v2, succ(v1)), succ(plus(v2, v1)), plus(v2, zero), 
-#                        plus(zero, zero), succ(zero), plus(plus(zero, zero), succ(zero)), plus(zero, succ(v2)), 
-#                        plus(v1, plus(zero, zero)), plus(pred(v1), plus(zero, zero)), plus(zero, plus(v2, zero)), 
-#                        plus(pred(v1), plus(zero, v2)), plus(v1, plus(zero, v2)), plus(zero, v2), 
-#                        succ(plus(zero, zero)), plus(v2, v2), plus(plus(v2, v2), succ(v2)), plus(plus(v1, zero), v2), 
-#                        plus(pred(v1), pred(v1)), plus(plus(pred(v1), zero), v2), plus(v1, v1), 
-#                        plus(succ(zero), succ(zero)), plus(succ(zero), succ(v2))}
 
 ILeaf = {v1, v2, zero}
 I1 = {succ(x) for x in ILeaf} | ILeaf
@@ -68,6 +65,22 @@ config_params = {}
 config_params['goal_instantiation_mode'] = proveroptions.manual_instantiation
 config_params['goal_instantiation_terms'] = {x, y, pred(x)}
 # If you comment out both things above, the goal takes too long to prove
+
+# without cex models - 9410s, 33 lemmas
+# - 
+
+# with cex models - 51s + 1349s, 8 lemmas
+
+# Code stub that allows the usage of user-provided true counterexample models
+interactive_cex_folder = 'experiments/interactive_cex/peano'
+true_model_files = [f for f in os.listdir(interactive_cex_folder) if f.endswith('.json')]
+true_models = []
+for true_model_file in true_model_files:
+    true_model_jsonstr = open(os.path.join(interactive_cex_folder, true_model_file), 'r').read()
+    true_model = loadjsonstr(true_model_jsonstr, default_annctx)
+    true_models.append(true_model)
+config_params['true_models'] = true_models
+
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params)
 
 exit(0)

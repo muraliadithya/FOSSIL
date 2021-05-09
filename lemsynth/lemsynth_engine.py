@@ -1,10 +1,12 @@
 from z3 import *
+import itertools
 import time
 import warnings
 
 import lemsynth.grammar_utils as grammar
 from lemsynth.lemma_synthesis import getSygusOutput
-from lemsynth.utils import translateLemma 
+from lemsynth.ProcessStreamer import ProcessStreamer, Timeout
+from lemsynth.utils import translateLemma
 import lemsynth.options as options
 
 from naturalproofs.AnnotatedContext import default_annctx
@@ -90,48 +92,39 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     lemma_instantiation_terms = grammar.lemma_instantiation_terms(lemma_grammar_args, lemma_grammar_terms, annctx)
 
     # for streaming
-    config_params['streaming_timeout'] = 450
+    config_params['streaming_timeout'] = None
     # Dictionary for logging
     final_out = {'total_lemmas': 0, 'time_charged': 0}
 
+    # Some fixed utility functions for interpreting synthesis outputs
+    # Values used to convert CVC4 versions of membership, insertion to z3py versions
+    SetIntSort = SetSort(IntSort())
+    membership = Function('membership', IntSort(), SetIntSort, BoolSort())
+    insertion = Function('insertion', IntSort(), SetIntSort, SetIntSort)
+    addl_decls = {'member': membership, 'insert': insertion}
+    swap_fcts = {insertion: SetAdd}
+    replace_fcts = {membership: IsMember}
+    # List of recursive boolean-valued rec defs that can appear on the left hand side of a lemma
+    recs = get_boolean_recursive_definitions()
+
     # continuously get valid lemmas until goal has been proven
     while True:
-        lemmas = getSygusOutput(valid_lemmas, final_out, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
-        if lemmas is None or lemmas == []:
+        sygus_results = getSygusOutput(valid_lemmas, final_out, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
+        if sygus_results is None or sygus_results == []:
             exit('No lemmas proposed. Instance failed.')
-        # Each result comes in pairs of the lemma body and the lemma lhs (called rswitch)
-        lemmas = [(lemmas[i*2], lemmas[i*2+1]) for i in range(len(lemmas)//2)]
-        for lemma in lemmas:
+        for rhs_pre, lhs_pre in sygus_results:
+            rhs_pre = rhs_pre.strip()
+            lhs_pre = lhs_pre.strip()
             pre_validation = time.time()
             final_out['total_lemmas'] += 1
-            # convert CVC4 versions of membership, insertion to z3py versions
-            SetIntSort = SetSort(IntSort())
-            membership = Function('membership', IntSort(), SetIntSort, BoolSort())
-            insertion = Function('insertion', IntSort(), SetIntSort, SetIntSort)
-            addl_decls = {'member': membership, 'insert': insertion}
-            swap_fcts = {insertion: SetAdd}
-            replace_fcts = {membership: IsMember}
-
             # Casting the lemma into a Z3Py expression
-            # Distinguish by output format of synthesis solver
-            if options.streaming_synthesis_swtich:
-                # Start time is constant because it's the time of the first line printed
-                start_time = lemmas[0][0].split(': ')[0]
-                curr_time = lemma[0].split(': ')[0]
-                lemma_time = float(curr_time) - float(start_time)
-                final_out['lemma_time'] = lemma_time
-                rhs_pre = lemma[0].split(': ')[1]
-                lhs_pre = lemma[1].split(': ')[1]
-            else:
-                rhs_pre = lemma[0]
-                lhs_pre = lemma[1]
+            final_out['lemma_time'] = -100000000000 #To be computed
             rhs_lemma = translateLemma(rhs_pre, lemma_grammar_args, addl_decls, swap_fcts, replace_fcts, annctx)
-            index = int(lhs_pre.split(' ')[-2])
-            recs = get_boolean_recursive_definitions()
-            lhs = recs[index]
-            lhs_arity = lhs.arity()
+            index = int(lhs_pre[:-1].split(' ')[-1])
+            lhs_func = recs[index]
+            lhs_arity = lhs_func.arity()
             lhs_lemma_args = tuple(lemma_grammar_args[:lhs_arity])
-            lhs_lemma = lhs(lhs_lemma_args)
+            lhs_lemma = lhs_func(lhs_lemma_args)
             z3py_lemma_body = Implies(lhs_lemma, rhs_lemma)
             z3py_lemma_params = tuple([arg for arg in lemma_grammar_args if is_var_decl(arg)])
             z3py_lemma = (z3py_lemma_params, z3py_lemma_body)
@@ -202,7 +195,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.streaming_synthesis_swtich:
                     # Check if lemma helps prove goal using originally configured goal solver object
                     # TODO: introduce warning or extend streaming algorithm to multiple lemma case
-                    goal_npsolution = goal_fo_solver.solve(goal, z3py_lemma)
+                    goal_npsolution = goal_fo_solver.solve(goal, {z3py_lemma})
                     if not goal_npsolution.if_sat:
                         # Lemma is useful. Exit.
                         print('Goal has been proven. Lemmas used to prove goal:')

@@ -8,6 +8,8 @@ set_param('model.compact', False)
 import lemsynth.options as options
 from lemsynth.induction_constraints import generate_pfp_constraint
 from lemsynth.cvc4_compliance import cvc4_compliant_formula_sexpr
+from lemsynth.ProcessStreamer import ProcessStreamer
+from lemsynth.utils import StopProposal
 
 from naturalproofs.decl_api import get_uct_signature, get_boolean_recursive_definitions, is_expr_fg_sort
 from naturalproofs.prover import NPSolver
@@ -180,6 +182,23 @@ def z3Preamble():
     return insert_def + '\n' + member_def + '\n' + empset_def + '\n'
 
 
+# Handler for converting synthesis query outputs to a generator that yields lemmas
+# TODO: Move cvc4 compliance forth-and-back and lemma translation into this module
+def process_synth_results(iterable):
+    try:
+        # Each result comes in pairs of the lemma rhs (body) and the lemma lhs (called rswitch)
+        # Looping through iterable/generator two entries at a time: standard grouper recipe from itertools docs
+        yield from itertools.zip_longest(*([iterable]*2), fillvalue=None)
+    # Special exception class to handle graceful termination of synthesis process(es)
+    except StopProposal:
+        # Cannot ascertain the type of the iterable to be a generator in a clean way
+        # Check minimally for handling lists and throw the exception up to the iterable otherwise
+        if type(iterable) == list:
+            return
+        else:
+            iterable.throw(StopProposal)
+
+
 # write output to a file that can be parsed by CVC4 SyGuS
 def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
     # Make log folder if it does not exist already
@@ -298,57 +317,27 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.close()
     # Optionally prefetching a bunch of lemmas to check each one rather than iterating through each one.
     if options.streaming_synthesis_swtich:
-        # Must include a parameter in the overall call for number of lemmas to be prefetched
-        # Currently hardcoded to be -1, so streaming can only be interrupted by timeout
-        prefetch_count = config_params.get('prefetch_count', -1)
-        # Default streaming timeout is 
-        streaming_timeout = config_params['streaming_timeout']
-        k_lemmas_file = '{}/{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
+        # Default streaming timeout
+        streaming_timeout = config_params.get('streaming_timeout', 60)
+        k_lemmas_file = '{}/{}_KLemmas.stream'.format(options.log_file_path, problem_instance_name)
         if options.synthesis_solver != options.cvc4sy:
             raise RuntimeError('Streaming only supported wtih CVC4Sy.')
-        proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                universal_newlines=True)
-        prefetch_proc = subprocess.Popen(['python3', 'lemsynth/prefetch_lemmas.py', 
-                                          k_lemmas_file, str(prefetch_count)], 
-                                         stdin=proc.stdout, stdout=subprocess.PIPE, 
-                                         universal_newlines=True)
-        try:
-            # Timeout given is given in seconds.
-            standard_out, standard_err = prefetch_proc.communicate(timeout=streaming_timeout)
-        except subprocess.TimeoutExpired:
-            prefetch_proc.kill()
-        proc.kill()
-        with open(k_lemmas_file, 'r') as k_lemmas:
-            lemmas = k_lemmas.readlines()
-            # Lemmas are returned as strings. Possibly terminated by '\n'
-            # Removing possible '\n' before returning
-            lemmas = [lemma[:-1] if lemma[-1] == '\n' else lemma for lemma in lemmas]
-            # List of lemmas returned in string format
-            synth_results = [res[:-1] + ' )' for res in lemmas]
-            return synth_results
+        ps = ProcessStreamer(cmdlist=['cvc4', '--lang=sygus2', '--sygus-stream', out_file], 
+                             timeout=streaming_timeout, 
+                             logfile=k_lemmas_file)
+        return process_synth_results(ps.stream())
     else:
         if options.synthesis_solver == options.minisy:
-            proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file),
-                                    shell=True, stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, universal_newlines=True)
-            out, err = proc.communicate()
+            proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file), 
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
+                                    shell=True, universal_newlines=True)
+            minisy_out, err = proc.communicate()
             # Convert output to string
-            out, err = str(out), str(err)
-            # print('out:{} err:{}'.format(out, err))
-            if out == '':
+            minisy_out, err = str(minisy_out), str(err)
+            if minisy_out == '':
                 print(err)
                 return None
-            satisfiability = out.split('\n')[0]
-            if satisfiability in {'unsat', 'unknown'}:
-                print('Synthesis solver returns {}. Exiting.'.format(satisfiability))
-                return None
-            else:
-                # Post processing
-                synth_results = '\n'.join(out.split('\n')[1:])
-                synth_results = ['(define-fun' + res for res in synth_results.split('(define-fun')[1:]]
-                synth_results = [' '.join([part for part in res.split('\n') if part != '']) for res in synth_results]
-                return synth_results
+            return process_synth_results(iter(minisy_out.strip().split('\n')))
         else:
             proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file],
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -357,10 +346,8 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             if cvc4_out == '':
                 print(err)
                 return None
-            elif cvc4_out == 'unknown\n':
-                print('CVC4 SyGuS returns unknown. Exiting.')
+            res = cvc4_out.strip().split('\n')
+            if res[0] == 'unknown':
+                print('Synthesis engine returned unknown.')
                 return None
-            else:
-                lemma = str(cvc4_out).split('\n')[1:][:-1]
-                synth_results = [ res[:-1] + ' )' for res in lemma ]
-                return synth_results
+            return process_synth_results(iter(res[1:]))

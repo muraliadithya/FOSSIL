@@ -93,8 +93,9 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
     # for streaming
     config_params['streaming_timeout'] = None
-    # Dictionary for logging
-    final_out = {'total_lemmas': 0, 'time_charged': 0}
+    # Dictionary for logging pipeline analytics
+    if options.analytics:
+        config_params['analytics'] = {'total_lemmas': 0, 'time_charged': 0}
 
     # Some fixed utility functions for interpreting synthesis outputs
     # Values used to convert CVC4 versions of membership, insertion to z3py versions
@@ -109,16 +110,20 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
     # continuously get valid lemmas until goal has been proven
     while True:
-        sygus_results = getSygusOutput(valid_lemmas, final_out, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
+        sygus_results = getSygusOutput(valid_lemmas, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
         if sygus_results is None or sygus_results == []:
             exit('No lemmas proposed. Instance failed.')
         for rhs_pre, lhs_pre in sygus_results:
             rhs_pre = rhs_pre.strip()
             lhs_pre = lhs_pre.strip()
-            pre_validation = time.time()
-            final_out['total_lemmas'] += 1
+            if options.analytics:
+                config_params['analytics']['total_lemmas'] += 1
             # Casting the lemma into a Z3Py expression
-            final_out['lemma_time'] = -100000000000 #To be computed
+            if options.analytics:
+                curr_time = time.time()
+                config_params['analytics']['lemma_time'] = int(curr_time - 
+                                                               config_params['analytics']['proposal_start_time'])
+            pre_validation = time.time()
             rhs_lemma = translateLemma(rhs_pre, lemma_grammar_args, addl_decls, swap_fcts, replace_fcts, annctx)
             index = int(lhs_pre[:-1].split(' ')[-1])
             lhs_func = recs[index]
@@ -131,8 +136,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
             if options.verbose > 0:
                 print('proposed lemma: {}'.format(str(z3py_lemma_body)))
-            if options.verbose >= 10:
-                print('total lemmas so far: ' + str(final_out['total_lemmas']))
+            if options.verbose >= 10 and options.analytics:
+                print('total lemmas so far: ' + str(config_params['analytics']['total_lemmas']))
 
             if z3py_lemma in invalid_lemmas or z3py_lemma in valid_lemmas:
                 if options.use_cex_models:
@@ -149,26 +154,28 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     # No countermodels. Check if streaming mode for synthesis is enabled.
                     if not options.streaming_synthesis_swtich:
                         raise RuntimeError('Lemmas reproposed with countermodels and streaming disabled. Unsupported.')
-                    post_validation = time.time()
-                    validation_time = post_validation - pre_validation
-                    final_out['time_charged'] += validation_time
                     if options.verbose >= 7:
                         print('Countermodels not enabled. Retrying lemma synthesis.')
-                    if options.verbose >= 10:
-                        print('Current lemma handled in: ' + str(validation_time) + 's')
-                        print('Time charged so far: ' + str(final_out['time_charged']) + 's')
+                    if options.analytics:
+                        post_validation = time.time()
+                        validation_time = post_validation - pre_validation
+                        config_params['analytics']['time_charged'] += validation_time
+                        if options.verbose >= 10:
+                            print('Current lemma handled in: ' + str(validation_time) + 's')
+                            print('Time charged so far: ' + str(config_params['analytics']['time_charged']) + 's')
                     continue
             pfp_lemma = make_pfp_formula(z3py_lemma_body)
             lemmaprover = NPSolver()
             lemmaprover.options.instantiation_mode = proveroptions.manual_instantiation
             lemmaprover.options.terms_to_instantiate = lemma_instantiation_terms
             lemma_npsolution = lemmaprover.solve(pfp_lemma, valid_lemmas)
-            post_validation = time.time()
-            validation_time = post_validation - pre_validation
-            final_out['time_charged'] += validation_time
-            if options.verbose >= 10 and options.streaming_synthesis_swtich:
-                print('Current lemma handled in: ' + str(validation_time) + 's')
-                print('Time charged so far: ' + str(final_out['time_charged']) + 's')
+            if options.analytics and options.streaming_synthesis_swtich:
+                post_validation = time.time()
+                validation_time = post_validation - pre_validation
+                config_params['analytics']['time_charged'] += validation_time
+                if options.verbose >= 10:
+                    print('Current lemma handled in: ' + str(validation_time) + 's')
+                    print('Time charged so far: ' + str(config_params['analytics']['time_charged']) + 's')
             if lemma_npsolution.if_sat:
                 if options.verbose >= 4:
                     print('proposed lemma cannot be proved.')
@@ -201,11 +208,13 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                         print('Goal has been proven. Lemmas used to prove goal:')
                         for lem in valid_lemmas:
                             print(lem[1])
-                        if options.verbose >= 10:
-                            print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
-                        total_time = final_out['time_charged'] + final_out['lemma_time']
-                        if options.verbose > 0:
-                            print('Total time charged: ' + str(total_time) + 's')
+                        if options.analytics:
+                            total_time = config_params['analytics']['time_charged'] + config_params['analytics'][
+                                'lemma_time']
+                            if options.verbose >= 10:
+                                print('Total lemmas proposed: ' + str(config_params['analytics']['total_lemmas']))
+                            if options.verbose > 0:
+                                print('Total time charged: ' + str(total_time) + 's')
                         exit(0)
 
                 # Reset countermodels and invalid lemmas to []. We have additional information to retry the proofs.
@@ -221,11 +230,12 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
         # reset everything and increase prefetching timeout if streaming is on
         if options.streaming_synthesis_swtich:
-            final_out['time_charged'] = 0
             if config_params['prefetch_timeout'] >= 3600:
                 exit('Timeout reached. Exiting')
             else:
                 config_params['prefetch_timeout'] *= 2
-            final_out['total_lemmas'] = 0
+            if options.analytics:
+                config_params['analytics']['time_charged'] = 0
+                config_params['analytics']['total_lemmas'] = 0
             valid_lemmas = set()
             invalid_lemmas = []

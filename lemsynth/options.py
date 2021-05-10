@@ -16,6 +16,8 @@ use_cex_models = True
 synthesis_solver = minisy
 # Verbosity as a positive number. 0 is completely silent.
 verbose = 10
+# Option to instrument code and time several parts of the pipeline
+analytics = False
 ###############################################################################
 
 log_file_path = os.path.abspath(importlib_resources.files('lemsynth')/'../logs')

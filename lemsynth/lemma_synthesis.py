@@ -1,5 +1,6 @@
 import subprocess
 import itertools
+import time
 import warnings
 
 from z3 import *
@@ -200,7 +201,7 @@ def process_synth_results(iterable):
 
 
 # write output to a file that can be parsed by CVC4 SyGuS
-def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
+def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
     # Make log folder if it does not exist already
     os.makedirs(options.log_file_path, exist_ok=True)
 
@@ -215,12 +216,13 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         print('Goal has been proven. Lemmas used to prove goal:')
         for lemma in lemmas:
             print(lemma[1])
-        if options.verbose >= 10:
-            print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
-        if options.streaming_synthesis_swtich:
-            total_time = final_out['time_charged'] + final_out['lemma_time']
-            if options.verbose > 0:
-                print('Total time charged: ' + str(total_time) + 's')
+        if options.analytics:
+            if options.verbose >= 10:
+                print('Total lemmas proposed: ' + str(config_params['analytics']['total_lemmas']))
+            if options.streaming_synthesis_swtich:
+                total_time = config_params['analytics']['time_charged'] + config_params['analytics']['lemma_time']
+                if options.verbose > 0:
+                    print('Total time charged: ' + str(total_time) + 's')
         exit(0)
 
     # Temprarily disabling caching or overriding of goal instantiation or extraction terms
@@ -315,6 +317,8 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write('\n')
         out.write('(check-synth)')
         out.close()
+    if options.analytics:
+        config_params['analytics']['proposal_start_time'] = time.time()
     # Optionally prefetching a bunch of lemmas to check each one rather than iterating through each one.
     if options.streaming_synthesis_swtich:
         # Default streaming timeout
@@ -325,7 +329,12 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         ps = ProcessStreamer(cmdlist=['cvc4', '--lang=sygus2', '--sygus-stream', out_file], 
                              timeout=streaming_timeout, 
                              logfile=k_lemmas_file)
-        return process_synth_results(ps.stream())
+        if options.analytics:
+            # Analytics are needed. So stream only when next() is called on the generator
+            # This will help time the production of each proposal
+            return process_synth_results(ps.stream(lazystream=True))
+        else:
+            return process_synth_results(ps.stream())
     else:
         if options.synthesis_solver == options.minisy:
             proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file), 

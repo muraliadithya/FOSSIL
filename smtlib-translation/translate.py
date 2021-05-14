@@ -2,6 +2,7 @@
 
 from z3 import *
 
+from collections import deque
 import sys
 
 filename = sys.argv[1]
@@ -24,8 +25,6 @@ if len(negated_formulas) != 1:
     raise Exception('Input file must have exactly 1 negated formula')
 goal = negated_formulas[0].children()[0]
 axioms = [f for f in parsed_file if not f in negated_formulas]
-print('axioms: ' + str(axioms))
-print('goal: ' + str(goal))
 
 # remove comments
 text = ''
@@ -50,5 +49,42 @@ goal = '(assert ' + goal
 
 axioms = [' '.join(ax.split())[:-1] for ax in axioms][:-1]
 
-print('datatypes: ' + str(datatypes))
-print('axioms: ' + str(axioms))
+# Get index of matching parenthesis in a string
+def getIndex(s, i):
+    if s[i] != '(':
+        raise Exception('Not matching parentheses.')
+    d = deque()
+    for k in range(i, len(s)):
+        if s[k] == ')':
+            d.popleft()  
+        elif s[k] == '(':
+            d.append(s[i])
+        if not d:
+            return k  
+    raise Exception('Not matching parentheses.')
+
+# return all variables in an axiom
+def getVariables(formula):
+    if not 'forall' in formula.split('(')[1]:
+        return []
+    start = formula.index('(', formula.index('(') + 1)
+    end = getIndex(formula, start)
+    params = formula[start+1 : end]
+
+    curr = 0
+    variables = []
+    while curr < len(params):
+        if params[curr] == '(':
+            end_param = getIndex(params, curr)
+            curr_param = params[curr+1 : end_param].strip()
+            variable = curr_param.split(' ')[0].strip()
+            variables += [ variable ]
+            curr = end_param
+        else:
+            curr += 1
+    return variables
+
+for ax in axioms:
+    variables = getVariables(ax)
+    print('axiom: ' + str(ax))
+    print('variables: ' + str(variables))

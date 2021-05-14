@@ -35,7 +35,7 @@
 (declare-fun lst-union (Lst Lst) Lst)
 (define-fun leq ((x Nat) (y Nat)) Bool (or (= x y) (less x y)))
 (assert (forall (( n Nat)) (= (plus zero n) n)))
-(assert (forall (  ( n Nat    )      ( m Nat)) (= (plus (succ n) m) (succ (plus n m)))))
+(assert (forall (  ( n Nat    )      ( m Nat)     ) (= (plus (succ n) m) (succ (plus n m)))))
 (assert (= (double zero) zero))
 (assert (forall ((n Nat)) (= (double (succ n)) (succ (succ (double n))))))
 (assert (not 

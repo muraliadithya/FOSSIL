@@ -22,15 +22,15 @@ AddRecDefinition(lseg, (x, y), If(x == nil, False,
                                   If(nxt(x) == y, True,
                                      And(lseg(nxt(x), y),
                                          # And(hlseg(x, y) == SetAdd(hlseg(nxt(x), y), x),
-                                             SetIntersect(hlseg(nxt(x), y), SetAdd(fgsetsort.lattice_bottom, x)) == fgsetsort.lattice_bottom))))
+                                         SetIntersect(hlseg(nxt(x), y), SetAdd(fgsetsort.lattice_bottom, x)) == fgsetsort.lattice_bottom))))
 lhs_rec = RecFunction('lhs_rec', fgsort, fgsort, fgsort, fgsort, boolsort)
 AddRecDefinition(lhs_rec, (x, y_rec, y, z), 
                  And(If(x == nil, False,
-                                  If(nxt(x) == y_rec, True,
-                                     And(lhs_rec(nxt(x), y_rec, y, z),
-                                         # And(hlseg(x, y) == SetAdd(hlseg(nxt(x), y), x),
-                                             SetIntersect(hlseg(nxt(x), y_rec), SetAdd(fgsetsort.lattice_bottom, x)) == fgsetsort.lattice_bottom))), 
-                     And(y == y_rec, 
+                        If(nxt(x) == y_rec, True,
+                           And(lhs_rec(nxt(x), y_rec, y, z),
+                               # And(hlseg(x, y) == SetAdd(hlseg(nxt(x), y), x),
+                               SetIntersect(hlseg(nxt(x), y_rec), SetAdd(fgsetsort.lattice_bottom, x)) == fgsetsort.lattice_bottom))),
+                     And(y == y_rec,
                          And(nxt(y) == z, 
                              SetIntersect(hlseg(x, y), SetAdd(fgsetsort.lattice_bottom, y)) == fgsetsort.lattice_bottom))))
 
@@ -38,7 +38,10 @@ AddRecDefinition(lhs_rec, (x, y_rec, y, z),
 AddRecDefinition(hlseg, (x, y), If(x == y, fgsetsort.lattice_bottom,
                                    If(nxt(x) == y, SetAdd(fgsetsort.lattice_bottom, x),
                                       SetAdd(hlseg(nxt(x), y), x))))
-# AddAxiom((), nxt(nil) == nil)
+
+AddAxiom((), nxt(nil) == nil)
+AddAxiom((), z != nil)
+AddAxiom((), z != x)
 
 # heap_equality = SetAdd(hlseg(x, y), y) == hlseg(x, z)
 # heap_intersection = SetIntersect(hlseg(x, y), SetAdd(fgsetsort.lattice_bottom, y)) == fgsetsort.lattice_bottom

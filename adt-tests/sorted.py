@@ -13,30 +13,49 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 x, y, tx = Vars('x y tx', fgsort)
-i = Var('i', intsort)
+i = Var('i', fgsort)
 
 # ADT definition of lists
 nil = Const('nil', fgsort)
-cons = Function('cons', intsort, fgsort, fgsort)
+cons = Function('cons', fgsort, fgsort, fgsort)
+
+# ADT definition of nat
+zero = Const('zero', fgsort)
+succ = Function('succ', fgsort, fgsort)
 
 # projections for cons
-head = Function('head', fgsort, intsort)
+head = Function('head', fgsort, fgsort)
 tail = Function('tail', fgsort, fgsort)
+
+# projection for nat
+pred = Function('pred', fgsort, fgsort)
+
+# less than
+le = Function('le', fgsort, fgsort, boolsort)
+
+AddAxiom(x, le(zero, x))
+AddAxiom(x, le(x, x))
+AddAxiom((x, y), Implies(le(x, y), le(x, succ(y))))
 
 # list
 lst = RecFunction('lst', fgsort, boolsort)
 AddRecDefinition(lst, x, If(x == nil, True, lst(tail(x))))
 
 # rec defs
-insort = RecFunction('insort', intsort, fgsort, fgsort)
+insort = RecFunction('insort', fgsort, fgsort, fgsort)
 sortedl = RecFunction('sortedl', fgsort, boolsort)
 sort = RecFunction('sort', fgsort, fgsort)
 AddRecDefinition(insort, (i, x), If(x == nil, cons(i, nil),
-                                    If(i < head(x),
+                                    If(le(i, head(x)),
                                        cons(i, cons(head(x), tail(x))),
                                        cons(x, insort(i, tail(x))))))
 
+AddRecDefinition(sort, x, If(x == nil, x, insort(head(x), tail(x))))
+
 exit(0)
+
+
+
 
 # axioms
 AddAxiom(x, head(cons(hx, x)) == hx)

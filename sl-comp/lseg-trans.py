@@ -34,9 +34,9 @@ AddAxiom((), nxt(nil) == nil)
 # config_params['goal_instantiation_mode'] = proveroptions.manual_instantiation
 # config_params['goal_instantiation_terms'] = {x, nxt(x)}
 
-goal_heaplet_1a = Implies(hlseg(x, y, v), Implies(nxt(y) == z, hlseg(x, z, v)))
-goal_heaplet_1b = Implies(lseg(x, y), Implies(y != nil, Implies(nxt(y) == z, hlseg(x, z, y))))
-goal_heaplet_2 = Implies(hlseg(x, z, v), Implies(nxt(y) == z, Or(v == y, hlseg(x, y, v))))
+goal_heaplet_1a = Implies(hlseg(x, y, v), Implies(lseg(y, z), hlseg(x, z, v)))
+goal_heaplet_1b = Implies(lseg(x, y), Implies(y != nil, Implies(lseg(y, z), hlseg(x, z, y))))
+goal_heaplet_2 = Implies(hlseg(x, z, v), Implies(lseg(y, z), Or(v == y, hlseg(x, y, v))))
 
 # lemma synthesis
 v1, v2, v3, v4 = Vars('v1 v2 v3 v4', fgsort)
@@ -46,4 +46,4 @@ lemma_grammar_terms = {v1, nil, nxt(nil), v2, nxt(v2), nxt(v1), nxt(nxt(v1)), nx
 name = 'lseg-nil-list'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
-solveProblem(lemma_grammar_args, lemma_grammar_terms, goal_heaplet_2, name, grammar_string)
+solveProblem(lemma_grammar_args, lemma_grammar_terms, goal_heaplet_1a, name, grammar_string)

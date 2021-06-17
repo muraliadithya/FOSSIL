@@ -372,7 +372,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
                 return None
             else:
                 # Post processing
-                synth_results = '\n'.join(out.split('\n')[1:])
+                synth_results = '\n'.join(out.split('\n'))
                 synth_results = ['(define-fun' + res for res in synth_results.split('(define-fun')[1:]]
                 synth_results = [' '.join([part for part in res.split('\n') if part != '']) for res in synth_results]
                 return synth_results

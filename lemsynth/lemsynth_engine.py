@@ -16,7 +16,7 @@ from naturalproofs.prover_utils import get_foreground_terms
 from naturalproofs.utils import get_all_subterms
 from naturalproofs.extensions.finitemodel import FiniteModel
 
-from counterexample_tests.list_signature import counterexemplify
+from counterexample_tests.arb_signature import counterexemplify, rank_fcts
 
 
 def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None, annctx=default_annctx):
@@ -200,8 +200,9 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.use_cex_true_models:
                     print('using true counterexample models')
                     params_list = [param for param in z3py_lemma_params]
-                    z3_true_cex_model = counterexemplify(z3py_lemma_body, params_list, 2)
-                    print(z3_true_cex_model)
+                    lhs_recdef = annctx.get_recdef(lhs)
+                    curr = rank_fcts()[lhs]
+                    z3_true_cex_model = counterexemplify(z3py_lemma_body, params_list, 2, lhs_recdef, curr[0], curr[1], curr[2], curr[3], curr[4])
                     true_cex_model = FiniteModel(z3_true_cex_model[0], z3_true_cex_model[1], annctx=annctx)
                     config_params['true_cex_model'] = true_cex_model
             else:

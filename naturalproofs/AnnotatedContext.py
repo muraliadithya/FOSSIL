@@ -149,6 +149,17 @@ class AnnotatedContext:
         """
         self.__variable_annotation__.add(annotation)
 
+    def get_recdef(self, recdef_name):
+        """
+        Returns the recursive definition from the annotated context given the recdef name.
+        :param recdef_name: z3.FuncDeclRef
+        :return z3.BoolRef
+        """
+        recs = self.get_recdef_annotation()
+        for rec in recs:
+            if rec[0] == recdef_name:
+                return rec[2]
+        return None
 
 # Default annotated context. Only one context needed currently.
 default_annctx = AnnotatedContext()

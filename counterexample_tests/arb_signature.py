@@ -2,23 +2,38 @@ from z3 import *
 import itertools
 
 def rank_fcts():
-    nil = Int('nil')
+    x = Var('x', IntSort())
+    y = Var('y', IntSort())
+    nil = Const('nil', IntSort())
     nxt = Function('nxt', IntSort(), IntSort())
+    lft = Function('lft', IntSort(), IntSort())
+    rht = Function('rht', IntSort(), IntSort())
 
+    # List
     lst = Function('lst', IntSort(), BoolSort())
-    lst_def = lambda x: lst(x) == Or(x == nil, lst(nxt(x)))
     lst_rank = Function('lst_rank', IntSort(), IntSort())
-    lst_rank_def = lambda x: Or(x == nil, lst(nxt(x)) == (lst_rank(nxt(x)) < lst_rank(x)))
-    lst_rank_zero = lambda x: x == nil
+    lst_def_body = And(Or(x == nil, lst(nxt(x))) == lst(x),
+                       Or(x == nil, lst(nxt(x))) == (lst_rank(nxt(x)) < lst_rank(x)))
 
+    # List segment
     lseg = Function('lseg', IntSort(), IntSort(), BoolSort())
-    lseg_def = lambda x,y: lseg(x,y) == Or(x == y, lseg(nxt(x),y))
     lseg_rank = Function('lseg_rank', IntSort(), IntSort(), IntSort())
-    lseg_rank_def = lambda x,y: Or(x == y, ls(nxt(x),y) == (lseg_rank(nxt(x),y) < lseg_rank(x,y)))
-    lseg_rank_zero = lambda x,y: x == y
+    lseg_def_body = And(Or(x == y, lseg(nxt(x),y)) == lseg(x,y),
+                        Or(x == y, lseg(nxt(x),y)) == (lseg_rank(nxt(x),y) < lseg_rank(x,y)))
+    
+    # Binary tree
+    btree = Function('btree', IntSort(), BoolSort())
+    btree_rank = Function('btree_rank', IntSort(), IntSort())
+    btree_def_body = And(Or(x == nil, And(btree(lft(x)), btree(rht(x)))),
+                         Or(x == nil, And(tree(lft(x)) == (rank(lft(x)) < rank(x)),
+                                          tree(rht(x)) == (rank(rht(x)) < rank(x)))))
+    
+    return {
+        lst : ((x,), lst_def_body),
+        lseg : ((x,y,), lseg_def_body),
+        btree : ((x,), btree_def_body),
+    }
 
-    return { lst : (lst_rank_def, lst_rank, lst_rank_zero, [nxt], nil),
-             lseg : (lseg_rank_def, lseg_rank, lseg_rank_zero, [nxt], nil) }
 
 def counterexemplify(lemma, lemma_vars, N, func_def, rank_def, rank, rank_zero, iter_funcs, nil):
     """

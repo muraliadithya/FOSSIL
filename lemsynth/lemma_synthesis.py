@@ -282,7 +282,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             true_cex_models_with_offset = true_cex_models_with_offset + [true_cex_offset_model]
         true_cex_models = true_cex_models_with_offset
 
-    all_models = [cex_model.finitemodel for cex_model in cex_models] + [true_cex_model for true_cex_model in true_cex_models] + [false_finitemodel.finitemodel]      
+    all_models = [cex_model.finitemodel for cex_model in cex_models] + [true_cex_model.finitemodel for true_cex_model in true_cex_models] + [false_finitemodel.finitemodel]
 
     vocab = get_vocabulary(annctx)
     set_defs = {func for func in vocab if 'Array' in str(func.range())}
@@ -315,7 +315,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         if options.use_cex_true_models:
             true_constraints = ''
             for true_cex_model in true_cex_models:
-                curr_true_constraint = generateConstraints(true_cex_model, lemma_args, true_cex_model_universe, True, annctx)
+                curr_true_constraint = generateConstraints(true_cex_model, lemma_args, goal_instantiation_terms, True, annctx)
                 true_constraints += curr_true_constraint + '\n'
         else:
             true_constraints = ''

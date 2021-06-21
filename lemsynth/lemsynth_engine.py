@@ -197,9 +197,14 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     cex_model = FiniteModel(lemma_npsolution.model, extraction_terms, annctx=annctx)
                     cex_models = cex_models + [cex_model]
                 if options.use_cex_true_models:
-                    print('using true counterexample models')
+                    if options.verbose >= 4:
+                        print('using true counterexample models')
                     true_cex_model = gen_lfp_model(2, annctx, invalid_formula=z3py_lemma)
-                    config_params['true_cex_model'] = true_cex_model
+                    if true_cex_model != None:
+                        if 'true_cex_models' in config_params:
+                            config_params['true_cex_models'] += [ true_cex_model ]
+                        else:
+                            config_params['true_cex_models'] = [ true_cex_model ]
             else:
                 if options.verbose >= 3:
                     print('proposed lemma was proven.')

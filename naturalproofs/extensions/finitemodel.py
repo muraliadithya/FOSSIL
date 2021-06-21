@@ -59,12 +59,14 @@ class FiniteModel:
         to extract the finite model.  
         """
         model = dict()
+        # TODO: VERY IMPORTANT: hack to include those terms that are directly given as integers or integer expressions
+        elems = {smtmodel.eval(term, model_completion=True) for term in terms}
         # TODO: the assumption is that uninterpreted functions have arguments only from the foreground sort. Must handle
         #  cases where uninterpreted functions have arguments in other domains, primarily integers.
         # Subterm-close the given terms assuming one-way functions
         # get_foreground_terms already performs subterm closure
         subterm_closure = get_foreground_terms(terms)
-        elems = {smtmodel.eval(term, model_completion=True) for term in subterm_closure}
+        elems = elems | {smtmodel.eval(term, model_completion=True) for term in subterm_closure}
         if vocabulary is None:
             vocabulary = get_vocabulary(annctx)
         for func in vocabulary:

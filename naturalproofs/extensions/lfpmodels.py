@@ -36,21 +36,23 @@ def rank_fcts():
     btree_def_body = And(Or(x == nil, And(btree(lft(x)), btree(rht(x))) == btree(x)),
                          Or(x == nil, And(btree(lft(x)) == (btree_rank(lft(x)) < btree_rank(x)),
                                           btree(rht(x)) == (btree_rank(rht(x)) < btree_rank(x)))))
-
-    # Binary search tree :: still needs debugging
-    # Generate a counterexample model for a proposed lemma in the custom language
+    
+    # Binary search tree
     bstree = Function('bstree', IntSort(), BoolSort())
     bstree_rank = Function('bstree_rank', IntSort(), IntSort())
-    # Need to ensure nil value is not counted toward submin/max
-    bstree_def_body = And(Or(And(x == nil, submin(x) == x, submax(x) == x),
-                             And(submin(lft(x)) == submin(x),
-                                 submax(rht(x)) == submax(x),
-                                 submax(lft(x)) < x, x < submin(rht(x)),
-                                 bstree(lft(x)), bstree(rht(x))) == bstree(x)),
-                          Or(x == nil,
-                             And(And(bstree(lft(x)), submax(lft(x)) < x) == (bstree_rank(lft(x)) < bstree_rank(x)),
-                                 And(bstree(rht(x)), x < submin(rht(x))) == (bstree_rank(rht(x)) < bstree_rank(x)))))
-
+    lft_sort = Or(lft(x) == nil, And(bstree(lft(x)),
+                                     submax(lft(x)) < x,
+                                     submin(lft(x)) == submin(x)))
+    cen_sort = And((lft(x) == nil) == (submin(x) == x),
+                   submin(x) <= x, x <= submax(x), btree(x), 
+                   (rht(x) == nil) == (submax(x) == x))
+    rht_sort = Or(rht(x) == nil, And(bstree(rht(x)),
+                                     x < submin(rht(x)), 
+                                     submax(rht(x)) == submax(x)))
+    bstree_def_body = And(Or(x == nil, And(lft_sort, cen_sort, rht_sort)) == bstree(x),
+                          Or(x == nil, And(lft_sort == (bstree_rank(lft(x)) < bstree_rank(x)),
+                                           rht_sort == (bstree_rank(rht(x)) < bstree_rank(x)))))
+    
     return {
         'lst': ((x,), lst_def_body),
         'lseg': ((x, y,), lseg_def_body),

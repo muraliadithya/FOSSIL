@@ -2,7 +2,7 @@
 from z3 import *
 import itertools
 
-from naturalproofs.uct import fgsort
+from naturalproofs.uct import fgsort, intsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import get_vocabulary, get_uct_signature, get_recursive_definition, get_all_axioms
 from naturalproofs.utils import apply_bound_formula
 from naturalproofs.prover_utils import instantiate, make_recdef_unfoldings
@@ -12,47 +12,50 @@ from naturalproofs.extensions.finitemodel import FiniteModel
 
 def rank_fcts():
     x, y, nil = Ints('x y nil')
-    nxt = Function('nxt', IntSort(), IntSort())
-    lft = Function('lft', IntSort(), IntSort())
-    rht = Function('rht', IntSort(), IntSort())
-    submin = Function('submin', IntSort(), IntSort())
-    submax = Function('submax', IntSort(), IntSort())
 
     # List
-    lst = Function('lst', IntSort(), BoolSort())
-    lst_rank = Function('lst_rank', IntSort(), IntSort())
-    lst_def_body = And(Or(x == nil, lst(nxt(x))) == lst(x),
-                       Or(x == nil, lst(nxt(x)) == (lst_rank(nxt(x)) < lst_rank(x))))
+    nxt = Function('nxt', fgsort, intsort)
+    lst = Function('lst', fgsort, boolsort)
+    lst_rank = Function('lst_rank', fgsort, intsort)
+    lst_recdef = lst(x) == If(x == nil, True, lst(nxt(x)))
+    lst_rankdef = If(x == nil, True, lst(x)==(lst_rank(nxt(x)) < lst_rank(x)))
+    lst_defbody = And(lst_recdef, lst_rankdef)
 
     # List segment
-    lseg = Function('lseg', IntSort(), IntSort(), BoolSort())
-    lseg_rank = Function('lseg_rank', IntSort(), IntSort(), IntSort())
-    lseg_def_body = And(Or(x == y, lseg(nxt(x), y)) == lseg(x, y),
-                        Or(x == y, lseg(nxt(x), y) == (lseg_rank(nxt(x), y) < lseg_rank(x, y))))
+    lseg = Function('lseg', fgsort, fgsort, boolsort)
+    lseg_rank = Function('lseg_rank', fgsort, fgsort, intsort)
+    lseg_recdef = lseg(x, y) == If(x == y, True, lseg(nxt(x), y))
+    lseg_rankdef = If(x == y, True, lseg(x, y)==(lseg_rank(nxt(x), y) < lseg_rank(x, y)))
+    lseg_defbody = And(lseg_recdef, lseg_rankdef)
 
     # Binary tree
-    btree = Function('btree', IntSort(), BoolSort())
-    btree_rank = Function('btree_rank', IntSort(), IntSort())
-    btree_def_body = And(Or(x == nil, And(btree(lft(x)), btree(rht(x))) == btree(x)),
-                         Or(x == nil, And(btree(lft(x)) == (btree_rank(lft(x)) < btree_rank(x)),
-                                          btree(rht(x)) == (btree_rank(rht(x)) < btree_rank(x)))))
-    
+    lft = Function('lft', fgsort, intsort)
+    rght = Function('rght', fgsort, intsort)
+    tree = Function('tree', fgsort, boolsort)
+    tree_rank = Function('tree_rank', fgsort, intsort)
+    tree_recdef = tree(x) == If(x == nil, True, And(tree(lft(x)), tree(rght(x))))
+    tree_rankdef = If(x == nil, True, tree(x)==And(tree_rank(lft(x)) < tree_rank(x),
+                                                   tree_rank(rght(x)) < tree_rank(x)))
+    tree_defbody = And(tree_recdef, tree_rankdef)
+
     # Binary search tree
-    bstree = Function('bstree', IntSort(), BoolSort())
-    bstree_rank = Function('bstree_rank', IntSort(), IntSort())
-    lft_sort = Or(lft(x) == nil, And(bstree(lft(x)),
-                                     submax(lft(x)) < x,
-                                     submin(lft(x)) == submin(x)))
-    cen_sort = And((lft(x) == nil) == (submin(x) == x),
-                   submin(x) <= x, x <= submax(x), btree(x), 
-                   (rht(x) == nil) == (submax(x) == x))
-    rht_sort = Or(rht(x) == nil, And(bstree(rht(x)),
-                                     x < submin(rht(x)), 
-                                     submax(rht(x)) == submax(x)))
-    bstree_def_body = And(Or(x == nil, And(lft_sort, cen_sort, rht_sort)) == bstree(x),
-                          Or(x == nil, And(lft_sort == (bstree_rank(lft(x)) < bstree_rank(x)),
-                                           rht_sort == (bstree_rank(rht(x)) < bstree_rank(x)))))
-    
+    minr = Function('minr', fgsort, intsort)
+    maxr = Function('maxr', fgsort, intsort)
+    minr_recdef = If(x == nil, 100, min_intsort(key(x), minr(lft(x)), minr(rght(x))))
+    maxr_recdef = If(x == nil, -1, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
+    key = Function('key', fgsort, intsort)
+    bst = Function('bst', fgsort, boolsort)
+    bst_rank = Function('bst_rank', fgsort, intsort)
+    bst_recdef = bst(x) == If(x == nil, True,
+                              And(0 < key(x), key(x) < 100,
+                                  bst(lft(x)), bst(rht(x)),
+                                  maxr(lft(x)) <= key(x),
+                                  key(x) <= minr(rght(x))))
+    bst_rankdef = If(x == nil, True,
+                     bst(x)==And(bst_rank(lft(x)) < bst_rank(x),
+                                 bst_rank(rght(x)) < bst_rank(x)))
+    bst_defbody = And(bst_recdef, bst_rankdef)
+
     return {
         'lst': ((x,), lst_def_body),
         'lseg': ((x, y,), lseg_def_body),

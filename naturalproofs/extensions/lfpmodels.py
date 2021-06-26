@@ -16,7 +16,7 @@ def rank_fcts():
     nil = Const('nil', fgsort)
 
     # List
-    nxt = Function('nxt', fgsort, intsort)
+    nxt = Function('nxt', fgsort, fgsort)
     lst = Function('lst', fgsort, boolsort)
     lst_rank = Function('lst_rank', fgsort, intsort)
     lst_recdef = lst(x) == If(x == nil, True, lst(nxt(x)))
@@ -36,8 +36,8 @@ def rank_fcts():
     lseg_def_body = And(lseg_recdef, lseg_rankdef)
 
     # Binary tree
-    lft = Function('lft', fgsort, intsort)
-    rght = Function('rght', fgsort, intsort)
+    lft = Function('lft', fgsort, fgsort)
+    rght = Function('rght', fgsort, fgsort)
     tree = Function('tree', fgsort, boolsort)
     tree_rank = Function('tree_rank', fgsort, intsort)
     tree_recdef = tree(x) == If(x == nil, True,
@@ -81,8 +81,8 @@ def rank_fcts():
     dag_recdef = dag(x) == If(x == nil, True,
                                         And(dag(lft(x)), dag(rght(x))))
     dag_rankdef = If(x == nil, dag_rank(x) == 0,
-                               And(dag_rank(lft(x)) < dag_rank(x),
-                                   dag_rank(rght(x)) < dag_rank(x)))
+                               dag(x) == And(dag_rank(lft(x)) < dag_rank(x),
+                                             dag_rank(rght(x)) < dag_rank(x)))
     dag_def_body = And(dag_recdef, dag_rankdef)
     
     # Reachability
@@ -91,9 +91,19 @@ def rank_fcts():
     reach_recdef = reach(x, y) == If(x == y, True,
                                              Or(reach(lft(x), y), reach(rght(x), y)))
     reach_rankdef = If(x == y, reach_rank(x, y) == 0,
-                               And(If(reach(lft(x), y), reach_rank(lft(x), y) < reach_rank(x, y)),
-                                   If(reach(rght(x), y), reach_rank(rght(x), y) < reach_rank(x, y))))
+                               And(reach(lft(x), y) == (reach_rank(lft(x), y) < reach_rank(x, y)),
+                                   reach(rght(x), y) == (reach_rank(rght(x), y) < reach_rank(x, y))))
     reach_def_body = And(reach_recdef, reach_rankdef)
+
+    # Directed list
+    prv = Function('prv', fgsort, fgsort)
+    dlst = Function('dlst', fgsort, boolsort)
+    dlst_rank = Function('dlst_rank', fgsort, intsort)
+    dlst_recdef = dlst(x) == If(Or(x == nil, nxt(x) == nil), True,
+                                                             And(prv(nxt(x)) == x, dlst(nxt(x))))
+    dlst_rankdef = If(x == nil, True,
+                                dlst(x) == (dlst_rank(nxt(x)) < dlst_rank(x)))
+    dlst_def_body = And(dlst_recdef, dlst_rankdef)
 
     return {
         'lst': ((x,), lst_def_body),
@@ -102,7 +112,8 @@ def rank_fcts():
         'bst': ((x,), bst_def_body),
         'cyclic': ((x,), cyclic_def_body),
         'dag': ((x,), dag_def_body),
-        'reach': ((x, y,), reach_def_body)
+        'reach': ((x, y,), reach_def_body),
+        'dlst': ((x,), dlst_def_body)
     }
 
 

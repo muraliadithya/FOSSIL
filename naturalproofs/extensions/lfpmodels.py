@@ -46,9 +46,9 @@ def rank_fcts():
     # Binary search tree
     minr = Function('minr', fgsort, intsort)
     maxr = Function('maxr', fgsort, intsort)
+    key = Function('key', fgsort, intsort)
     minr_recdef = If(x == nil, 100, min_intsort(key(x), minr(lft(x)), minr(rght(x))))
     maxr_recdef = If(x == nil, -1, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
-    key = Function('key', fgsort, intsort)
     bst = Function('bst', fgsort, boolsort)
     bst_rank = Function('bst_rank', fgsort, intsort)
     bst_recdef = bst(x) == If(x == nil, True,
@@ -113,6 +113,25 @@ def rank_fcts():
     odd_lst_rankdef = If(nxt(x) != nil, odd_lst(x) == (odd_lst_rank(nxt(nxt(x)) < odd_lst_rank(x))))
     odd_lst_def_body = And(odd_lst_recdef, odd_lst_rankdef)
 
+    # Sorted list
+    slst = Function('slst', fgsort, boolsort)
+    slst_rank = Function('slst_rank', fgsort, intsort)
+    slst_recdef = slst(x) == If(Or(x == nil, nxt(x) == nil), True,
+                                                             And(key(x) <= key(nxt(x)),
+                                                                 slst(nxt(x))))
+    slst_rankdef = If(And(x != nil, nxt(x) != nil),
+                      slst(x) == (slst_rank(nxt(x)) < slst_rank(x)))
+    slst_def_body = And(slst_recdef, slst_rankdef)
+
+    # Sorted list segment
+    slseg = Function('slseg', fgsort, boolsort)
+    slseg_rank = Function('slseg_rank', fgsort, intsort)
+    slseg_recdef = slseg(x) == If(x == y, True,
+                                          And(key(x) <= key(nxt(x)),
+                                              slseg(nxt(x))))
+    slseg_rankdef = If(x != y, slseg(x,y) == (slseg_rank(nxt(x)) < slseg_rank(x)))
+    slseg_def_body = And(slseg_recdef, slseg_rankdef)
+
 
     return {
         'lst': ((x,), lst_def_body),
@@ -124,7 +143,9 @@ def rank_fcts():
         'reach': ((x, y,), reach_def_body),
         'dlst': ((x,), dlst_def_body),
         'even_lst': ((x,), even_lst_def_body),
-        'odd_lst': ((x,), odd_lst_def_body)
+        'odd_lst': ((x,), odd_lst_def_body),
+        'slst': ((x,), slst_def_body),
+        'slseg': ((x,), slseg_def_body)
     }
 
 

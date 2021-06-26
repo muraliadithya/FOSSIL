@@ -18,25 +18,32 @@ def rank_fcts():
     lst = Function('lst', fgsort, boolsort)
     lst_rank = Function('lst_rank', fgsort, intsort)
     lst_recdef = lst(x) == If(x == nil, True, lst(nxt(x)))
-    lst_rankdef = If(x == nil, True, lst(x)==(lst_rank(nxt(x)) < lst_rank(x)))
-    lst_defbody = And(lst_recdef, lst_rankdef)
+    lst_rankdef = If(x == nil, lst_rank(x) == 0,
+                               lst(x) == (lst_rank(nxt(x)) < lst_rank(x)))
+    lst_def_body = And(lst_recdef, lst_rankdef)
 
     # List segment
     lseg = Function('lseg', fgsort, fgsort, boolsort)
     lseg_rank = Function('lseg_rank', fgsort, fgsort, intsort)
-    lseg_recdef = lseg(x, y) == If(x == y, True, lseg(nxt(x), y))
-    lseg_rankdef = If(x == y, True, lseg(x, y)==(lseg_rank(nxt(x), y) < lseg_rank(x, y)))
-    lseg_defbody = And(lseg_recdef, lseg_rankdef)
+    lseg_recdef = lseg(x, y) == If(x == y, True,
+                                           If(x == nil, False,
+                                                        lseg(nxt(x), y)))
+    lseg_rankdef = If(x == y, lseg_rank(x, y) == 0,
+                              If(x == nil, True,
+                                           lseg(x, y) == (lseg_rank(nxt(x), y) < lseg_rank(x, y))))
+    lseg_def_body = And(lseg_recdef, lseg_rankdef)
 
     # Binary tree
     lft = Function('lft', fgsort, intsort)
     rght = Function('rght', fgsort, intsort)
     tree = Function('tree', fgsort, boolsort)
     tree_rank = Function('tree_rank', fgsort, intsort)
-    tree_recdef = tree(x) == If(x == nil, True, And(tree(lft(x)), tree(rght(x))))
-    tree_rankdef = If(x == nil, True, tree(x)==And(tree_rank(lft(x)) < tree_rank(x),
-                                                   tree_rank(rght(x)) < tree_rank(x)))
-    tree_defbody = And(tree_recdef, tree_rankdef)
+    tree_recdef = tree(x) == If(x == nil, True,
+                                          And(tree(lft(x)), tree(rght(x))))
+    tree_rankdef = If(x == nil, tree_rank(x) == 0,
+                                tree(x) == And(tree_rank(lft(x)) < tree_rank(x),
+                                               tree_rank(rght(x)) < tree_rank(x)))
+    tree_def_body = And(tree_recdef, tree_rankdef)
 
     # Binary search tree
     minr = Function('minr', fgsort, intsort)
@@ -47,20 +54,31 @@ def rank_fcts():
     bst = Function('bst', fgsort, boolsort)
     bst_rank = Function('bst_rank', fgsort, intsort)
     bst_recdef = bst(x) == If(x == nil, True,
-                              And(0 < key(x), key(x) < 100,
-                                  bst(lft(x)), bst(rht(x)),
-                                  maxr(lft(x)) <= key(x),
-                                  key(x) <= minr(rght(x))))
-    bst_rankdef = If(x == nil, True,
-                     bst(x)==And(bst_rank(lft(x)) < bst_rank(x),
-                                 bst_rank(rght(x)) < bst_rank(x)))
-    bst_defbody = And(bst_recdef, bst_rankdef)
+                                        And(0 < key(x), key(x) < 100,
+                                            bst(lft(x)), bst(rht(x)),
+                                            maxr(lft(x)) <= key(x),
+                                            key(x) <= minr(rght(x))))
+    bst_rankdef = If(x == nil, bst_rank(x) == 0,
+                               bst(x) == And(bst_rank(lft(x)) < bst_rank(x),
+                                             bst_rank(rght(x)) < bst_rank(x)))
+    bst_def_body = And(minr_recdef, maxr_recdef, bst_recdef, bst_rankdef)
+
+    # Cyclic
+    cyclic = Function('cyclic', fgsort, boolsort)
+    cyclic_rank = Function('cyclic_rank', fgsort, intsort)
+    cyclic_recdef = cyclic(x) == If(x == nil, False,
+                                              lseg(nxt(x), x))
+    cyclic_rankdef = If(x == nil, True,
+                                  cyclic(x) == And(lseg_rank(nxt(x), x) < cyclic_rank(x),
+                                                   cyclic_rank(nxt(x)) == cyclic_rank(x)))
+    cyclic_def_body = And(cyclic_recdef, cyclic_rankdef)
 
     return {
         'lst': ((x,), lst_def_body),
         'lseg': ((x, y,), lseg_def_body),
-        'btree': ((x,), btree_def_body),
-        'bstree': ((x,), bstree_def_body)
+        'tree': ((x,), tree_def_body),
+        'bst': ((x,), bst_def_body),
+        'cyclic': ((x,), cyclic_def_body)
     }
 
 

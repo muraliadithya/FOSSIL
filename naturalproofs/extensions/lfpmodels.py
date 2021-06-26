@@ -4,6 +4,7 @@ import itertools
 
 from naturalproofs.uct import fgsort, intsort, boolsort, min_intsort, max_intsort
 from naturalproofs.decl_api import get_vocabulary, get_uct_signature, get_recursive_definition, get_all_axioms
+from naturalproofs.decl_api import Const, Consts, Var, Vars
 from naturalproofs.utils import apply_bound_formula
 from naturalproofs.prover_utils import instantiate, make_recdef_unfoldings
 
@@ -11,7 +12,8 @@ from naturalproofs.extensions.finitemodel import FiniteModel
 
 
 def rank_fcts():
-    x, y, nil = Ints('x y nil')
+    x, y = Vars('x y', fgsort)
+    nil = Const('nil', fgsort)
 
     # List
     nxt = Function('nxt', fgsort, intsort)
@@ -73,12 +75,34 @@ def rank_fcts():
                                                    cyclic_rank(nxt(x)) == cyclic_rank(x)))
     cyclic_def_body = And(cyclic_recdef, cyclic_rankdef)
 
+    # Directed acyclic graph
+    dag = Function('dag', fgsort, boolsort)
+    dag_rank = Function('dag_rank', fgsort, intsort)
+    dag_recdef = dag(x) == If(x == nil, True,
+                                        And(dag(lft(x)), dag(rght(x))))
+    dag_rankdef = If(x == nil, dag_rank(x) == 0,
+                               And(dag_rank(lft(x)) < dag_rank(x),
+                                   dag_rank(rght(x)) < dag_rank(x)))
+    dag_def_body = And(dag_recdef, dag_rankdef)
+    
+    # Reachability
+    reach = Function('reach', fgsort, fgsort, boolsort)
+    reach_rank = Function('reach_rank', fgsort, fgsort, intsort)
+    reach_recdef = reach(x, y) == If(x == y, True,
+                                             Or(reach(lft(x), y), reach(rght(x), y)))
+    reach_rankdef = If(x == y, reach_rank(x, y) == 0,
+                               And(If(reach(lft(x), y), reach_rank(lft(x), y) < reach_rank(x, y)),
+                                   If(reach(rght(x), y), reach_rank(rght(x), y) < reach_rank(x, y))))
+    reach_def_body = And(reach_recdef, reach_rankdef)
+
     return {
         'lst': ((x,), lst_def_body),
         'lseg': ((x, y,), lseg_def_body),
         'tree': ((x,), tree_def_body),
         'bst': ((x,), bst_def_body),
-        'cyclic': ((x,), cyclic_def_body)
+        'cyclic': ((x,), cyclic_def_body),
+        'dag': ((x,), dag_def_body),
+        'reach': ((x, y,), reach_def_body)
     }
 
 

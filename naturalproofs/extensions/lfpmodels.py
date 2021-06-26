@@ -20,8 +20,7 @@ def rank_fcts():
     lst = Function('lst', fgsort, boolsort)
     lst_rank = Function('lst_rank', fgsort, intsort)
     lst_recdef = lst(x) == If(x == nil, True, lst(nxt(x)))
-    lst_rankdef = If(x == nil, lst_rank(x) == 0,
-                               lst(x) == (lst_rank(nxt(x)) < lst_rank(x)))
+    lst_rankdef = If(x != nil, lst(x) == (lst_rank(nxt(x)) < lst_rank(x)))
     lst_def_body = And(lst_recdef, lst_rankdef)
 
     # List segment
@@ -30,9 +29,7 @@ def rank_fcts():
     lseg_recdef = lseg(x, y) == If(x == y, True,
                                            If(x == nil, False,
                                                         lseg(nxt(x), y)))
-    lseg_rankdef = If(x == y, lseg_rank(x, y) == 0,
-                              If(x == nil, True,
-                                           lseg(x, y) == (lseg_rank(nxt(x), y) < lseg_rank(x, y))))
+    lseg_rankdef = If(And(x != y, x != nil), lseg(x, y) == (lseg_rank(nxt(x), y) < lseg_rank(x, y)))
     lseg_def_body = And(lseg_recdef, lseg_rankdef)
 
     # Binary tree
@@ -42,8 +39,7 @@ def rank_fcts():
     tree_rank = Function('tree_rank', fgsort, intsort)
     tree_recdef = tree(x) == If(x == nil, True,
                                           And(tree(lft(x)), tree(rght(x))))
-    tree_rankdef = If(x == nil, tree_rank(x) == 0,
-                                tree(x) == And(tree_rank(lft(x)) < tree_rank(x),
+    tree_rankdef = If(x != nil, tree(x) == And(tree_rank(lft(x)) < tree_rank(x),
                                                tree_rank(rght(x)) < tree_rank(x)))
     tree_def_body = And(tree_recdef, tree_rankdef)
 
@@ -60,8 +56,7 @@ def rank_fcts():
                                             bst(lft(x)), bst(rht(x)),
                                             maxr(lft(x)) <= key(x),
                                             key(x) <= minr(rght(x))))
-    bst_rankdef = If(x == nil, bst_rank(x) == 0,
-                               bst(x) == And(bst_rank(lft(x)) < bst_rank(x),
+    bst_rankdef = If(x != nil, bst(x) == And(bst_rank(lft(x)) < bst_rank(x),
                                              bst_rank(rght(x)) < bst_rank(x)))
     bst_def_body = And(minr_recdef, maxr_recdef, bst_recdef, bst_rankdef)
 
@@ -70,8 +65,7 @@ def rank_fcts():
     cyclic_rank = Function('cyclic_rank', fgsort, intsort)
     cyclic_recdef = cyclic(x) == If(x == nil, False,
                                               lseg(nxt(x), x))
-    cyclic_rankdef = If(x == nil, True,
-                                  cyclic(x) == And(lseg_rank(nxt(x), x) < cyclic_rank(x),
+    cyclic_rankdef = If(x != nil, cyclic(x) == And(lseg_rank(nxt(x), x) < cyclic_rank(x),
                                                    cyclic_rank(nxt(x)) == cyclic_rank(x)))
     cyclic_def_body = And(cyclic_recdef, cyclic_rankdef)
 
@@ -80,8 +74,7 @@ def rank_fcts():
     dag_rank = Function('dag_rank', fgsort, intsort)
     dag_recdef = dag(x) == If(x == nil, True,
                                         And(dag(lft(x)), dag(rght(x))))
-    dag_rankdef = If(x == nil, dag_rank(x) == 0,
-                               dag(x) == And(dag_rank(lft(x)) < dag_rank(x),
+    dag_rankdef = If(x != nil, dag(x) == And(dag_rank(lft(x)) < dag_rank(x),
                                              dag_rank(rght(x)) < dag_rank(x)))
     dag_def_body = And(dag_recdef, dag_rankdef)
     
@@ -99,11 +92,27 @@ def rank_fcts():
     prv = Function('prv', fgsort, fgsort)
     dlst = Function('dlst', fgsort, boolsort)
     dlst_rank = Function('dlst_rank', fgsort, intsort)
-    dlst_recdef = dlst(x) == If(Or(x == nil, nxt(x) == nil), True,
-                                                             And(prv(nxt(x)) == x, dlst(nxt(x))))
-    dlst_rankdef = If(x == nil, True,
-                                dlst(x) == (dlst_rank(nxt(x)) < dlst_rank(x)))
+    dlst_recdef = dlst(x) == If(And(x != nil, nxt(x) != nil), And(prv(nxt(x)) == x, dlst(nxt(x))))
+    dlst_rankdef = If(x != nil, dlst(x) == (dlst_rank(nxt(x)) < dlst_rank(x)))
     dlst_def_body = And(dlst_recdef, dlst_rankdef)
+
+    # Even list
+    even_lst = Function('even_lst', fgsort, boolsort)
+    even_lst_rank = Function('even_lst_rank', fgsort, intsort)
+    even_lst_recdef = even_lst(x) == If(x == nil, True,
+                                                  even_lst(nxt(nxt(x))))
+    even_lst_rankdef = If(x != nil, even_lst(x) == (even_lst_rank(nxt(nxt(x)) < even_lst_rank(x))))
+    even_lst_def_body = And(even_lst_recdef, even_lst_rankdef)
+
+    # Odd list
+    odd_lst = Function('odd_lst', fgsort, boolsort)
+    odd_lst_rank = Function('odd_lst_rank', fgsort, intsort)
+    odd_lst_recdef = odd_lst(x) == If(x == nil, False,
+                                                If(nxt(x) == nil, True,
+                                                                  odd_lst(nxt(nxt(x)))))
+    odd_lst_rankdef = If(nxt(x) != nil, odd_lst(x) == (odd_lst_rank(nxt(nxt(x)) < odd_lst_rank(x))))
+    odd_lst_def_body = And(odd_lst_recdef, odd_lst_rankdef)
+
 
     return {
         'lst': ((x,), lst_def_body),
@@ -113,7 +122,9 @@ def rank_fcts():
         'cyclic': ((x,), cyclic_def_body),
         'dag': ((x,), dag_def_body),
         'reach': ((x, y,), reach_def_body),
-        'dlst': ((x,), dlst_def_body)
+        'dlst': ((x,), dlst_def_body),
+        'even_lst': ((x,), even_lst_def_body),
+        'odd_lst': ((x,), odd_lst_def_body)
     }
 
 

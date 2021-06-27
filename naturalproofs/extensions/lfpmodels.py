@@ -83,14 +83,14 @@ def rank_fcts():
     dag_def_body = And(dag_recdef, dag_rankdef)
 
     # Reachability
-    reach = Function('reach', IntSort(), IntSort(), BoolSort())
-    reach_rank = Function('reach_rank', IntSort(), IntSort(), IntSort())
-    reach_recdef = reach(x, y) == If(x == y, True,
-                                     Or(reach(lft(x), y), reach(rght(x), y)))
-    reach_rankdef = If(x == y, True,
-                       And(reach(lft(x), y) == (reach_rank(lft(x), y) < reach_rank(x, y)),
-                           reach(rght(x), y) == (reach_rank(rght(x), y) < reach_rank(x, y))))
-    reach_def_body = And(reach_recdef, reach_rankdef)
+    # reach = Function('reach', IntSort(), IntSort(), BoolSort())
+    # reach_rank = Function('reach_rank', IntSort(), IntSort(), IntSort())
+    # reach_recdef = reach(x, y) == If(x == y, True,
+    #                                  Or(reach(lft(x), y), reach(rght(x), y)))
+    # reach_rankdef = If(x == y, True,
+    #                    And(reach(lft(x), y) == (reach_rank(lft(x), y) < reach_rank(x, y)),
+    #                        reach(rght(x), y) == (reach_rank(rght(x), y) < reach_rank(x, y))))
+    # reach_def_body = And(reach_recdef, reach_rankdef)
 
     # Directed list
     prv = Function('prv', IntSort(), IntSort())
@@ -143,7 +143,7 @@ def rank_fcts():
         'bst': ((x,), bst_def_body),
         'cyclic': ((x,), cyclic_def_body),
         'dag': ((x,), dag_def_body),
-        'reach': ((x, y,), reach_def_body),
+        # 'reach': ((x, y,), reach_def_body),
         'dlst': ((x,), dlst_def_body),
         'even_lst': ((x,), even_lst_def_body),
         'odd_lst': ((x,), odd_lst_def_body),
@@ -247,7 +247,9 @@ def rank_fcts_lightweight():
 
 
 # Dictionary of rank constraints corresponding to recursive definitions
-rank_defs_dict = rank_fcts_lightweight()
+rank_defs_dict = rank_fcts()
+# To use lightweight rank functions comment out the line above and uncomment the line below
+# rank_defs_dict = rank_fcts_lightweight()
 
 
 def gen_lfp_model(size, annctx, invalid_formula=None):

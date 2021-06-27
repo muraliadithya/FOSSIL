@@ -189,6 +189,19 @@ def rank_fcts_lightweight():
     rlst = z3.Function('rlst', fgsort.z3sort, boolsort.z3sort)
     rlst_rank = z3.Function('rlst_rank', fgsort.z3sort, intsort.z3sort)
     rlst_rank_def = ((x,), If(x == nil, 0, If(rlst(x), rlst_rank(x) > rlst_rank(nxt(x)), -1)))
+    # 'Odd' and 'Even' lists
+    even_lst = z3.Function('even_lst', fgsort.z3sort, boolsort.z3sort)
+    even_lst_rank = z3.Function('even_lst_rank', fgsort.z3sort, intsort.z3sort)
+    even_lst_rank_def = ((x,), If(x == nil, 0,
+                                  If(nxt(x) == nil, -1,
+                                     If(even_lst(x), even_lst_rank(x) > even_lst_rank(nxt(nxt(x))),
+                                        -1))))
+    odd_lst = z3.Function('odd_lst', fgsort.z3sort, boolsort.z3sort)
+    odd_lst_rank = z3.Function('odd_lst_rank', fgsort.z3sort, intsort.z3sort)
+    odd_lst_rank_def = ((x,), If(x == nil, -1,
+                                 If(nxt(x) == nil, 0,
+                                    If(odd_lst(x), odd_lst_rank(x) > odd_lst_rank(nxt(nxt(x))),
+                                       -1))))
 
     # Binary tree
     tree = z3.Function('tree', fgsort.z3sort, boolsort.z3sort)
@@ -238,6 +251,8 @@ def rank_fcts_lightweight():
         'dlst': dlst_rank_def,
         'sdlst': sdlst_rank_def,
         'rlst': rlst_rank_def,
+        'even_lst': even_lst_rank_def,
+        'odd_lst': odd_lst_rank_def,
         'tree': tree_rank_def,
         'bst': bst_rank_def,
         'maxheap': maxheap_rank_def,
@@ -248,6 +263,8 @@ def rank_fcts_lightweight():
 
 # Dictionary of rank constraints corresponding to recursive definitions
 rank_defs_dict = rank_fcts()
+
+
 # To use lightweight rank functions comment out the line above and uncomment the line below
 # rank_defs_dict = rank_fcts_lightweight()
 

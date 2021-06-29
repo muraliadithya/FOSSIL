@@ -216,18 +216,18 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                             if options.verbose > 0:
                                 print('Total time charged: ' + str(total_time) + 's')
                         exit(0)
-
-                # Reset countermodels and invalid lemmas to []. We have additional information to retry the proofs.
-                cex_models = []
-                invalid_lemmas = []
-                if options.streaming_synthesis_swtich:
-                    continue
+                    else:
+                        # Lemma does not help prove goal. Try the next lemma in the stream.
+                        continue
                 else:
-                    # End loop through lemma proposals
+                    # Not streaming mode: reset countermodels and invalid lemmas to [] and try synthesis again.
+                    # We have additional information to retry the proofs.
+                    cex_models = []
+                    invalid_lemmas = []
                     break
-            # Update countermodels and prefetch parameters before next round of synthesis
-            config_params['cex_models'] = cex_models
 
+        # Update countermodels before next round of synthesis
+        config_params['cex_models'] = cex_models
         # reset everything and increase streaming timeout if streaming mode is on
         if options.streaming_synthesis_swtich:
             # Compute the timeout of the next streaming call

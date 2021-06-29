@@ -175,73 +175,83 @@ def rank_fcts_lightweight():
     # List variants: sorted list or sorted lseg, and doubly linked lists/sorted doubly linked lists
     slst = z3.Function('slst', fgsort.z3sort, boolsort.z3sort)
     slst_rank = z3.Function('slst_rank', fgsort.z3sort, intsort.z3sort)
-    slst_rank_def = ((x,), If(x == nil, 0, If(slst(x), slst_rank(x) > slst_rank(nxt(x)), -1)))
+    slst_rank_def = ((x,), If(x == nil, slst_rank(x) == 0,
+                              If(slst(x), slst_rank(x) > slst_rank(nxt(x)),
+                                 slst_rank(x) == -1)))
     slseg = z3.Function('slseg', fgsort.z3sort, fgsort.z3sort, boolsort.z3sort)
     slseg_rank = z3.Function('slseg_rank', fgsort.z3sort, fgsort.z3sort, intsort.z3sort)
-    slseg_rank_def = ((x, y), If(x == y, 0, If(slseg(x, y), slseg_rank(x, y) > slseg_rank(nxt(x), y), -1)))
+    slseg_rank_def = ((x, y), If(x == y, slseg_rank(x, y) == 0,
+                                 If(slseg(x, y), slseg_rank(x, y) > slseg_rank(nxt(x), y),
+                                    slseg_rank(x, y) == -1)))
     dlst = z3.Function('dlst', fgsort.z3sort, boolsort.z3sort)
     dlst_rank = z3.Function('dlst_rank', fgsort.z3sort, intsort.z3sort)
-    dlst_rank_def = ((x,), If(x == nil, 0, If(dlst(x), dlst_rank(x) > dlst_rank(nxt(x)), -1)))
+    dlst_rank_def = ((x,), If(x == nil, dlst_rank(x) == 0,
+                              If(dlst(x), dlst_rank(x) > dlst_rank(nxt(x)),
+                                 dlst_rank(x) == -1)))
     sdlst = z3.Function('sdlst', fgsort.z3sort, boolsort.z3sort)
     sdlst_rank = z3.Function('sdlst_rank', fgsort.z3sort, intsort.z3sort)
-    sdlst_rank_def = ((x,), If(x == nil, 0, If(sdlst(x), sdlst_rank(x) > sdlst_rank(nxt(x)), -1)))
+    sdlst_rank_def = ((x,), If(x == nil, sdlst_rank(x) == 0,
+                               If(sdlst(x), sdlst_rank(x) > sdlst_rank(nxt(x)),
+                                  sdlst_rank(x) == -1)))
     # Record list
     rlst = z3.Function('rlst', fgsort.z3sort, boolsort.z3sort)
     rlst_rank = z3.Function('rlst_rank', fgsort.z3sort, intsort.z3sort)
-    rlst_rank_def = ((x,), If(x == nil, 0, If(rlst(x), rlst_rank(x) > rlst_rank(nxt(x)), -1)))
+    rlst_rank_def = ((x,), If(x == nil, rlst_rank(x) == 0,
+                              If(rlst(x), rlst_rank(x) > rlst_rank(nxt(x)),
+                                 rlst_rank(x) == -1)))
     # 'Odd' and 'Even' lists
     even_lst = z3.Function('even_lst', fgsort.z3sort, boolsort.z3sort)
     even_lst_rank = z3.Function('even_lst_rank', fgsort.z3sort, intsort.z3sort)
-    even_lst_rank_def = ((x,), If(x == nil, 0,
-                                  If(nxt(x) == nil, -1,
+    even_lst_rank_def = ((x,), If(x == nil, even_lst_rank(x) == 0,
+                                  If(nxt(x) == nil, even_lst_rank(x) == -1,
                                      If(even_lst(x), even_lst_rank(x) > even_lst_rank(nxt(nxt(x))),
-                                        -1))))
+                                        even_lst_rank(x) == -1))))
     odd_lst = z3.Function('odd_lst', fgsort.z3sort, boolsort.z3sort)
     odd_lst_rank = z3.Function('odd_lst_rank', fgsort.z3sort, intsort.z3sort)
-    odd_lst_rank_def = ((x,), If(x == nil, -1,
-                                 If(nxt(x) == nil, 0,
+    odd_lst_rank_def = ((x,), If(x == nil, odd_lst_rank(x) == -1,
+                                 If(nxt(x) == nil, odd_lst_rank(x) == 0,
                                     If(odd_lst(x), odd_lst_rank(x) > odd_lst_rank(nxt(nxt(x))),
-                                       -1))))
+                                       odd_lst_rank(x) == -1))))
 
     # Binary tree
     tree = z3.Function('tree', fgsort.z3sort, boolsort.z3sort)
     tree_rank = z3.Function('tree_rank', fgsort.z3sort, intsort.z3sort)
-    tree_rank_def = ((x,), If(x == nil, 0,
+    tree_rank_def = ((x,), If(x == nil, tree_rank(x) == 0,
                               If(tree(x), And(tree_rank(x) > tree_rank(lft(x)),
                                               tree_rank(x) > tree_rank(rght(x))),
-                                 -1)))
+                                 tree_rank(x) == -1)))
 
     # Binary search tree
     bst = z3.Function('bst', fgsort.z3sort, boolsort.z3sort)
     bst_rank = z3.Function('bst_rank', fgsort.z3sort, intsort.z3sort)
-    bst_rank_def = ((x,), If(x == nil, 0,
+    bst_rank_def = ((x,), If(x == nil, bst_rank(x) == 0,
                              If(bst(x), And(bst_rank(x) > bst_rank(lft(x)),
                                             bst_rank(x) > bst_rank(rght(x))),
-                                -1)))
+                                bst_rank(x) == -1)))
 
     # Maxheap
     maxheap = z3.Function('maxheap', fgsort.z3sort, boolsort.z3sort)
     maxheap_rank = z3.Function('maxheap_rank', fgsort.z3sort, intsort.z3sort)
-    maxheap_rank_def = ((x,), If(x == nil, 0,
+    maxheap_rank_def = ((x,), If(x == nil, maxheap_rank(x) == 0,
                                  If(maxheap(x), And(maxheap_rank(x) > maxheap_rank(lft(x)),
                                                     maxheap_rank(x) > maxheap_rank(rght(x))),
-                                    -1)))
+                                    maxheap_rank(x) == -1)))
 
     # DAG
     dag = z3.Function('dag', fgsort.z3sort, boolsort.z3sort)
     dag_rank = z3.Function('dag_rank', fgsort.z3sort, intsort.z3sort)
-    dag_rank_def = ((x,), If(x == nil, 0,
+    dag_rank_def = ((x,), If(x == nil, dag_rank(x) == 0,
                              If(dag(x), And(dag_rank(x) > dag_rank(lft(x)),
                                             dag_rank(x) > dag_rank(rght(x))),
-                                -1)))
+                                dag_rank(x) == -1)))
 
     # tree with parent pointer
     tree_p = z3.Function('tree_p', fgsort.z3sort, boolsort.z3sort)
     tree_p_rank = z3.Function('tree_p_rank', fgsort.z3sort, intsort.z3sort)
-    tree_p_rank_def = ((x,), If(x == nil, 0,
+    tree_p_rank_def = ((x,), If(x == nil, tree_p_rank(x) == 0,
                                 If(tree_p(x), And(tree_p_rank(x) > tree_p_rank(lft(x)),
                                                   tree_p_rank(x) > tree_p_rank(rght(x))),
-                                   -1)))
+                                   tree_p_rank(x) == -1)))
 
     return {
         'lst': lst_rank_def,

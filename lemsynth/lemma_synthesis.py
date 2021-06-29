@@ -9,7 +9,7 @@ set_param('model.compact', False)
 import lemsynth.options as options
 from lemsynth.induction_constraints import generate_pfp_constraint
 from lemsynth.cvc4_compliance import cvc4_compliant_formula_sexpr
-from lemsynth.ProcessStreamer import ProcessStreamer
+from lemsynth.ProcessStreamer import ProcessStreamer, Timeout
 from lemsynth.utils import StopProposal
 
 from naturalproofs.decl_api import get_uct_signature, get_boolean_recursive_definitions, is_expr_fg_sort
@@ -198,6 +198,9 @@ def process_synth_results(iterable):
             return
         else:
             iterable.throw(StopProposal)
+    except Timeout:
+        # If the generators raises a timeout then there are no more lemmas
+        return
 
 
 # write output to a file that can be parsed by CVC4 SyGuS

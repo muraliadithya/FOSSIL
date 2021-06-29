@@ -230,10 +230,11 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
         # reset everything and increase streaming timeout if streaming mode is on
         if options.streaming_synthesis_swtich:
+            # Compute the timeout of the next streaming call
+            config_params['streaming_timeout'] *= 2
             if config_params['streaming_timeout'] >= 1800:
+                # The following round of streaming will be too expensive. Exit.
                 exit('Timeout reached. Exiting')
-            else:
-                config_params['streaming_timeout'] *= 2
             if options.analytics:
                 config_params['analytics']['time_charged'] = 0
                 config_params['analytics']['total_lemmas'] = 0

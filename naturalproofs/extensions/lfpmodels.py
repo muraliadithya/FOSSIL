@@ -311,7 +311,7 @@ def gen_lfp_model(size, annctx, invalid_formula=None):
     # Axioms
     axioms = get_all_axioms(annctx=annctx)
     structural_constraints = recdef_unfoldings | set(
-        rankdef for rankdef in rank_formulas.values() if v is not None) | axioms
+        rankdef for rankdef in rank_formulas.values() if rankdef is not None) | axioms
     constraints.extend(instantiate(structural_constraints, universe))
 
     # Bound formula to negate

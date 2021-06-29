@@ -26,6 +26,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     valid_lemmas = set()
     invalid_lemmas = []
     cex_models = []
+    true_cex_models = []
 
     # Determine proof mode for goal
     goal_instantiation_mode = config_params.get('goal_instantiation_mode', None)
@@ -192,19 +193,23 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                                          'Terms needed after pfp computation: {}'
                                          ''.format(str(z3py_lemma_body), remaining_terms))
                 invalid_lemmas = invalid_lemmas + [z3py_lemma]
-                if options.use_cex_models:
-                    extraction_terms = lemma_npsolution.extraction_terms
-                    cex_model = FiniteModel(lemma_npsolution.model, extraction_terms, annctx=annctx)
-                    cex_models = cex_models + [cex_model]
+
+                use_cex_models_fallback = False
                 if options.use_cex_true_models:
                     if options.verbose >= 4:
                         print('using true counterexample models')
                     true_cex_model = gen_lfp_model(2, annctx, invalid_formula=z3py_lemma)
-                    if true_cex_model != None:
+                    if true_cex_model is not None:
+                        true_cex_models = true_cex_models + [true_cex_model]
                         if 'true_cex_models' in config_params:
-                            config_params['true_cex_models'] += [ true_cex_model ]
-                        else:
-                            config_params['true_cex_models'] = [ true_cex_model ]
+                            config_params['true_cex_models'] = true_cex_models
+                    else:
+                        # No LFP countermodel found. Supplant with PFP countermodel.
+                        use_cex_models_fallback = True
+                if options.use_cex_models or use_cex_models_fallback:
+                    extraction_terms = lemma_npsolution.extraction_terms
+                    cex_model = FiniteModel(lemma_npsolution.model, extraction_terms, annctx=annctx)
+                    cex_models = cex_models + [cex_model]
             else:
                 if options.verbose >= 3:
                     print('proposed lemma was proven.')

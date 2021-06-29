@@ -272,11 +272,9 @@ def rank_fcts_lightweight():
 
 
 # Dictionary of rank constraints corresponding to recursive definitions
-rank_defs_dict = rank_fcts()
-
-
+# rank_defs_dict = rank_fcts()
 # To use lightweight rank functions comment out the line above and uncomment the line below
-# rank_defs_dict = rank_fcts_lightweight()
+rank_defs_dict = rank_fcts_lightweight()
 
 
 def gen_lfp_model(size, annctx, invalid_formula=None):

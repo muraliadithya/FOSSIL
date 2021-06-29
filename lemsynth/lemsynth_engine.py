@@ -91,8 +91,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     # This set is constant
     lemma_instantiation_terms = grammar.lemma_instantiation_terms(lemma_grammar_args, lemma_grammar_terms, annctx)
 
-    # for streaming
-    config_params['streaming_timeout'] = None
+    # Initial timeout (in seconds) for streaming
+    config_params['streaming_timeout'] = 450
     # Dictionary for logging pipeline analytics
     if options.analytics:
         config_params['analytics'] = {'total_lemmas': 0, 'time_charged': 0}
@@ -228,12 +228,12 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
             # Update countermodels and prefetch parameters before next round of synthesis
             config_params['cex_models'] = cex_models
 
-        # reset everything and increase prefetching timeout if streaming is on
+        # reset everything and increase streaming timeout if streaming mode is on
         if options.streaming_synthesis_swtich:
-            if config_params['prefetch_timeout'] >= 3600:
+            if config_params['streaming_timeout'] >= 1800:
                 exit('Timeout reached. Exiting')
             else:
-                config_params['prefetch_timeout'] *= 2
+                config_params['streaming_timeout'] *= 2
             if options.analytics:
                 config_params['analytics']['time_charged'] = 0
                 config_params['analytics']['total_lemmas'] = 0

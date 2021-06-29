@@ -105,7 +105,7 @@ def rank_fcts():
     even_lst_rank = Function('even_lst_rank', IntSort(), IntSort())
     even_lst_recdef = even_lst(x) == If(x == nil, True,
                                         even_lst(nxt(nxt(x))))
-    even_lst_rankdef = If(x == nil, True, even_lst(x) == (even_lst_rank(nxt(nxt(x)) < even_lst_rank(x))))
+    even_lst_rankdef = If(x == nil, True, even_lst(x) == (even_lst_rank(nxt(nxt(x))) < even_lst_rank(x)))
     even_lst_def_body = And(even_lst_recdef, even_lst_rankdef)
 
     # Odd list
@@ -114,7 +114,7 @@ def rank_fcts():
     odd_lst_recdef = odd_lst(x) == If(x == nil, False,
                                       If(nxt(x) == nil, True,
                                          odd_lst(nxt(nxt(x)))))
-    odd_lst_rankdef = If(nxt(x) == nil, True, odd_lst(x) == (odd_lst_rank(nxt(nxt(x)) < odd_lst_rank(x))))
+    odd_lst_rankdef = If(nxt(x) == nil, True, odd_lst(x) == (odd_lst_rank(nxt(nxt(x))) < odd_lst_rank(x)))
     odd_lst_def_body = And(odd_lst_recdef, odd_lst_rankdef)
 
     # Sorted list

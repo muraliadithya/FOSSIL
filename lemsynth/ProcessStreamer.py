@@ -18,6 +18,7 @@ class ProcessStreamer:
     """
     TODO: Write documentation
     """
+
     def __init__(self, cmdlist, timeout=None, logfile=None):
         self.cmdlist = cmdlist
         # Recommended to compute specialised log file name because it will act as a shared memory
@@ -53,8 +54,8 @@ class ProcessStreamer:
                                'Close stale generator using .close_stream()')
         # infinite mode allowed only when there is no timeout
         if self.timeout is not None and lazystream:
-            raise warnings.warn('Lazy streaming with timeout is not a usual option setting. '
-                                'Consider setting the option that reflects your purpose best.')
+            warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+                          'Consider setting the option that reflects your purpose best.')
         if lazystream:
             busywaiting = True
         # Declare and start processes.

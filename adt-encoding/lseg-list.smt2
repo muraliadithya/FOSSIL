@@ -7,12 +7,23 @@
 
 ;; vars and unint functions
 (declare-fun nil () Int)
+(declare-fun ret () ListOfLoc)
 
 (declare-fun nxt (Int) Int)
 
 ;; recdefs
+(declare-fun lst (ListOfLoc) Bool)
 (declare-fun lseg (ListOfLoc Int) Bool)
-(declare-fun cyclic (ListOfLoc) Bool)
+
+(assert (forall ((x ListOfLoc))
+                (iff (lst x)
+                     (ite (= x empty)
+                          true
+                          (ite (= (nxt (head x)) nil)
+                               (= (tail x) empty)
+                               (and (not (= (tail x) empty))
+                                    (= (nxt (head x)) (head (tail x)))
+                                    (lst (tail x))))))))
 
 (assert (forall ((x ListOfLoc) (y Int))
                 (iff (lseg x y)
@@ -24,10 +35,10 @@
                                     (= (nxt (head x)) (head (tail x)))
                                     (lseg (tail x) y)))))))
 
-(assert (forall ((x ListOfLoc)) (= (cyclic x) (lseg (tail x) (head x)))))
-
 ;; goal
-(assert (not
-(forall ((x ListOfLoc)) (=> (cyclic x) (cyclic (tail x))))
+(assert (not 
+(forall ((x ListOfLoc) (y ListOfLoc))
+        (=> (lseg x (head y)) (=> (ite (= x empty) (= ret empty) (= ret (tail x)))
+                                  (=> (lst y) (lst ret)))))
 ))
 (check-sat)

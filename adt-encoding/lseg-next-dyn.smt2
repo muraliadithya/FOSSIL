@@ -40,6 +40,8 @@
                                     (= (nxt (head x)) (head (tail x)))
                                     (lsegz (tail x))))))))
 
+;; TODO: are these correct? next' is only used in recursive call
+
 (assert (forall ((x ListOfLoc))
                 (iff (lsegy_p x)
                      (ite (= x empty)

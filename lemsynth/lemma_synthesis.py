@@ -246,7 +246,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
 
     # Add counterexample models to true models if use_cex_models is True
     accumulated_offset = false_model_relative_offset
-    if options.use_cex_models:
+    if cex_models != []:
         cex_models_with_offset = []
         for cex_model in cex_models:
             # Deepcopy the countermodels so the originals are not affected
@@ -300,7 +300,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write(grammar_string)
         out.write('\n')
         out.write(';; pfp constraints from counterexample models\n')
-        if options.use_cex_models:
+        if cex_models != []:
             cex_pfp_constraints = generateAllCexConstraints(cex_models, lemma_args, annctx)
             out.write(cex_pfp_constraints)
             out.write('\n')

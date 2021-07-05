@@ -201,8 +201,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     true_cex_model = gen_lfp_model(3, annctx, invalid_formula=z3py_lemma)
                     if true_cex_model is not None:
                         true_cex_models = true_cex_models + [true_cex_model]
-                        if 'true_cex_models' in config_params:
-                            config_params['true_cex_models'] = true_cex_models
+                        config_params['true_cex_models'] = true_cex_models
                     else:
                         # No LFP countermodel found. Supplant with PFP countermodel.
                         use_cex_models_fallback = True

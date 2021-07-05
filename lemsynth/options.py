@@ -12,10 +12,10 @@ cvc4sy = 'cvc4sy'
 ###############################################################################
 # Setting lemma synthesis options here. DO NOT MODIFY.
 streaming_synthesis_swtich = False
-use_cex_models = True
+use_cex_models = False
 synthesis_solver = minisy
 # Verbosity as a positive number. 0 is completely silent.
-verbose = 10
+verbose = 0
 
 use_cex_true_models = True
 ###############################################################################

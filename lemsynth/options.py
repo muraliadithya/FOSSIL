@@ -11,13 +11,13 @@ cvc4sy = 'cvc4sy'
 
 ###############################################################################
 # Setting lemma synthesis options here. DO NOT MODIFY.
-streaming_synthesis_swtich = False
-use_cex_models = True
-synthesis_solver = minisy
+streaming_synthesis_swtich = True
+use_cex_models = False
+synthesis_solver = cvc4sy
 # Verbosity as a positive number. 0 is completely silent.
-verbose = 10
+verbose = 0
 # Option to instrument code and time several parts of the pipeline
-analytics = False
+analytics = True
 ###############################################################################
 
 log_file_path = os.path.abspath(importlib_resources.files('lemsynth')/'../logs')

@@ -122,7 +122,7 @@ def sygusBigModelEncoding(models, vocab, set_defs, annctx):
 
 
 # Generate constraints corresponding to false model for SyGuS
-def generateConstraints(model, lemma_args, terms, is_true_constraint, annctx):
+def generateConstraints(model, lemma_args, terms, is_true_constraint, annctx, instantiations=None):
     const = [arg for arg in lemma_args if not is_var_decl(arg, annctx)]
     const_values = [model.smtmodel.eval(cs, model_completion=True).as_long() + (model.offset if is_expr_fg_sort(cs, annctx) else 0) for cs in const]
     const_values = ['(- ' + str(cv * -1) + ')' if cv < 0 else str(cv) for cv in const_values]
@@ -130,8 +130,10 @@ def generateConstraints(model, lemma_args, terms, is_true_constraint, annctx):
     constraints = ''
     lemma_arity = len(lemma_args) - len(const)
     eval_terms = {model.smtmodel.eval(term, model_completion=True).as_long() + model.offset for term in terms}
-    args = itertools.product(eval_terms, repeat=lemma_arity)
-    for arg in args:
+
+    if instantiations is None:
+        instantiations = itertools.product(eval_terms, repeat=lemma_arity)
+    for arg in instantiations:
         curr = ''
         recs = get_boolean_recursive_definitions()
         arg_str = [str(elt) for elt in arg]
@@ -269,7 +271,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         true_cex_models_with_offset = []
         for true_cex_model in true_cex_models:
             # Deepcopy the countermodels so the originals are not affected
-            true_cex_offset_model = true_cex_model.copy()
+            true_cex_offset_model = true_cex_model[0].copy()
             # Make the universe of the model positive and shift the model by accumulated offset
             true_cex_model_universe = true_cex_offset_model.get_fg_elements()
             non_negative_offset = min(true_cex_model_universe)
@@ -278,10 +280,12 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             true_cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
             # Compute new accumulated offset
             accumulated_offset = max(true_cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
-            true_cex_models_with_offset = true_cex_models_with_offset + [true_cex_offset_model]
+            true_cex_model_term_universe = { IntVal(elem) for elem in true_cex_model_universe }
+            instantiation_terms = {tuple(elem.as_long() + true_cex_offset_model.offset for elem in instantiation) for instantiation in true_cex_model[1]}
+            true_cex_models_with_offset = true_cex_models_with_offset + [(true_cex_offset_model, true_cex_model_term_universe, instantiation_terms)]
         true_cex_models = true_cex_models_with_offset
 
-    all_models = [cex_model.finitemodel for cex_model in cex_models] + [true_cex_model.finitemodel for true_cex_model in true_cex_models] + [false_finitemodel.finitemodel]
+    all_models = [cex_model.finitemodel for cex_model in cex_models] + [true_cex_model[0].finitemodel for true_cex_model in true_cex_models] + [false_finitemodel.finitemodel]
 
     vocab = get_vocabulary(annctx)
     set_defs = {func for func in vocab if 'Array' in str(func.range())}
@@ -314,7 +318,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         if options.use_cex_true_models:
             true_constraints = ''
             for true_cex_model in true_cex_models:
-                curr_true_constraint = generateConstraints(true_cex_model, lemma_args, goal_instantiation_terms, True, annctx)
+                curr_true_constraint = generateConstraints(true_cex_model[0], lemma_args, true_cex_model[1], True, annctx, instantiations=true_cex_model[2])
                 true_constraints += curr_true_constraint + '\n'
         else:
             true_constraints = ''

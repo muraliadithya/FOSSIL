@@ -1,6 +1,7 @@
 from z3 import *
 import time
 import warnings
+import itertools
 
 import lemsynth.grammar_utils as grammar
 from lemsynth.lemma_synthesis import getSygusOutput
@@ -200,7 +201,15 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                         print('using true counterexample models')
                     true_cex_model = gen_lfp_model(3, annctx, invalid_formula=z3py_lemma)
                     if true_cex_model is not None:
-                        true_cex_models = true_cex_models + [true_cex_model]
+                        true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
+                        const = [arg for arg in lemma_grammar_args if not is_var_decl(arg, annctx)]
+                        lemma_arity = len(lemma_grammar_args) - len(const)
+                        args = itertools.product(true_model_terms, repeat=lemma_arity)
+                        instantiations = [ arg for arg in args if
+                                           z3.is_false(true_cex_model.smtmodel.eval(z3.substitute(z3py_lemma[1],
+                                                                                                  list(zip(lemma_grammar_args[:lemma_arity], arg))),
+                                                                                    model_completion=True)) ]
+                        true_cex_models = true_cex_models + [(true_cex_model, {instantiations[0]})]
                         config_params['true_cex_models'] = true_cex_models
                     else:
                         # No LFP countermodel found. Supplant with PFP countermodel.

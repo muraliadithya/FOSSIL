@@ -19,7 +19,7 @@ v2 = Function('v2', fgsort, fgsort)
 p = Function('p', fgsort, fgsort)
 n = Function('n', fgsort, fgsort)
 
-reach = RecFunction('reach', fgsort, boolsort)
+reach_pgm = RecFunction('reach_pgm', fgsort, boolsort)
 
 # precondition
 AddAxiom((), v1(s) == n(v2(s)))
@@ -30,12 +30,12 @@ assign2 = If( v2(p(x)) != c,
               v2(x) == n(v2(p(x))),
               v2(x) == v2(p(x)) )
 assign = And(assign1, assign2)
-AddRecDefinition(reach, x, If(x == s, True, And(reach(p(x)), And(cond, assign))))
+AddRecDefinition(reach_pgm, x, If(x == s, True, And(reach_pgm(p(x)), And(cond, assign))))
 
 # vc
 lhs = v1(x) == nil
 rhs = Or(n(v2(x)) == nil, v2(x) == c)
-goal = Implies(reach(x), Implies(lhs, rhs))
+goal = Implies(reach_pgm(x), Implies(lhs, rhs))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -47,7 +47,7 @@ else:
 
 # hardcoded lemma
 lemma_params = (x,)
-lemma_body = Implies(reach(x), Or(v1(x) == n(v2(x)), v2(x) == c))
+lemma_body = Implies(reach_pgm(x), Or(v1(x) == n(v2(x)), v2(x) == c))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas

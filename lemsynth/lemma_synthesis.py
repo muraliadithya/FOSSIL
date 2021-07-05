@@ -202,8 +202,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         print('Goal has been proven. Lemmas used to prove goal:')
         for lemma in lemmas:
             print(lemma[1])
-        if options.verbose >= 10:
-            print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
+        print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
         if options.streaming_synthesis_swtich:
             total_time = final_out['time_charged'] + final_out['lemma_time']
             if options.verbose > 0:

@@ -223,8 +223,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                         print('Goal has been proven. Lemmas used to prove goal:')
                         for lem in valid_lemmas:
                             print(lem[1])
-                        if options.verbose >= 10:
-                            print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
+                        print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
                         total_time = final_out['time_charged'] + final_out['lemma_time']
                         if options.verbose > 0:
                             print('Total time charged: ' + str(total_time) + 's')

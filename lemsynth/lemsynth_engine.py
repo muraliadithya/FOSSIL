@@ -212,7 +212,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                                 'lemma_time']
                             if options.verbose >= 10:
                                 print('Total lemmas proposed: ' + str(config_params['analytics']['total_lemmas']))
-                            if options.verbose > 0:
+                            if options.verbose >= 0:
                                 print('Total time charged: ' + str(total_time) + 's')
                         # Close the stream
                         try:

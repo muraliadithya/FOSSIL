@@ -226,7 +226,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
                 print('Total lemmas proposed: ' + str(config_params['analytics']['total_lemmas']))
             if options.streaming_synthesis_swtich:
                 total_time = config_params['analytics']['time_charged'] + config_params['analytics']['lemma_time']
-                if options.verbose > 0:
+                if options.verbose >= 0:
                     print('Total time charged: ' + str(total_time) + 's')
         exit(0)
 

@@ -297,6 +297,8 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
         if options.synthesis_solver == options.minisy:
             out.write(z3Preamble())
             out.write('\n')
+        elif options.synthesis_solver == options.cvc4sy:
+            out.write('(set-logic ALL)\n')
         out.write(';; combination of true models and false model\n')
         out.write(sygus_model_definitions)
         out.write('\n\n')

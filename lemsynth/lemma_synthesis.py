@@ -194,13 +194,15 @@ def process_synth_results(iterable):
     except StopProposal:
         # Cannot ascertain the type of the iterable to be a generator in a clean way
         # Check minimally for handling lists and throw the exception up to the iterable otherwise
-        if type(iterable) == list:
-            return
-        else:
-            iterable.throw(StopProposal)
+        if type(iterable) != list:
+            try:
+                iterable.throw(StopProposal)
+            except StopIteration:
+                pass
     except Timeout:
         # If the generators raises a timeout then there are no more lemmas
-        return
+        pass
+    return
 
 
 # write output to a file that can be parsed by CVC4 SyGuS

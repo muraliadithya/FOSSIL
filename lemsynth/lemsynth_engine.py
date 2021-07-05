@@ -5,8 +5,7 @@ import warnings
 
 import lemsynth.grammar_utils as grammar
 from lemsynth.lemma_synthesis import getSygusOutput
-from lemsynth.ProcessStreamer import ProcessStreamer, Timeout
-from lemsynth.utils import translateLemma
+from lemsynth.utils import translateLemma, StopProposal
 import lemsynth.options as options
 
 from naturalproofs.AnnotatedContext import default_annctx
@@ -215,6 +214,11 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                                 print('Total lemmas proposed: ' + str(config_params['analytics']['total_lemmas']))
                             if options.verbose > 0:
                                 print('Total time charged: ' + str(total_time) + 's')
+                        # Close the stream
+                        try:
+                            sygus_results.throw(StopProposal)
+                        except StopIteration:
+                            pass
                         exit(0)
                     else:
                         # Lemma does not help prove goal. Try the next lemma in the stream.

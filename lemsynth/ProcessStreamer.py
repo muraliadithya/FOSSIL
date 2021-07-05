@@ -109,7 +109,7 @@ class ProcessStreamer:
             # Make sure to wait otherwise zombie processes can clog up system
             self.writer_proc.wait()
         # multiprocessing 'processes' need to be killed differently: check if alive first
-        if self.timeout is not None and not self.timer_proc.is_alive():
+        if self.timeout is not None and self.timer_proc.is_alive():
             self.timer_proc.terminate()
             self.timer_proc.join()
 

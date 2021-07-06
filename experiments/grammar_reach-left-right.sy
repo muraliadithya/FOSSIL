@@ -16,7 +16,7 @@
                   (member nil (htree y))
                   (member nil (htree nil))
                   (tree Loc)
-                  (reach Loc Loc)))
+                  (reach_lr Loc Loc)))
             (Loc Int (x y nil)))
 )
 

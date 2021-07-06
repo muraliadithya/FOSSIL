@@ -3,7 +3,7 @@
 
            ((Start Bool (
                    (=> Start Start)
-                   (reach Loc Loc)
+                   (reach_lr Loc Loc)
                    (tree Loc)))
             (Loc Int (x y nil)))
 )

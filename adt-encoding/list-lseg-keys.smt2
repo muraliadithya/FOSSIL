@@ -15,6 +15,7 @@
 ;; recdefs
 (declare-fun lst (ListOfLoc) Bool)
 (declare-fun lseg (ListOfLoc Int) Bool)
+(declare-fun keys (ListOfLoc) (Set Int))
 
 (assert (forall ((x ListOfLoc))
                 (iff (lst x)
@@ -36,11 +37,24 @@
                                     (= (nxt (head x)) (head (tail x)))
                                     (lseg (tail x) y)))))))
 
+(assert (forall ((x ListOfLoc))
+                (ite (= x empty)
+                     (= (keys x) (as emptyset (Set Int)))
+                     (ite (= (nxt (head x)) nil)
+                          (and (= (tail x) empty)
+                               (= (keys x) (singleton (key (head x)))))
+                          (and (not (= (tail x) empty))
+                               (= (nxt (head x)) (head (tail x)))
+                               (= (keys x) (insert (key (head x)) (keys (tail x)))))))))
+
+;; axioms
+(assert (= (nxt nil) nil))
+
 ;; goal
 (assert (not 
-(forall ((x ListOfLoc) (y ListOfLoc) (z ListOfLoc))
-        (=> (lseg x (head y))
-            (=> (and (not (= (key (head x)) k)) (lseg y (head z)))
-                (lseg x (head z)))))
+(forall ((x ListOfLoc) (y ListOfLoc))
+        (=> (lst x)
+            (=> (and (not (= y empty)) (lseg x (head y)) (= (key (head y)) k))
+                (member k (keys x)))))
 ))
 (check-sat)

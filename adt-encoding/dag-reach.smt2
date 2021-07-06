@@ -9,10 +9,9 @@
 (declare-fun nil () Int)
 (declare-fun k () Int)
 
-
 (declare-fun leftptr (Int) Int)
 (declare-fun rightptr (Int) Int)
-(declare-fun key (DagOfLoc) Int)
+(declare-fun key (Int) Int)
 
 ;; recdefs
 (declare-fun dag (DagOfLoc) Bool)
@@ -58,6 +57,6 @@
 
 ;; goal
 (assert (not
-(forall ((x DagOfLoc) (y DagOfLoc)) (=> (reach x (head y)) (=> (and (not (= k (key x))) (dag x)) (dag y))))
+(forall ((x DagOfLoc) (y DagOfLoc)) (=> (reach x (head y)) (=> (and (not (= k (key (head x)))) (dag x)) (dag y))))
 ))
 (check-sat)

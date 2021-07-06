@@ -10,11 +10,11 @@
 (declare-fun ret () ListOfLoc)
 
 (declare-fun nxt (Int) Int)
-(declare-fun prv (Int) Int)
 
 ;; recdefs
 (declare-fun lst (ListOfLoc) Bool)
-(declare-fun dlst (ListOfLoc) Bool)
+(declare-fun even_lst (ListOfLoc) Bool)
+(declare-fun odd_lst (ListOfLoc) Bool)
 
 (assert (forall ((x ListOfLoc))
                 (iff (lst x)
@@ -27,20 +27,32 @@
                                     (lst (tail x))))))))
 
 (assert (forall ((x ListOfLoc))
-                (iff (dlst x)
+                (iff (even_lst x)
                      (ite (= x empty)
                           true
+                          (ite (= (nxt (head x)) nil)
+                               false
+                               (and (not (= (tail x) empty))
+                                    (= (nxt (head x)) (head (tail x)))
+                                    (= (nxt (head (tail x))) (head (tail (tail x))))
+                                    (even_lst (tail (tail x)))))))))
+
+(assert (forall ((x ListOfLoc))
+                (iff (odd_lst x)
+                     (ite (= x empty)
+                          false
                           (ite (= (nxt (head x)) nil)
                                (= (tail x) empty)
                                (and (not (= (tail x) empty))
                                     (= (nxt (head x)) (head (tail x)))
-                                    (= (prv (head (tail x))) (head x))
-                                    (dlst (tail x))))))))
+                                    (= (nxt (head (tail x))) (head (tail (tail x))))
+                                    (odd_lst (tail (tail x)))))))))
 
-;; (assert (forall ((x ListOfLoc)) (=> (dlst x) (lst x))))
+;; axioms
+(assert (= (nxt nil) nil))
 
 ;; goal
 (assert (not 
-(forall ((x ListOfLoc)) (=> (dlst x) (=> (ite (= x empty) (= ret empty) (= ret (tail x))) (lst ret))))
+(forall ((x ListOfLoc)) (=> (odd_lst x) (=> (ite (= x empty) (= ret empty) (= ret (tail x))) (lst ret))))
 ))
 (check-sat)

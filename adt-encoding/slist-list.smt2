@@ -10,7 +10,7 @@
 (declare-fun ret () ListOfLoc)
 
 (declare-fun nxt (Int) Int)
-(declare-fun key (Int) Int) ;; TODO: is this ok
+(declare-fun key (Int) Int)
 
 ;; recdefs
 (declare-fun lst (ListOfLoc) Bool)

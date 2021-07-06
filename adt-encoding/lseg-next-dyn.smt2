@@ -12,7 +12,11 @@
 (declare-fun k () Int)
 
 (declare-fun nxt (Int) Int)
-(declare-fun key (ListOfLoc) Int)
+(declare-fun key (Int) Int)
+
+(define-fun nxt_p ((x Int)) Int
+  (ite (= x (head yc)) (head zc) (nxt x))
+)
 
 ;; recdefs
 (declare-fun lsegy (ListOfLoc) Bool)
@@ -40,34 +44,28 @@
                                     (= (nxt (head x)) (head (tail x)))
                                     (lsegz (tail x))))))))
 
-;; TODO: are these correct? next' is only used in recursive call
-
 (assert (forall ((x ListOfLoc))
-                (iff (lsegy_p x)
+                (iff (lsegy x)
                      (ite (= x empty)
                           true
-                          (ite (= (nxt (head x)) (head yc))
+                          (ite (= (nxt_p (head x)) (head yc))
                                (= (tail x) empty)
                                (and (not (= (tail x) empty))
-                                    (= (nxt (head x)) (head (tail x)))
-                                    (ite (= x yc)
-                                         (lsegy_p zc)
-                                         (lsegy_p (tail x)))))))))
+                                    (= (nxt_p (head x)) (head (tail x)))
+                                    (lsegy (tail x))))))))
 
 (assert (forall ((x ListOfLoc))
-                (iff (lsegz_p x)
+                (iff (lsegz x)
                      (ite (= x empty)
                           true
-                          (ite (= (nxt (head x)) (head zc))
+                          (ite (= (nxt_p (head x)) (head zc))
                                (= (tail x) empty)
                                (and (not (= (tail x) empty))
-                                    (= (nxt (head x)) (head (tail x)))
-                                    (ite (= x yc)
-                                         (lsegz_p zc)
-                                         (lsegz_p (tail x)))))))))
+                                    (= (nxt_p (head x)) (head (tail x)))
+                                    (lsegz (tail x))))))))
 
 ;; goal
 (assert (not
-(forall ((x ListOfLoc)) (=> (lsegy x) (=> (not (= k (key x))) (lsegz_p x))))
+(forall ((x ListOfLoc)) (=> (lsegy x) (=> (not (= k (key (head x)))) (lsegz_p x))))
 ))
 (check-sat)

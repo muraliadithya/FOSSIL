@@ -11,7 +11,7 @@
 
 (declare-fun nxt (Int) Int)
 (declare-fun prv (Int) Int)
-(declare-fun key (Int) Int) ;; TODO: is this ok
+(declare-fun key (Int) Int)
 
 ;; recdefs
 (declare-fun dlst (ListOfLoc) Bool)

@@ -10,7 +10,7 @@
 (declare-fun k () Int)
 
 (declare-fun nxt (Int) Int)
-(declare-fun key (ListOfLoc) Int)
+(declare-fun key (Int) Int)
 
 ;; recdefs
 (declare-fun lseg (ListOfLoc Int) Bool)
@@ -29,7 +29,7 @@
 (assert (not 
 (forall ((x ListOfLoc) (y ListOfLoc) (z Int))
         (=> (lseg x (head y))
-            (=> (and (not (= k (key x))) (= (nxt (head y)) z))
+            (=> (and (not (= k (key (head x)))) (= (nxt (head y)) z))
                 (lseg x z))))
 ))
 (check-sat)

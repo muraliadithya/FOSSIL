@@ -14,7 +14,7 @@
 
 ;; recdefs
 (declare-fun lst (ListOfLoc) Bool)
-(declare-fun lseg (ListOfLoc Int) Bool)
+(declare-fun hlst (ListOfLoc) (Set Int))
 
 (assert (forall ((x ListOfLoc))
                 (iff (lst x)
@@ -26,21 +26,23 @@
                                     (= (nxt (head x)) (head (tail x)))
                                     (lst (tail x))))))))
 
-(assert (forall ((x ListOfLoc) (y Int))
-                (iff (lseg x y)
-                     (ite (= x empty)
-                          true
-                          (ite (= (nxt (head x)) y)
-                               (= (tail x) empty)
-                               (and (not (= (tail x) empty))
-                                    (= (nxt (head x)) (head (tail x)))
-                                    (lseg (tail x) y)))))))
+(assert (forall ((x ListOfLoc))
+                (ite (= x empty)
+                     (= (hlst x) (as emptyset (Set Int)))
+                     (ite (= (nxt (head x)) nil)
+                          (and (= (tail x) empty)
+                               (= (hlst x) (singleton (head x))))
+                          (and (not (= (tail x) empty))
+                               (= (nxt (head x)) (head (tail x)))
+                               (= (hlst x) (insert (head x) (hlst (tail x)))))))))
+
+;; axioms
+(assert (= (nxt nil) nil))
 
 ;; goal
 (assert (not 
-(forall ((x ListOfLoc) (y ListOfLoc) (z ListOfLoc))
-        (=> (lseg x (head y))
-            (=> (and (not (= (key (head x)) k)) (lseg y (head z)))
-                (lseg x (head z)))))
+(forall ((x ListOfLoc) (y ListOfLoc)) (=> (lst x)
+                                          (=> (not (= (key (head x)) k))
+                                              (=> (member (head y) (hlst x)) (lst y)))))
 ))
 (check-sat)

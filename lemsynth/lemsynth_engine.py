@@ -214,6 +214,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     else:
                         # No LFP countermodel found. Supplant with PFP countermodel.
                         use_cex_models_fallback = True
+                        if options.verbose >= 4:
+                            print('No true countermodel obtained. Using pfp countermodel instead.')
                 if options.use_cex_models or use_cex_models_fallback:
                     extraction_terms = lemma_npsolution.extraction_terms
                     cex_model = FiniteModel(lemma_npsolution.model, extraction_terms, annctx=annctx)

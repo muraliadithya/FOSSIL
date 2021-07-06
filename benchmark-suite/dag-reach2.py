@@ -19,15 +19,15 @@ key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
 dag = RecFunction('dag', fgsort, boolsort)
-reach = RecFunction('reach', fgsort, fgsort, boolsort)
+reach_lr = RecFunction('reach_lr', fgsort, fgsort, boolsort)
 AddRecDefinition(dag, x, If(x == nil, True, And(dag(lft(x)), dag(rght(x)))))
-AddRecDefinition(reach, (x, y), If(x == y, True,
-                                   Or(reach(lft(x), y), reach(rght(x), y))))
+AddRecDefinition(reach_lr, (x, y), If(x == y, True,
+                                      Or(reach_lr(lft(x), y), reach_lr(rght(x), y))))
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
 # vc
-goal = Implies(dag(x), Implies(reach(x, y), dag(y)))
+goal = Implies(dag(x), Implies(reach_lr(x, y), dag(y)))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -39,7 +39,7 @@ else:
 
 # hardcoded lemmas
 lemma_params = (x,y)
-lemma_body = Implies(reach(x, y), Implies(dag(x), dag(y)))
+lemma_body = Implies(reach_lr(x, y), Implies(dag(x), dag(y)))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas

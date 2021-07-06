@@ -20,15 +20,15 @@ lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
 tree = RecFunction('tree', fgsort, boolsort)
 htree = RecFunction('htree', fgsort, fgsetsort)
-reach = RecFunction('reach', fgsort, fgsort, boolsort)
+reach_lr = RecFunction('reach_lr', fgsort, fgsort, boolsort)
 AddRecDefinition(tree, x, If(x == nil, True,
                              And(SetIntersect(htree(lft(x)), htree(rght(x)))
                                  == fgsetsort.lattice_bottom,
                                  And(tree(lft(x)), tree(rght(x))))))
 AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
-AddRecDefinition(reach, (x, y), If(x == y, True,
-                                   Or(reach(lft(x), y), reach(rght(x), y))))
+AddRecDefinition(reach_lr, (x, y), If(x == y, True,
+                                      Or(reach_lr(lft(x), y), reach_lr(rght(x), y))))
 
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
@@ -36,7 +36,7 @@ AddAxiom((), rght(nil) == nil)
 # vc
 goal = Implies(tree(x), Implies(And(x != nil,
                                     And(y != nil,
-                                        And(reach(lft(x), y), reach(rght(x), z)))),
+                                        And(reach_lr(lft(x), y), reach_lr(rght(x), z)))),
                                 y != z))
 
 # check validity with natural proof solver and no hardcoded lemmas
@@ -49,7 +49,7 @@ else:
 
 # hardcoded lemmas
 lemma_params = (x,y)
-lemma_body = Implies(reach(x, y), Implies(y != nil, IsMember(y, htree(x))))
+lemma_body = Implies(reach_lr(x, y), Implies(y != nil, IsMember(y, htree(x))))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas

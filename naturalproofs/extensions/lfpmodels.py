@@ -157,6 +157,10 @@ def rank_fcts_lightweight():
     nxt = z3.Function('nxt', fgsort.z3sort, fgsort.z3sort)
     lft = z3.Function('lft', fgsort.z3sort, fgsort.z3sort)
     rght = z3.Function('rght', fgsort.z3sort, fgsort.z3sort)
+    # 'Starting' configuration in reachability benchmarks
+    s = z3.Const('s', fgsort.z3sort)
+    # 'Previous' configuration in reachability benchmarks
+    p = z3.Function('p', fgsort.z3sort, fgsort.z3sort)
 
     # List
     lst = z3.Function('lst', fgsort.z3sort, boolsort.z3sort)
@@ -229,6 +233,13 @@ def rank_fcts_lightweight():
                                             bst_rank(x) > bst_rank(rght(x))),
                                 bst_rank(x) == -1)))
 
+    # Leftmost node in a bst
+    # leftmost = z3.Function('leftmost', fgsort.z3sort, fgsort.z3sort)
+    # leftmost_rank = z3.Function('leftmost_rank', fgsort.z3sort, intsort.z3sort)
+    # leftmost_rank_def = ((x,), If(x == nil, leftmost_rank(x) == 0,
+    #                               If(bst(x), leftmost_rank(x) > leftmost_rank(lft(x)),
+    #                                  leftmost_rank(x) == -1)))
+
     # Maxheap
     maxheap = z3.Function('maxheap', fgsort.z3sort, boolsort.z3sort)
     maxheap_rank = z3.Function('maxheap_rank', fgsort.z3sort, intsort.z3sort)
@@ -253,6 +264,21 @@ def rank_fcts_lightweight():
                                                   tree_p_rank(x) > tree_p_rank(rght(x))),
                                    tree_p_rank(x) == -1)))
 
+    # Reach by either using left or right pointers
+    reach_lr = z3.Function('reach_lr', fgsort.z3sort, fgsort.z3sort, boolsort.z3sort)
+    reach_lr_rank = z3.Function('reach_lr_rank', fgsort.z3sort, fgsort.z3sort, intsort.z3sort)
+    reach_lr_rank_def = ((x, y), If(x == y, reach_lr_rank(x, y) == 0,
+                                    If(reach_lr(x, y), And(reach_lr_rank(x, y) > reach_lr_rank(lft(x), y),
+                                                           reach_lr_rank(x, y) > reach_lr_rank(rght(x), y)),
+                                       reach_lr_rank(x, y) == -1)))
+
+    # Reachability benchmarks (loop invariant encoding)
+    reach_pgm = z3.Function('reach_pgm', fgsort.z3sort, boolsort.z3sort)
+    reach_pgm_rank = z3.Function('reach_pgm_rank', fgsort.z3sort, intsort.z3sort)
+    reach_pgm_rank_def = ((x,), If(x == s, reach_pgm_rank(x) == 0,
+                                   If(reach_pgm(x), reach_pgm_rank(x) > reach_pgm_rank(p(x)),
+                                      reach_pgm_rank(x) == -1)))
+
     return {
         'lst': lst_rank_def,
         'lseg': lseg_rank_def,
@@ -265,9 +291,12 @@ def rank_fcts_lightweight():
         'odd_lst': odd_lst_rank_def,
         'tree': tree_rank_def,
         'bst': bst_rank_def,
+        # 'leftmost': leftmost_rank_def,
         'maxheap': maxheap_rank_def,
         'dag': dag_rank_def,
-        'tree_p': tree_p_rank_def
+        'tree_p': tree_p_rank_def,
+        'reach_lr': reach_lr_rank_def,
+        'reach_pgm': reach_pgm_rank_def
     }
 
 
@@ -323,7 +352,7 @@ def gen_lfp_model(size, annctx, invalid_formula=None):
     sol.add(constraints)
     if sol.check() == z3.sat:
         lfp_model = sol.model()
-        # Project model onto the numbers corresponding to the foreground universe 
+        # Project model onto the numbers corresponding to the foreground universe
         finite_lfp_model = FiniteModel(lfp_model, universe, annctx=annctx)
         return finite_lfp_model
     else:

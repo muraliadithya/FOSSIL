@@ -103,11 +103,14 @@ class ProcessStreamer:
                 else:
                     return None
 
-    def epilogue(self):
+    def epilogue(self, timeout_teardown=False):
         if self.writer_proc.poll() is None:
             self.writer_proc.kill()
             # Make sure to wait otherwise zombie processes can clog up system
             self.writer_proc.wait()
+        # If the spilogue is called because timer process is over then only writer needs to be killed
+        if timeout_teardown:
+            return
         # multiprocessing 'processes' need to be killed differently: check if alive first
         if self.timeout is not None and self.timer_proc.is_alive():
             self.timer_proc.terminate()
@@ -129,4 +132,4 @@ class ProcessStreamer:
             # Write process timeout signature string.
             # Doing this makes the logfile a shared memory.
             f.write(_process_timeout)
-        return self.epilogue()
+        return self.epilogue(timeout_teardown=True)

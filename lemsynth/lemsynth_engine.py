@@ -209,7 +209,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                                            z3.is_false(true_cex_model.smtmodel.eval(z3.substitute(z3py_lemma[1],
                                                                                                   list(zip(lemma_grammar_args[:lemma_arity], arg))),
                                                                                     model_completion=True)) ]
-                        true_cex_models = true_cex_models + [(true_cex_model, {instantiations.pop()})]
+                        true_cex_models = true_cex_models + [(true_cex_model, {instantiations[0]})]
                         config_params['true_cex_models'] = true_cex_models
                     else:
                         # No LFP countermodel found. Supplant with PFP countermodel.

@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 14})
 from matplotlib.lines import Line2D
 
 def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagonal=True, square=True,
-                measurement='runtime', unit='s', mark='o',
+                measurement='runtime', unit='s', mark='o', bands=True, bands_curve=True, offset_band_label=False,
                 tm_val=None, x_leg='lower right', y_leg='center right', plotdir='./plots/'):
     """
     Display plot for batch of FOSSIL experiments.
@@ -26,7 +27,6 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     fig = plt.figure()
     left, width = 0.1, 0.65
     bottom, height = 0.1, 0.65
-    spacing = 0.005
     rect_scatter = [left, bottom, width, height]
     
     # Start with a rectangular Figure
@@ -88,16 +88,36 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
         else:
             ax_scatter.set_xlim(min(np.min(data[0]), 0), 1.08*np.max(data[0]))
             ax_scatter.set_ylim(min(np.min(data[1]), 0), 1.08*np.max(data[1]))
+    
+    dd = np.linspace(min(np.min(data),0.9), np.max(data)+400, 10**3)
     if diagonal:
-        dd = np.linspace(min(np.min(data),0.9), np.max(data)+400, 10**3)
         ax_scatter.plot(dd, dd, '-', alpha=0.3, color='orange')
+    if bands:
+        if bands_curve:
+            diff = 10
+            dd_above = dd + diff
+            dd_below = dd - diff
+            ax_scatter.text(1, diff + 3, '+{}{}'.format(diff, unit if unit else ''), size=12)
+            offset = int(offset_band_label) # Adjust for presence of timeout legend
+            ax_scatter.text(diff + 2 + offset, 1 + offset, '-{}{}'.format(diff, unit if unit else ''), size=12)
+        else:
+            fact = 2
+            dd_above = dd * 2
+            dd_below = dd / 2
+            ax_scatter.text(1.2, fact + 1, '{}x'.format(fact), size=12)
+            ax_scatter.text(fact + 1, 1.3, '{:.1f}x'.format(1/fact), size=12)
+        ax_scatter.plot(dd, dd_above, '-', alpha=0.3, color='orangered')
+        ax_scatter.plot(dd, dd_below, '-', alpha=0.3, color='yellowgreen')
+        
+
+
 
     # Manually set legends
     if np.any(timeout_x):
         legend_elements_x = [Line2D([0],[0], color='w', marker='>', 
                                    label='{}\ntimeout'.format(x_name),
                                    markerfacecolor='green', markersize=10)]
-        legend_x = ax_scatter.legend(handles=legend_elements_x, loc=x_leg)
+        legend_x = ax_scatter.legend(handles=legend_elements_x, loc=x_leg, prop={"size":12})
         ax_scatter.add_artist(legend_x)
     if np.any(timeout_y):
         legend_elements_y = [Line2D([0],[0], color='w', marker='^', 

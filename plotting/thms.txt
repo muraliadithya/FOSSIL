@@ -1,0 +1,50 @@
+bst-left-right	bst(x) => ((x != nil /\ y \in hbst(lft(x)) /\ z \in hbst(rght(x))) => key(y) <= key(z))
+bst-left	bst(x) => ((x != nil /\ k \in keys(x) /\ k < key(x)) => k \in keys(lft(x)))
+bst-leftmost	((x != nil /\ key(x) != k /\ y == leftmost(x)) => key(y) == minr(x))
+bst-maximal	bst(x) => ((x != nil y != nil /\ rght(y) != nil /\ y \in hbst(x) /\ k == maxr(x)) => k == maxr(lft(y)))
+bst-minimal	bst(x) => ((x != nil y != nil /\ lft(y) != nil /\ y \in hbst(x) /\ k == minr(x)) => k == minr(lft(y)))
+bst-right	bst(x) => ((x != nil /\ k \in keys(x) /\ k > key(x)) => k \in keys(rght(x)))
+bst-tree	"bst(x) => (If(x == nil, ret == nil, ret == lft(x)) => tree(ret))"
+cyclic-next	cyclic(x) => cyclic(nxt(x))
+dag-reach	"reach(x,y) => (dag(x) /\ key(x) != k => dag(y))"
+dag-reach2	"dag(x) => (reach(x,y) => dag(y))"
+dlist-list	"dlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))"
+even-list	"even_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))"
+list-even-or-odd	lst(x) => (even_lst(x) \/ odd_lst(x))
+list-hlist-list	lst(x) => (key(x) != k /\ y \in hlst(x) => lst(y))
+list-hlist-lseg	"lst(x) => (key(x) != k /\ y \in hlst(x) => lseg(x,y))"
+list-lseg-keys	"lst(x) => ((y != nil /\ lseg(x,y) /\ key(y) == k) => k \in keys(x))"
+list-lseg-keys2	"lseg(x,y) => ((x != nil /\ y != nil /\ lst(x) /\ key(y) == k) => k \in keys(x))"
+listlen-list	"listlen(x, l) => (If(l == 1, ret == x, ret == nxt(x)), list(x))"
+lseg-ext	"lseg(x, y) => (key(x) != k /\ lseg(x, z) => lseg(y, z) \/ lseg(z, y))"
+lseg-list	"lseg(x,y) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))"
+lseg-next-dyn	lsegy(x) => (key(x) != k => lsegz_p(x))
+lseg-next	"lseg(x,y) => ((key(x) != k /\ n(y) = z) => lseg(x,z))"
+lseg-nil-list	"lseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => list(ret)))"
+lseg-trans	"lseg(x, y) => (lst(y) /\ x != c /\ nxt(y) == z => (lseg(x, z) /\ lst(z)))"
+lseg-trans2	"lseg(x, y) => (key(x) != k /\ lseg(y, z) => lseg(x, z))"
+odd-list	"odd_lst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))"
+reach-left-right	"reach(x,y) => (x != nil /\ y != nil /\ reach(lft(x), y) /\ reach(rght(x), z) => y != z)"
+reachability	{v1 = v2}\nwhile (v1 != nil) do\n  v1 := n(v1);\n  if (v2 != c) {v2 := n(v2)}\nendwhile\n{v2 = nil \/ v2 = c}
+reachability2	{v1 = v2}\nwhile (v1 != nil) do\n  v1 := n(v1);\n  v2 := n(v2)\nendwhile\n{v2 = nil}
+reachability3	{v1 = v2}\nwhile (v1 != c) do\n  v1 := n(v1);\n  if (v2 != c) {v2 := n(v2)}\nendwhile\n{v2 = nil \/ v2 = c}
+reachability4	{v1 = v2}\nwhile (v1 != c) do\n  v1 := n(v1);\n  v2 := n(v2)\nendwhile\n{v2 = nil}
+reachability5	{v1 = n(v2)}\nwhile (v1 != nil) do\n  v1 := n(v1);\n  if (v2 != c) {v2 := n(v2)}\nendwhile\n{n(v2) = nil \/ v2 = c}
+reachability6	{v1 = n(v2)}\nwhile (v1 != nil) do\nv2 := n(v2)\nendwhile\n{n(v2) = nil}
+rlist-black-height	rlst(x) => (black(x) => red_height(x) == black_height(x))
+rlist-list	"rlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))"
+rlist-red-height	rlst(x) => (red(x) => red_height(x) == 1 + black_height(x))
+sdlist-dlist-slist	"sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret) /\ slst(ret))"
+sdlist-dlist	"sdlst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => dlst(ret))"
+slist-list	"slst(x) => (If(x == nil, ret == nil, ret == nxt(x)) => lst(ret))"
+slseg-nil-slist	"slseg(x, y) => (If(x == nil, ret == nil, ret == nxt(x)) => (y == nil => slist(ret)))"
+tree-dag	"tree(x) => (If(x == nil, ret == nil, ret == lft(x)) => dag(ret))"
+tree-p-reach-tree	"tree_p(x) => (parent(x) == nil => (reach_lr(x,y) => tree(y)))"
+tree-p-reach	"tree_p(x) => (reach_lr(x,y) => tree_p(y))"
+tree-p-tree	tree_p(x) => (parent(x) == nil => tree(x))
+tree-reach	"reach(x,y) => (tree(x) /\ key(x) != k => tree(y))"
+tree-reach2	"tree(x) => (reach(x,y) => tree(y))"
+maxheap-tree	"maxheap(x) => (If(x == nil, ret == nil, ret == lft(x)) => tree(ret))"
+maxheap-dag	"maxheap(x) => (If(x == nil, ret == nil, ret == lft(x)) => dag(ret))"
+maxheap-htree-key	"maxheap(x) => (key(x) != k => (y \in htree(x) => key(y) <= key(x)))"
+maxheap-keys	"maxheap(x) => (lft(x) != nil => (k \in keys(x) => k <= key(x)))"

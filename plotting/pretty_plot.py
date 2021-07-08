@@ -147,7 +147,7 @@ def process_done(filename):
             elif 'Total lemmas proposed' in line:
                 line = line.split(' ')
                 lem_prop = int(line[-1][:-1])
-            elif 'VC' in line:
+            elif 'VC' in line or 'Lemmas used to prove goal:' in line:
                 lem_val = 0
                 lemmas = []
             elif lem_val >= 0:

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
 def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagonal=True, square=True,
+                measurement='runtime', unit='s', mark='o',
                 tm_val=None, x_leg='lower right', y_leg='center right', plotdir='./plots/'):
     """
     Display plot for batch of FOSSIL experiments.
@@ -63,21 +64,30 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     ax_scatter.scatter(data[0,np.where(timeout_y)], y_t,
                        color='maroon', marker='^', s=60)
     # Plot the data
-    ax_scatter.scatter(no_timeout[0], no_timeout[1], marker='o', s=50,
+    ax_scatter.scatter(no_timeout[0], no_timeout[1], marker=mark, s=(50 if mark=='o' else 30),
                        c=colors, cmap=cmap)
     
     # Fine-tune plot
-    if square:
-        p_min = min(np.min(data), 0.9)
-        p_max = np.exp(1.08*np.log(np.max(data)))
-        ax_scatter.set_xlim(p_min, p_max)
-        ax_scatter.set_ylim(p_min, p_max)
-    else:
-        ax_scatter.set_xlim((min(np.min(data[0]),0.9),np.exp(1.08*np.log(np.max(data[0])))))
-        ax_scatter.set_ylim((min(np.min(data[1]),0.9),np.exp(1.08*np.log(np.max(data[1])))))
     if log:
-        ax_scatter.set_yscale('log')
+        if square:
+            p_min = min(np.min(data), 0.9)
+            p_max = np.exp(1.08*np.log(np.max(data)))
+            ax_scatter.set_xlim(p_min, p_max)
+            ax_scatter.set_ylim(p_min, p_max)
+        else:
+            ax_scatter.set_xlim((min(np.min(data[0]),0.9),np.exp(1.08*np.log(np.max(data[0])))))
+            ax_scatter.set_ylim((min(np.min(data[1]),0.9),np.exp(1.08*np.log(np.max(data[1])))))
         ax_scatter.set_xscale('log')
+        ax_scatter.set_yscale('log')
+    else:
+        if square:
+            p_min = min(np.min(data), 0)
+            p_max = 1.08*np.max(data)
+            ax_scatter.set_xlim(p_min, p_max)
+            ax_scatter.set_ylim(p_min, p_max)
+        else:
+            ax_scatter.set_xlim(min(np.min(data[0]), 0), 1.08*np.max(data[0]))
+            ax_scatter.set_ylim(min(np.min(data[1]), 0), 1.08*np.max(data[1]))
     if diagonal:
         dd = np.linspace(min(np.min(data),0.9), np.max(data)+400, 10**3)
         ax_scatter.plot(dd, dd, '-', alpha=0.3, color='orange')
@@ -97,13 +107,14 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
         ax_scatter.add_artist(legend_y)
 
     # Set text
-    ax_scatter.set_xlabel('{} runtime (s)'.format(x_name))
-    ax_scatter.set_ylabel('{} runtime (s)'.format(y_name))
+    ax_scatter.set_xlabel('{} {} {}'.format(x_name, measurement, '({})'.format(unit) if unit else ''))
+    ax_scatter.set_ylabel('{} {} {}'.format(y_name, measurement, '({})'.format(unit) if unit else ''))
     fig.tight_layout()
 
     # Save and display plot
-    plt.savefig(plotdir + '{}-{}_runtimes.png'.format('-'.join(x_name.split(' ')),
-                                                      '-'.join(y_name.split(' '))))
+    plt.savefig(plotdir + '{}-{}_{}.png'.format('-'.join(x_name.split(' ')),
+                                                '-'.join(y_name.split(' ')),
+                                                '-'.join(measurement.split(' '))))
     plt.show()
 
 def process_done(filename):

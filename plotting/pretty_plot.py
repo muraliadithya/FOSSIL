@@ -108,9 +108,6 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
             ax_scatter.text(fact + 1, 1.3, '{:.1f}x'.format(1/fact), size=12)
         ax_scatter.plot(dd, dd_above, '-', alpha=0.3, color='orangered')
         ax_scatter.plot(dd, dd_below, '-', alpha=0.3, color='yellowgreen')
-        
-
-
 
     # Manually set legends
     if np.any(timeout_x):
@@ -134,7 +131,8 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     # Save and display plot
     plt.savefig(plotdir + '{}-{}_{}.png'.format('-'.join(x_name.split(' ')),
                                                 '-'.join(y_name.split(' ')),
-                                                '-'.join(measurement.split(' '))))
+                                                '-'.join(measurement.split(' '))),
+                bbox_inches = 'tight', pad_inches = 0.2, dpi=100)
     plt.show()
 
 def process_done(filename):

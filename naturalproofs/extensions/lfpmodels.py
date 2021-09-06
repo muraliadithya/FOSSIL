@@ -153,7 +153,7 @@ def rank_fcts():
 
 
 def rank_fcts_lightweight():
-    x, y, nil = z3.Consts('x y nil', fgsort.z3sort)
+    x, y, z, nil = z3.Consts('x y z nil', fgsort.z3sort)
     nxt = z3.Function('nxt', fgsort.z3sort, fgsort.z3sort)
     lft = z3.Function('lft', fgsort.z3sort, fgsort.z3sort)
     rght = z3.Function('rght', fgsort.z3sort, fgsort.z3sort)
@@ -168,6 +168,20 @@ def rank_fcts_lightweight():
     lst_rank_def = ((x,), If(x == nil, lst_rank(x) == 0,
                              If(lst(x), lst_rank(x) > lst_rank(nxt(x)),
                                 lst_rank(x) == -1)))
+
+    # lsegy
+    lsegy = z3.Function('lsegy', fgsort.z3sort, boolsort.z3sort)
+    lsegy_rank = z3.Function('lsegy_rank', fgsort.z3sort, intsort.z3sort)
+    lsegy_rank_def = ((x,), If(x == y, lsegy_rank(x) == 0,
+                               If(lsegy(x), lsegy_rank(x) > lsegy_rank(nxt(x)),
+                                  lsegy_rank(x) == -1)))
+
+    # lsegz
+    lsegz = z3.Function('lsegz', fgsort.z3sort, boolsort.z3sort)
+    lsegz_rank = z3.Function('lsegz_rank', fgsort.z3sort, intsort.z3sort)
+    lsegz_rank_def = ((x,), If(x == y, lsegz_rank(x) == 0,
+                               If(lsegz(x), lsegz_rank(x) > lsegz_rank(nxt(x)),
+                                  lsegz_rank(x) == -1)))
 
     # List segment
     lseg = z3.Function('lseg', fgsort.z3sort, fgsort.z3sort, boolsort.z3sort)
@@ -282,6 +296,8 @@ def rank_fcts_lightweight():
     return {
         'lst': lst_rank_def,
         'lseg': lseg_rank_def,
+        'lsegy': lsegy_rank_def,
+        'lsegz': lsegz_rank_def,
         'slst': slst_rank_def,
         'slseg': slseg_rank_def,
         'dlst': dlst_rank_def,

@@ -7,7 +7,7 @@
 
            ((Start Bool (Start
                    (=> Start Start)
-                   (= Start Start)
+                   (not (= Loc nil))
                    (slst Loc)
                    (slseg Loc Loc)))
             (Loc Int (LocLeaf))

@@ -4,6 +4,7 @@
 
            ((Start Bool (
                    (=> Start Start)
+                   (not (= Loc nil))
                    (lstlen_bool Loc)
                    (lst Loc)))
             (Loc Int (x nil)))

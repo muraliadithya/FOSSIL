@@ -4,6 +4,7 @@
 
            ((Start Bool (
                    (=> Start Start)
+                   (not (= Loc nil))
                    (lst Loc)
                    (odd_lst Loc)
                    (even_lst Loc)))

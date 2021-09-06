@@ -3,6 +3,7 @@
 
            ((Start Bool (
                    (=> Start Start)
+                   (not (= Loc nil))
                    (dag Loc)
                    (tree Loc)))
            (Loc Int (x y nil)))

@@ -67,7 +67,7 @@ v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, nil]
 lemma_grammar_terms = {v1, v2, nil, rght(lft(v1)), rght(rght(v1))}
 
-name = 'tree-reach'
+name = 'tree-reach2'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

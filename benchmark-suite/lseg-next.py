@@ -56,8 +56,8 @@ else:
 
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
-lemma_grammar_args = [v1, v2, z]
-lemma_grammar_terms = {z, nxt(z), v1, v2, nxt(v2), nxt(v1), nxt(nxt(v1)), nxt(nxt(nxt(v1)))}
+lemma_grammar_args = [v1, v2, z, k, nil]
+lemma_grammar_terms = {z, nxt(z), k, v1, nil, nxt(nil), v2, nxt(v2), nxt(v1), nxt(nxt(v1)), nxt(nxt(nxt(v1)))}
 
 name = 'lseg-next'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

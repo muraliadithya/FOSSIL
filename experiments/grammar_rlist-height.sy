@@ -4,9 +4,12 @@
 
            ((Start Bool (
                    (=> Start Start)
+                   (not (= LocLeaf nil))
                    (red Loc)
                    (black Loc)
-                   (= I I)))
+                   (<= I I)
+                   (= I I)
+                   (rlst Loc)))
             (I Int (ILeaf
                (+ ILeaf ILeaf)))
             (ILeaf Int (1

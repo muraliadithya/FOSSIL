@@ -5,7 +5,7 @@
 
            ((Start Bool (
                   (=> Start Start)
-                  (not (= Loc Loc))
+                  (not (= Loc nil))
                   (member x (htree x))
                   (member x (htree y))
                   (member x (htree nil))

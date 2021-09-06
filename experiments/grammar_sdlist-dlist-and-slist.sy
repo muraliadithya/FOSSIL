@@ -4,7 +4,7 @@
 
            ((Start Bool (
                    (=> Start Start)
-                   (and Start Start)
+                   (not (= Loc nil))
                    (slst Loc)
                    (dlst Loc)
                    (sdlst Loc)))

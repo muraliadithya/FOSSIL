@@ -14,8 +14,6 @@ from lemsynth.lemsynth_engine import solveProblem
 # declarations
 x, y = Vars('x y', fgsort)
 nil, ret = Consts('nil ret', fgsort)
-k = Const('k', intsort)
-key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
 dag = RecFunction('dag', fgsort, boolsort)
@@ -58,10 +56,10 @@ else:
 
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
-lemma_grammar_args = [v1, v2, k, nil]
-lemma_grammar_terms = {v1, v2, k, nil}
+lemma_grammar_args = [v1, v2, nil]
+lemma_grammar_terms = {v1, v2, nil}
 
-name = 'dag-reach'
+name = 'dag-reach2'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

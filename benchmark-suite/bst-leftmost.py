@@ -42,9 +42,8 @@ AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
 # vc
-goal = Implies(bst(x), Implies(And(And(x != nil, key(x) != k),
-                                   y == leftmost(x)),
-                               key(y) == minr(x)))
+goal = Implies(bst(x), Implies(And(x != nil, key(x) != k),
+                                   key(leftmost(x)) == minr(x)))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -75,9 +74,9 @@ else:
     print('goal (with lemmas) is invalid')
 
 # lemma synthesis
-v1, v2 = Vars('v1 v2', fgsort)
-lemma_grammar_args = [v1, v2, nil]
-lemma_grammar_terms = {v1, v2, nil, leftmost(rght(v1)), leftmost(v1), leftmost(lft(v1)), leftmost(v2), leftmost(nil)}
+v = Var('v', fgsort)
+lemma_grammar_args = [v, k, nil]
+lemma_grammar_terms = {v, k, nil, leftmost(v), leftmost(nil), lft(rght(v)), lft(lft(v))}
 
 name = 'bst-leftmost'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

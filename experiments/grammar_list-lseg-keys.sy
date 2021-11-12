@@ -13,7 +13,8 @@
                    (lst Loc)))
             (I Int (k
                    (key Loc)))
-            (Loc Int (x y nil)))
+            (Loc Int (x y nil
+                     (nxt Loc))))
  )
 
 (synth-fun rswitch () Int

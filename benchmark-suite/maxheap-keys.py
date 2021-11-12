@@ -69,7 +69,7 @@ else:
 # lemma synthesis
 v = Var('v', fgsort)
 lemma_grammar_args = [v, k, nil]
-lemma_grammar_terms = {v, k, nil, rght(v), lft(v)}
+lemma_grammar_terms = {v, k, nil, rght(v), lft(v), lft(nil), rght(nil)}
 
 name = 'maxheap-keys'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

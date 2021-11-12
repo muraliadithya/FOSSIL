@@ -12,8 +12,8 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 # declarations
-x, y, z = Vars('x y z', fgsort)
-nil, ret = Consts('nil ret', fgsort)
+x, y = Vars('x y', fgsort)
+nil, ret, z = Consts('nil ret z', fgsort)
 k = Const('k', intsort)
 key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)

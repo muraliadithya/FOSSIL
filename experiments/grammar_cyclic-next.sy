@@ -5,7 +5,7 @@
 
            ((Start Bool (
                   (=> Start Start)
-                  (not (= Loc nil))
+                  (not (= LocLeaf nil))
                   (lseg Loc Loc)
                   (cyclic Loc)))
            (Loc Int (LocLeaf

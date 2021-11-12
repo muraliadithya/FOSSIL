@@ -14,8 +14,6 @@ from lemsynth.lemsynth_engine import solveProblem
 # declarations
 x, y = Vars('x y', fgsort)
 nil, ret = Consts('nil ret', fgsort)
-k = Const('k', intsort)
-key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
 tree = RecFunction('tree', fgsort, boolsort)

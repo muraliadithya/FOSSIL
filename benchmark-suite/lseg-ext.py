@@ -13,8 +13,8 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 # declarations
-x, y = Vars('x y', fgsort)
-nil, z = Consts('nil z', fgsort)
+x, y, z = Vars('x y z', fgsort)
+nil = Const('nil', fgsort)
 k = Const('k', intsort)
 nxt = Function('nxt', fgsort, fgsort)
 lst = RecFunction('lst', fgsort, boolsort)

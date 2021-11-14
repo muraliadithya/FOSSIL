@@ -355,7 +355,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             # Removing possible '\n' before returning
             lemmas = [lemma[:-1] if lemma[-1] == '\n' else lemma for lemma in lemmas]
             # List of lemmas returned in string format
-            synth_results = [res[:-1] + ' )' for res in lemmas]
+            synth_results = [res[:-1] + ')' for res in lemmas]
             return synth_results
     else:
         if options.synthesis_solver == options.minisy:

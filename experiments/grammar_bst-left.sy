@@ -5,8 +5,13 @@
                    (=> Start Start)
                    (not (= Loc nil))
                    (<= I I)
+                   (= I I)
                    (member k (keys x))
                    (member k (keys nil))
+                   (member x (hbst x))
+                   (member x (hbst nil))
+                   (member nil (hbst x))
+                   (member nil (hbst nil))
                    (bst Loc)))
             (I Int (k
                    (minr Loc)

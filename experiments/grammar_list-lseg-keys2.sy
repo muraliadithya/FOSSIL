@@ -6,7 +6,8 @@
            ((Start Bool (
                    (=> Start Start)
                    (= I I)
-                   (not (= Loc Loc))
+                   (<= I I)
+                   (not (= Loc nil))
                    (member k (keys x))
                    (member k (keys y))
                    (member k (keys nil))
@@ -14,7 +15,8 @@
                    (lst Loc)))
             (I Int (k
                    (key Loc)))
-            (Loc Int (x y nil)))
+            (Loc Int (x y nil
+                     (nxt Loc))))
  )
 
 (synth-fun rswitch () Int

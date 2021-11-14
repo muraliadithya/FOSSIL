@@ -5,7 +5,7 @@
                   (=> Start Start)
                   (<= I I)
                   (= I I)
-                  (not (= LocLeaf nil))
+                  (not (= Loc nil))
                   (member x (htree x))
                   (member x (htree nil))
                   (member nil (htree x))
@@ -14,9 +14,7 @@
                   (member k (keys nil))))
            (I Int (k
               (key Loc)))
-           (Loc Int (LocLeaf
-                    (lft LocLeaf)
-                    (rght LocLeaf)))
+           (Loc Int (LocLeaf))
            (LocLeaf Int (x nil)))
 )
 

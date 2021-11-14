@@ -227,7 +227,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.streaming_synthesis_swtich:
                     # Check if lemma helps prove goal using originally configured goal solver object
                     # TODO: introduce warning or extend streaming algorithm to multiple lemma case
-                    goal_npsolution = goal_fo_solver.solve(goal, z3py_lemma)
+                    goal_npsolution = goal_fo_solver.solve(goal, {z3py_lemma})
                     if not goal_npsolution.if_sat:
                         # Lemma is useful. Exit.
                         print('Goal has been proven. Lemmas used to prove goal:')
@@ -253,10 +253,10 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         # reset everything and increase prefetching timeout if streaming is on
         if options.streaming_synthesis_swtich:
             final_out['time_charged'] = 0
-            if config_params['prefetch_timeout'] >= 3600:
+            if config_params['streaming_timeout'] >= 3600:
                 exit('Timeout reached. Exiting')
             else:
-                config_params['prefetch_timeout'] *= 2
+                config_params['streaming_timeout'] *= 2
             final_out['total_lemmas'] = 0
             valid_lemmas = set()
             invalid_lemmas = []

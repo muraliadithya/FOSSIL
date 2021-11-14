@@ -19,7 +19,6 @@
                   (member nil (hbst y))
                   (member nil (hbst nil))))
            (I Int (
-              (key Loc)
               (minr Loc)
               (maxr Loc)))
            (Loc Int (x y nil)))

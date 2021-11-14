@@ -359,7 +359,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             return synth_results
     else:
         if options.synthesis_solver == options.minisy:
-            proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file),
+            proc = subprocess.Popen('minisy {} --smtsolver=z3 --max-depth=4'.format(out_file),
                                     shell=True, stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE, universal_newlines=True)
             out, err = proc.communicate()

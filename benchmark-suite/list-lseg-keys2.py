@@ -61,7 +61,8 @@ v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, k, nil]
 lemma_grammar_terms = {v1, v2, k, nil, nxt(v1), nxt(v2)}
 
-name = 'list-lseg-keys2'
+# name = 'list-lseg-keys2'
+name = 'list-lseg-keys2-lvl0'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

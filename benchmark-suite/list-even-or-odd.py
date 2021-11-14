@@ -74,6 +74,7 @@ lemma_grammar_args = [v, nil]
 lemma_grammar_terms = {v, nil, nxt(nxt(v)), nxt(nil)}
 
 name = 'list-even-or-odd'
+# name = 'list-even-or-odd-lvl0'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

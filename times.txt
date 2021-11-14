@@ -46,7 +46,7 @@
 46 | tree-p-reach-tree.py  SUCCESS: 58s
 47 | tree-p-reach.py  SUCCESS: 27s
 48 | tree-p-tree.py  SUCCESS: 1s
-49 | tree-reach.py  SUCCESS: 170s
+49 | tree-reach.py  SUCCESS: 111s
 50 | tree-reach2.py  SUCCESS: 45s
 
 TODO: add appropriate times for examples that are past lvl0 (see grammars.txt)

@@ -7,7 +7,7 @@
                    (not (= Loc nil))
                    (lseg Loc Loc)))
             (Loc Int (LocLeaf))
-            (LocLeaf Int (x y z nil)))
+            (LocLeaf Int (x y z c nil)))
 
 )
 

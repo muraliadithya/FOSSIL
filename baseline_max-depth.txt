@@ -34,8 +34,8 @@ Total lemmas proposed: 10
 Total lemmas proposed: 16
 18 | benchmark-suite/listlen-list.py  SUCCESS: 1s
 Total lemmas proposed: 2
-19 | benchmark-suite/lseg-ext.py  SUCCESS: 6s + 1h timeout
-No lemmas proposed. Instance failed.
+19 | benchmark-suite/lseg-ext.py  SUCCESS: 6s + 900s timeout
+Total lemmas proposed: n/a
 20 | benchmark-suite/lseg-list.py  SUCCESS: 20s
 Total lemmas proposed: 15
 21 | benchmark-suite/lseg-next-dyn.py  SUCCESS: 3s
@@ -44,8 +44,8 @@ Total lemmas proposed: 3
 Total lemmas proposed: 7
 23 | benchmark-suite/lseg-nil-list.py  SUCCESS: 12s
 Total lemmas proposed: 12
-24 | benchmark-suite/lseg-trans.py  SUCCESS: 9s
-Total lemmas proposed: 7
+24 | benchmark-suite/lseg-trans.py  SUCCESS: 13s
+Total lemmas proposed: 9
 25 | benchmark-suite/lseg-trans2.py  SUCCESS: 12s
 Total lemmas proposed: 10
 26 | benchmark-suite/maxheap-dag.py  SUCCESS: 2s

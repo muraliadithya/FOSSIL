@@ -44,7 +44,7 @@ Total lemmas proposed: 4
 Total lemmas proposed: 7
 23 | benchmark-suite/lseg-nil-list.py  SUCCESS: 6s
 Total lemmas proposed: 5
-24 | benchmark-suite/lseg-trans.py  SUCCESS: 56s
+24 | benchmark-suite/lseg-trans.py  SUCCESS: 117s
 Total lemmas proposed: 9
 25 | benchmark-suite/lseg-trans2.py  SUCCESS: 108s
 Total lemmas proposed: 8

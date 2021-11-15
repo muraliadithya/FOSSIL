@@ -63,8 +63,8 @@ else:
 
 # lemma synthesis
 v1 = Var('v1', fgsort)
-lemma_grammar_args = [v1, yc, zc]
-lemma_grammar_terms = {v1, yc, zc, nxt(yc), nxt(nxt(v1)), nxt(zc)}
+lemma_grammar_args = [v1, yc, zc, k, nil]
+lemma_grammar_terms = {v1, yc, zc, k, nil, nxt(yc), nxt(nxt(v1)), nxt(zc)}
 
 name = 'lseg-next-dynamic'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

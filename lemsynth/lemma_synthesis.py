@@ -392,5 +392,5 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
                 return None
             else:
                 lemma = str(cvc4_out).split('\n')[1:][:-1]
-                synth_results = [ res[:-1] + ' )' for res in lemma ]
+                synth_results = [ res[:-1] + ')' for res in lemma ]
                 return synth_results

@@ -69,17 +69,17 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         exit(0)
 
     # check if goal is fo provable using its own pfp
-    ## pfp_of_goal = make_pfp_formula(goal)
-    ## goal_pfp_solver = NPSolver()
-    ## goal_pfp_solver.options.instantiation_mode = goal_instantiation_mode
-    ## if goal_instantiation_mode == proveroptions.manual_instantiation:
-    ##     warnings.warn('Manual instantiation mode: PFP of goal will be proved using the same terms the goal itself.')
-    ## goal_pfp_npsolution = goal_pfp_solver.solve(pfp_of_goal)
-    ## if goal_pfp_npsolution.if_sat:
-    ##     print('goal cannot be proved using induction.')
-    ## else:
-    ##     print('goal is provable using induction.')
-    ##     exit(0)
+    pfp_of_goal = make_pfp_formula(goal)
+    goal_pfp_solver = NPSolver()
+    goal_pfp_solver.options.instantiation_mode = goal_instantiation_mode
+    if goal_instantiation_mode == proveroptions.manual_instantiation:
+        warnings.warn('Manual instantiation mode: PFP of goal will be proved using the same terms the goal itself.')
+    goal_pfp_npsolution = goal_pfp_solver.solve(pfp_of_goal)
+    if goal_pfp_npsolution.if_sat:
+        print('goal cannot be proved using induction.')
+    else:
+        print('goal is provable using induction.')
+        exit(0)
 
     # goal_npsolution_instantiation_terms = goal_fo_npsolution.extraction_terms
     # config_params['goal_npsolution_instantiation_terms'] = goal_npsolution_instantiation_terms
@@ -199,7 +199,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.use_cex_true_models:
                     if options.verbose >= 4:
                         print('using true counterexample models')
-                    true_cex_model = gen_lfp_model(3, annctx, invalid_formula=z3py_lemma)
+                    true_cex_model = gen_lfp_model(5, annctx, invalid_formula=z3py_lemma)
                     if true_cex_model is not None:
                         true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
                         const = [arg for arg in lemma_grammar_args if not is_var_decl(arg, annctx)]

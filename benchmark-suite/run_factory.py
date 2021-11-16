@@ -27,28 +27,26 @@ nil = signature['nil']
 lft = signature['lft']
 rght = signature['rght']
 tree = signature['tree']
-datafields = signature['datafields']
 
 factory_counter = 0
-
 # Loop over each benchmark in factory and run it
 for bench_name, metavars in factory.items():
     if args.name and bench_name != args.name:
         continue
     # Check cache to see if already run
-    # with open('autobench.cache', 'a+') as autobench_cache:
-    #     cache = autobench_cache.read().split('\n')
-    #     if any(bench == bench_name for bench in cache):
-    #         # Benchmark already run
-    #         continue
-    #     else:
-    #         autobench_cache.write(bench_name + '\n')
+    with open('autobench.cache', 'a+') as autobench_cache:
+        autobench_cache.seek(0)
+        cache = autobench_cache.read().split('\n')
+        if any(bench == bench_name for bench in cache):
+            # Benchmark already run
+            continue
+        else:
+            autobench_cache.write(bench_name + '\n')
 
+    datafields = metavars['datafields']
     structname, structcond = metavars['treetype']
     basecase = metavars['basecase']
-    indcase_lft_nil = metavars['indcase_lft_nil']
-    indcase_rght_nil = metavars['indcase_rght_nil']
-    indcase_gen = metavars['indcase_gen']
+    indcase = metavars['indcase']
     goalprop = metavars['goalprop']
     lemmaprop = metavars['lemmaprop']
     synth_str = metavars['synth_grammar']
@@ -63,23 +61,10 @@ for bench_name, metavars in factory.items():
     # Rec definition in terms of factory-generated metavariables
     AddRecDefinition(tree, x, If(x == nil, True, And(And(And(tree(lft(x)), tree(rght(x))), structcond),
                                                      If(And(lft(x) == nil, rght(x) == nil), basecase,
-                                                        If(lft(x) == nil, indcase_lft_nil,
-                                                           If(rght(x) == nil, indcase_rght_nil,
-                                                              indcase_gen
-                                                              )
-                                                           )
+                                                        And(And(lft(x) != nil, rght(x) != nil), indcase)
                                                         )
                                                      )
                                  ))
-    # print(If(x == nil, True, And(And(And(tree(lft(x)), tree(rght(x))), structcond),
-    #                                                  If(And(lft(x) == nil, rght(x) == nil), basecase,
-    #                                                     If(lft(x) == nil, indcase_lft_nil,
-    #                                                        If(rght(x) == nil, indcase_rght_nil,
-    #                                                           indcase_gen
-    #                                                           )
-    #                                                        )
-    #                                                     ))))
-    # 
 
     # vc
     goal = Implies(tree(x), Implies(x != nil, goalprop))
@@ -99,8 +84,6 @@ for bench_name, metavars in factory.items():
         lemma_params = (x,)
         lemma_body = Implies(tree(x), Implies(x != nil, lemmaprop))
         lemmas = {(lemma_params, lemma_body)}
-        # print(lemma_body)
-        # exit(0)
 
         # check validity of lemmas
         solution = np_solver.solve(make_pfp_formula(lemma_body))
@@ -124,44 +107,44 @@ for bench_name, metavars in factory.items():
     except ValueError as err:
         continue
     factory_counter = factory_counter + 1
-    with open('autobench.cache', 'a') as f:
-        f.write(bench_name + '\n')
-    print(bench_name)
-#     print(f'Running automatically generated benchmark: {bench_name}')
-# 
-#     # lemma synthesis
-#     v1 = Var('v1', fgsort)
-#     lemma_grammar_args = [v1, nil]
-#     lemma_grammar_terms = {v1}
-# 
-#     theorem_name = 'autobench__' + hashlib.md5(bench_name.encode('utf-8')).hexdigest()
-#     grammar_string = f"""
-# (synth-fun lemma ((x Int) (nil Int)) Bool
-# 
-#             ((Start Bool) (Val Int))
-# 
-#             ((Start Bool (
-#                     (=> Start Start)
-#                     (and Start Start)
-#                     (= x nil)
-#                     (not (= x nil))
-#                     {synth_str} ;benchmark-specific predicates
-#                         ))
-#             (Val Int (
-#                     (key x)
-#                     {' '.join('(' + dat.name() + ' x)' for dat in datafields)}
-#                     0
-#                     ))
-#             )
-# )
-# 
-# (synth-fun rswitch () Int
-# 
-#             ((Start Int))
-#             ((Start Int (0 )))
-# )
-#     """
-# 
-#     solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, theorem_name, grammar_string)
+    # with open('autobench.cache', 'a') as f:
+    #     f.write(bench_name + '\n')
+    # print(bench_name)
+    print(f'Running automatically generated benchmark: {bench_name}')
 
-print(factory_counter)
+    # lemma synthesis
+    v1 = Var('v1', fgsort)
+    lemma_grammar_args = [v1, nil]
+    lemma_grammar_terms = {v1}
+
+    theorem_name = 'autobench__' + hashlib.md5(bench_name.encode('utf-8')).hexdigest()
+    grammar_string = f"""
+(synth-fun lemma ((x Int) (nil Int)) Bool
+
+            ((Start Bool) (Val Int))
+
+            ((Start Bool (
+                    (=> Start Start)
+                    (and Start Start)
+                    (= x nil)
+                    (not (= x nil))
+                    {synth_str} ;benchmark-specific predicates
+                        ))
+            (Val Int (
+                    (key x)
+                    {' '.join('(' + dat.name() + ' x)' for dat in datafields)}
+                    0
+                    ))
+            )
+)
+
+(synth-fun rswitch () Int
+
+            ((Start Int))
+            ((Start Int (0 )))
+)
+    """
+
+    solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, theorem_name, grammar_string)
+
+# print(factory_counter)

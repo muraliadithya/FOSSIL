@@ -1,3 +1,4 @@
+import itertools
 import random
 
 import z3
@@ -59,6 +60,7 @@ def binary_anded(exprs):
     else:
         return And(exprs[0], binary_anded(exprs[1:]))
 
+
 # Signature
 x = Var('x', fgsort)
 nil = Const('nil', fgsort)
@@ -67,7 +69,6 @@ rght = Function('rght', fgsort, fgsort)
 parent = Function('parent', fgsort, fgsort)
 key = Function('key', fgsort, intsort)
 tree = RecFunction('tree', fgsort, boolsort)
-datafields = lambda n: [Function(f'd{str(i)}', fgsort, intsort) for i in range(1, n + 1)]
 
 signature = dict()
 signature['x'] = x
@@ -85,256 +86,250 @@ AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
 minr = RecFunction('minr', fgsort, intsort)
 AddRecDefinition(minr, x, If(x == nil, 100, min_intsort(key(x), minr(lft(x)), minr(rght(x)))))
 maxr = RecFunction('maxr', fgsort, intsort)
-AddRecDefinition(maxr, x, If(x == nil, -1, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
+AddRecDefinition(maxr, x, If(x == nil, -100, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
 
 
-# Metavariable factory dictionary
-factory = dict()
-num_datafields = 3
-num_min_datafields = 3
-d = datafields(num_datafields)
-signature['datafields'] = d
+########## Variant dimensions ##########
 
-# Property variant dimension 'tree type'
+## Variant dimension number of datafields
+define_datafields = lambda datname, datnum: [Function(f'{datname}{str(i)}', fgsort, intsort) for i in range(1, datnum + 1)]
+two_fields = define_datafields('d', 2)
+three_fields = define_datafields('e', 3)
+# Storing all datafields and the number of active ones
+datafields = {
+    '2/2': {
+        'fields': two_fields,
+        'active': 2
+    },
+    '2/3': {
+        'fields': three_fields,
+        'active': 2
+    },
+    '3/3': {
+        'fields': three_fields,
+        'active': 3
+    }
+}
+
+
+## Variant dimension conditional update and the update mixing method
+# Helper function for constructing conditional expressions
+# NOTE: uses the variable 'x' initialised above! Not good practice.
+def conditional_update(cyc, update_func, update_cond, mixmethod):
+    return binary_anded([If(update_cond(cyc, idx),
+                            dat(x) == update_func(idx, lft(x)) if mixmethod(idx) else dat(x) == update_func(idx, rght(x)),
+                            dat(x) == update_func(idx, rght(x)) if mixmethod(idx) else dat(x) == update_func(idx, lft(x))
+                            )
+                         for idx, dat in enumerate(cyc)])
+
+
+update_conds = {
+    'nocondition': lambda cyc, index: z3.BoolVal(True),
+    'keyrange': lambda cyc, index: And(key(x) > z3.IntVal(-50), key(x) < z3.IntVal(50)),
+    'datacompare': lambda cyc, index: cyc[index](x) == z3.IntVal(3)
+}
+mixmethods = {
+    'normal': lambda index: True,
+    'skipone': lambda index: index % 2 == 0
+}
+
+
+## Variant dimension tree type
 treetypes = {
-    'dag': True,
-    'tree': SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom,
+    # 'dag': True,
+    # 'tree': SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom,
     'maxheap': And(And(key(lft(x)) <= key(x), key(rght(x)) <= key(x)),
                    SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom),
     'bst': And(And(And(-100 < key(x), key(x) < 100), And(maxr(lft(x)) <= key(x), key(x) <= minr(rght(x)))),
                SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom),
-    'tree_p': And(And(parent(lft(x)) == x, parent(rght(x)) == x),
-                  SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom)
+    # 'tree_p': And(And(parent(lft(x)) == x, parent(rght(x)) == x),
+    #               SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom)
 }
 # For each type of tree also add the condition that x is not a member of the left or right subtrees
 for treetype in treetypes:
     treetypes[treetype] = And(treetypes[treetype], And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), htree(rght(x))) == fgsetsort.lattice_bottom, 
                                                        SetIntersect(htree(lft(x)), SetAdd(fgsetsort.lattice_bottom, x)) == fgsetsort.lattice_bottom))
 
-############################# End of preamble ##########################################################
 
-#### Populating the factory
+## Variant dimension update operators and properties preserved under them
+def cycidx(cyc, idx):
+    return cyc[idx % len(cyc)]
 
-# Batch 1: One single property both in goal and lemma. No real variation across cycles or datastructures.
-# For each one give schema for basecase, indcase modifier, and synth_predicate as well as the smt expression
-properties_1 = {
-    # a,b -> 2, 4 || bnx + 1, anx + 1; a > 1; a > 1 & b > 1
-    'idx+1!!exp+1!!>0': {
-        'baseschema': lambda idx, val: idx+1, 
-        'indschema': lambda idx, val: val + 1,
-        'synthpred': lambda idx, val: val > 0,
-        'grammar': '(> Val 0)'
-    },
-    # a,b -> -2, -4 || bnx - 1, anx - 1; a < 0; a < 0 & b < 0
-    '(idx+1)*-2!!exp-1!!<0': {
-        'baseschema': lambda idx, val: (idx+1)*-2, 
-        'indschema': lambda idx, val: val - 1,
-        'synthpred': lambda idx, val: val < 0,
-        'grammar': '(< Val 0)'
-    },
-    # a,b -> 2, 4 || bnx + 2, anx + 2; a % 2 == 0; a % 2 == 0 & b % 2 == 0
-    '2!!exp+2*(idx+1)!!%2==0': {
-        'baseschema': lambda idx, val: 2, 
-        'indschema': lambda idx, val: val + (idx+1)*2,
-        'synthpred': lambda idx, val: val % 2 == 0,
-        'grammar': '(= 0 (mod Val 2))'
-    },
-    # a,b -> 1, 3 || bnx + 2, anx + 2; a % 2 == 1; a % 2 == 1 & b % 2 == 1
-    '2*idx+1!!exp+2*(idx+1)!!%2==1': {
-        'baseschema': lambda idx, val: 2*idx + 1, 
-        'indschema': lambda idx, val: val + (idx+1)*2,
-        'synthpred': lambda idx, val: val % 2 == 1,
-        'grammar': '(= 1 (mod Val 2))'
-    },
+
+properties = {
+    # # a,b -> 2, 4 || bnx + 1, anx + 1; a > 1; a > 1 & b > 1
+    # 'idx+1!!exp+1!!>0': {
+    #     'baseschema': lambda cyc: binary_anded([dat(x) == idx+1 for idx, dat in enumerate(cyc)]),
+    #     'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + 1),
+    #     'goalschema': lambda cyc:  cyc[0](x) > 0,
+    #     'lemmaschema': lambda cyc: binary_anded([dat(x) > 0 for dat in cyc]),
+    #     'grammar': '(> Val 0)'
+    # },
+    # # a,b -> -2, -4 || bnx - 1, anx - 1; a < 0; a < 0 & b < 0
+    # '(idx+1)*-2!!exp-1!!<0': {
+    #     'baseschema': lambda cyc: binary_anded([dat(x) == (idx+1)*-2 for idx, dat in enumerate(cyc)]), 
+    #     'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) - 1),
+    #     'goalschema': lambda cyc:  cyc[0](x) < 0,
+    #     'lemmaschema': lambda cyc: binary_anded([dat(x) < 0 for dat in cyc]),
+    #     'grammar': '(< Val 0)'
+    # },
+    # # a,b -> 2, 4 || bnx + 2, anx + 2; a % 2 == 0; a % 2 == 0 & b % 2 == 0
+    # '2!!exp+2*(idx+1)!!%2==0': {
+    #     'baseschema': lambda cyc: binary_anded([dat(x) == 2 for idx, dat in enumerate(cyc)]),
+    #     'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + (idx+1)*2),
+    #     'goalschema': lambda cyc:  cyc[0](x) % 2 == 0,
+    #     'lemmaschema': lambda cyc: binary_anded([dat(x) % 2 == 0 for dat in cyc]),
+    #     'grammar': '(= 0 (mod Val 2))'
+    # },
+    # # a,b -> 1, 3 || bnx + 2, anx + 2; a % 2 == 1; a % 2 == 1 & b % 2 == 1
+    # '2*idx+1!!exp+2*(idx+1)!!%2==1': {
+    #     'baseschema': lambda cyc: binary_anded([dat(x) == 2*idx + 1 for idx, dat in enumerate(cyc)]),
+    #     'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + (idx+1)*2),
+    #     'goalschema': lambda cyc:  cyc[0](x) % 2 == 1,
+    #     'lemmaschema': lambda cyc: binary_anded([dat(x) % 2 == 1 for dat in cyc]),
+    #     'grammar': '(= 1 (mod Val 2))'
+    # },
     # a,b -> -1, -1 || bnx * 2, anx * 2; a < 0; a < 0 & b < 0
     '-(idx+1)!!exp*2!!<0': {
-        'baseschema': lambda idx, val: -(idx+1), 
-        'indschema': lambda idx, val: val * 2,
-        'synthpred': lambda idx, val: val < 0,
+        'baseschema': lambda cyc: binary_anded([dat(x) == -(idx+1) for idx, dat in enumerate(cyc)]), 
+        'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) * 2),
+        'goalschema': lambda cyc:  cyc[0](x) < 0,
+        'lemmaschema': lambda cyc: binary_anded([dat(x) < 0 for dat in cyc]),
         'grammar': '(< Val 0)'
     },
     # a,b -> 2, 4 || bnx * 2, anx * 2; a > 0; a > 0 & b > 0
     '(idx+1)*2!!exp*2!!>0': {
-        'baseschema': lambda idx, val: (idx+1)*2, 
-        'indschema': lambda idx, val: val * 2,
-        'synthpred': lambda idx, val: val > 0,
+        'baseschema': lambda cyc: binary_anded([dat(x) == (idx+1)*2 for idx, dat in enumerate(cyc)]), 
+        'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) * 2),
+        'goalschema': lambda cyc:  cyc[0](x) > 0,
+        'lemmaschema': lambda cyc: binary_anded([dat(x) > 0 for dat in cyc]),
         'grammar': '(> Val 0)'
-    }
-}
-# Loop over properties
-for propidx, (propname, propvals) in list(enumerate(properties_1.items())):
-    # Loop over datastructures
-    for structidx, (structname, structcond) in list(enumerate(treetypes.items())):
-        # Loop over cycle lengths
-        for cycle_length in range(num_min_datafields, num_datafields + 1):
-            # Initialize a deterministic random seed according to the example
-            random.seed(12112021 + propidx + structidx + cycle_length)
-            cycle = random.sample(d, cycle_length)
-
-            # Construct the relevant predicates and properties
-            curr = {
-'datafields': d,
-'treetype': (structname, structcond),
-'basecase': binary_anded([cycle[idx](x) == propvals['baseschema'](idx, None) for idx in range(len(cycle))]), #And(d[0](x) == 1, d[1](x) == 1)
-'indcase_lft_nil': binary_anded([cycle[idx](x) == propvals['indschema'](idx, cycle[(idx+1) % len(cycle)](rght(x))) for idx in range(len(cycle))]), #And(d[0](x) == d[1](rght(x)) + 1, d[1](x) == d[0](rght(x)) + 1)
-'indcase_rght_nil': binary_anded([cycle[idx](x) == propvals['indschema'](idx, cycle[(idx+1) % len(cycle)](lft(x))) for idx in range(len(cycle))]), #And(d[0](x) == d[1](lft(x)) + 1, d[1](x) == d[0](lft(x)) + 1)
-'indcase_gen': binary_anded([cycle[idx](x) == propvals['indschema'](idx, cycle[(idx+1) % len(cycle)](lft(x))) for idx in range(len(cycle))]), #And(d[0](x) == d[1](lft(x)) + 1, d[1](x) == d[0](lft(x)) + 1)
-'goalprop': propvals['synthpred'](None, cycle[0](x)),
-'lemmaprop': binary_anded([propvals['synthpred'](None, dat(x)) for dat in cycle]), #And(d[0](x) > 0, d[1](x) > 0)
-'synth_grammar': propvals['grammar']
-                    }
-            name = propname + '__' + structname + '__' + f'cycle={",".join(c.name() for c in cycle)}/{str(num_datafields)}'
-            factory[name] = curr
-
-###################################### End of Batch 1 #################################
-
-# Batch 2: explicit descriptions but schema available across cycles. No variation across datastructures.
-properties_2 = {
+    },
+    # End of simple examples
     # a,b,c -> 6, 4, 2 || 2anx - cnx, 2bnx - cnx, anx; a > 0; a > 0 & a > b
     '2*(n-idx)!!2d1-dk,2d2-dk,..d1!!>0': {
-        'baseschema': lambda cyc: [dat(x) == 2*(len(cyc)-idx) for idx, dat in enumerate(cyc)], 
-        'indschema_lft_nil': lambda cyc: [dat(x) == 2*dat(rght(x)) - cyc[-1](rght(x)) for dat in cyc[:-1]] + [cyc[-1](x) == cyc[0](rght(x))],
-        'indschema_rght_nil': lambda cyc: [dat(x) == 2*dat(lft(x)) - cyc[-1](lft(x)) for dat in cyc[:-1]] + [cyc[-1](x) == cyc[0](lft(x))],
-        'indschema_gen': lambda cyc: [dat(x) == 2*dat(lft(x)) - cyc[-1](lft(x)) for dat in cyc[:-1]] + [cyc[-1](x) == cyc[0](lft(x))],
-        'goalschema': lambda cyc: [cyc[0](x) > 0],
-        'lemmaschema': lambda cyc: [cyc[0](x) > 0, cyc[0](x) > cyc[-1](x)],
+        'baseschema': lambda cyc: binary_anded([dat(x) == 2*(len(cyc)-idx) for idx, dat in enumerate(cyc)]),
+        'indschema': lambda cyc: (lambda idx, arg: 2*cyc[idx](arg) - cyc[-1](arg) if idx < len(cyc)-1 else cyc[0](arg)),
+        'goalschema': lambda cyc: cyc[0](x) > 0,
+        'lemmaschema': lambda cyc: And(cyc[0](x) > 0, cyc[0](x) > cyc[-1](x)),
         'grammar': '(> Val 0) (> Val Val)'
     },
+    # # Key update examples that require an additional conjunct in the inductive case schema
+    # # a,b -> 1, 2 key=1 || alx + arx, blx + brx, key = a + b; key > 0; key > 0 & a > 0 & b > 0
+    # 'di>0keyupdate': {
+    #     'baseschema': lambda cyc: binary_anded([key(x) == -1] + [dat(x) == idx+1 for idx, dat in enumerate(cyc)]), 
+    #     'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == -1*sum([dat(x) for dat in cyc])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
+    #     'goalschema': lambda cyc: key(x) < 0,
+    #     'lemmaschema': lambda cyc: binary_anded([key(x) < 0] + [dat(x) > 0 for dat in cyc]),
+    #     'grammar': '(> Val 0) (< Val 0)',
+    #     'indschema_extra': lambda cyc: binary_anded([key(x) == -1*sum([dat(x) for dat in cyc])])
+    # },
+    # # a,b -> 2, 4, key=2 || alx + arx, blx + brx, key = 3a + 5b; key%2 == 0; key%2 == 0 & a%2 == 0 & b%2 == 0
+    # 'di%2==0keyupdate': {
+    #     'baseschema': lambda cyc: binary_anded([key(x) == 2] + [dat(x) == 2*idx for idx, dat in enumerate(cyc)]), 
+    #     'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == sum([(2*idx+1)*dat(x) for idx, dat in enumerate(cyc)])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
+    #     'goalschema': lambda cyc: key(x) % 2 == 0,
+    #     'lemmaschema': lambda cyc: binary_anded([key(x) % 2 == 0] + [dat(x) % 2 == 0 for dat in cyc]),
+    #     'grammar': '(= 0 (mod Val 2))',
+    #     'indschema_extra': lambda cyc: binary_anded([key(x) == sum([(2*idx+1)*dat(x) for idx, dat in enumerate(cyc)])])
+    # },
+    # # a,b,c -> 6, 4, 2, key=1 || alx + arx, blx + brx, clx + crx, key = 2(a - b) + 3(b-c); key > 0; key > 0 & a > b
+    # 'di>di+1keyupdate': {
+    #     'baseschema': lambda cyc: binary_anded([key(x) == -1] + [dat(x) == 2*(len(cyc)-idx) for idx, dat in enumerate(cyc)]), 
+    #     'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == sum([(i+1)*(cyc[i+1](x) - cyc[i](x)) for i in range(len(cyc)-1)])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
+    #     'goalschema': lambda cyc: key(x) < 0,
+    #     'lemmaschema': lambda cyc: binary_anded([key(x) < 0] + [cycidx(cyc, i)(x) > cycidx(cyc, i+1)(x) for i in range(len(cyc)-1)]),
+    #     'grammar': '(< Val 0) (> Val Val)',
+    #     'indschema_extra': lambda cyc: binary_anded([key(x) == sum([(i+1)*(cyc[i+1](x) - cyc[i](x)) for i in range(len(cyc)-1)])])
+    # }
 }
-# Loop over properties
-for propidx, (propname, propvals) in enumerate(properties_2.items()):
-    # Loop over datastructures
-    for structidx, (structname, structcond) in enumerate(treetypes.items()):
-        # Loop over cycle lengths
-        for cycle_length in range(num_min_datafields, num_datafields + 1):
-            # Initialize a deterministic random seed according to the example
-            random.seed(13112021 + propidx + structidx + cycle_length)
-            cycle = random.sample(d, cycle_length)
+############################# End of preamble ##########################################################
 
-            # Construct the relevant predicates and properties
-            curr = {
-'datafields': d,
-'treetype': (structname, structcond),
-'basecase': binary_anded(propvals['baseschema'](cycle)),
-'indcase_lft_nil': binary_anded(propvals['indschema_lft_nil'](cycle)),
-'indcase_rght_nil': binary_anded(propvals['indschema_rght_nil'](cycle)),
-'indcase_gen': binary_anded(propvals['indschema_gen'](cycle)),
-'goalprop': binary_anded(propvals['goalschema'](cycle)),
-'lemmaprop': binary_anded(propvals['lemmaschema'](cycle)),
-'synth_grammar': propvals['grammar']
-                    }
-            name = propname + '__' + structname + '__' + f'cycle={",".join(c.name() for c in cycle)}/{str(num_datafields)}'
-            factory[name] = curr
+# Metavariable factory dictionary
+factory = dict()
+# Populating the factory
+# Loop over datafields (combinations of total versus active)
+for datafield_combo_idx, (datafield_combo_name, datafield_combo) in enumerate(datafields.items()):
+    fields = datafield_combo['fields']
+    num_active = datafield_combo['active']
+    # Loop over properties
+    for propidx, (propname, propvals) in list(enumerate(properties.items())):
+        # Loop over datastructures
+        for structidx, (structname, structcond) in list(enumerate(treetypes.items())):
+            # Loop over update conditions and mixing methods
+            for (updateidx, (updatename, updatecond)), (mixid, (mixname, mixmethod)) in \
+                    itertools.product(enumerate(update_conds.items()), enumerate(mixmethods.items())):
+                # Deterministically choose a random seed according to the example
+                random.seed(16112021 + datafield_combo_idx + propidx + structidx + updateidx + mixid)
+                cycle = random.sample(fields, num_active)
 
-###################################### End of Batch 2 #################################
-# Batch 3: individual examples that do not have a schema across cycle lengths. Varied across datastructures.
-properties_3 = {
-    # a,b -> 4, 2 || (anx - bnx), bnx/2; a >= 0; a >= 0 & a >= 2*b
-    '4,2!!d0nx-d1nx,d1nx/2!!>=0': {
-        'basecase': And(d[0](x) == 64, d[1](x) == 32), 
-        'indcase_lft_nil': And(d[0](x) == d[0](rght(x)) - d[1](rght(x)), d[1](x) == d[1](rght(x))/2),
-        'indcase_rght_nil': And(d[0](x) == d[0](lft(x)) - d[1](lft(x)), d[1](x) == d[1](lft(x))/2),
-        'indcase_gen': And(d[0](x) == d[0](lft(x)) - d[1](lft(x)), d[1](x) == d[1](lft(x))/2),
-        'goalprop': d[0](x) >= 0,
-        'lemmaprop': And(d[0](x) >= 0, d[0](x) >= 2*d[1](x)),
-        'synth_grammar': '(>= Val 0) (>= Val Val) (>= Val (+ Val Val))'
-    },
-    # a,b -> 2, 3 || (anx + bnx + 1), bnx + 2; a%2 == 0; a + a%2 == 0 & b%2 == 1
-    '2,3!!d0nx+d1nx+1,d1nx+2!!a%2=0': {
-        'basecase': And(d[0](x) == 2, d[1](x) == 3), 
-        'indcase_lft_nil': And(d[0](x) == d[0](rght(x)) + d[1](rght(x)) + 1, d[1](x) == d[1](rght(x)) + 2),
-        'indcase_rght_nil': And(d[0](x) == d[0](lft(x)) + d[1](lft(x)) + 1, d[1](x) == d[1](lft(x)) + 2),
-        'indcase_gen': And(d[0](x) == d[0](lft(x)) + d[1](lft(x)) + 1, d[1](x) == d[1](lft(x)) + 2),
-        'goalprop': d[0](x) % 2 == 0,
-        'lemmaprop': And(d[0](x) % 2 == 0, d[1](x) % 2 == 1),
-        'synth_grammar': '(= 0 (mod Val 2)) (= 1 (mod Val 2))'
-    }
-}
-# Loop over properties
-for propidx, (propname, propvals) in enumerate(properties_3.items()):
-    # Loop over datastructures
-    for structidx, (structname, structcond) in enumerate(treetypes.items()):
-        # Construct the relevant predicates and properties
-        curr = {
-                'datafields': d,
-                'treetype': (structname, structcond),
-                **propvals
+                # Check for additional induction schema clause for key update examples
+                indschema_extra = propvals.get('indschema_extra', lambda cyc: True)
+                # Construct the relevant predicates and properties
+                curr = {
+                    'datafields': fields,
+                    'treetype': (structname, structcond),
+                    'basecase': propvals['baseschema'](cycle),
+                    'indcase': And(conditional_update(cycle, propvals['indschema'](cycle), updatecond, mixmethod), indschema_extra(cycle)),
+                    'goalprop': propvals['goalschema'](cycle),
+                    'lemmaprop': propvals['lemmaschema'](cycle),
+                    'synth_grammar': propvals['grammar']
                 }
-        name = propname + '__' + structname + '__silobenchmark'
-        factory[name] = curr
+                name = '__'.join([propname, structname, updatename, mixname, f'cycle={",".join(c.name() for c in cycle)}', datafield_combo_name])
+                factory[name] = curr
 
-###################################### End of Batch 3 #################################
-# Batch 4: explicit descriptions and schema across cycles, but lemma is linear in the size of the cycle
-properties_4 = {
-    # a,b -> 1, 2 key=1 || alx + arx, blx + brx, key = a + b; key > 0; key > 0 & a > 0 & b > 0
-    'di>0': {
-        'baseschema': lambda cyc: [key(x) == -1] + [dat(x) == idx+1 for idx, dat in enumerate(cyc)], 
-        'indschema_lft_nil': lambda cyc: [key(x) == key(rght(x))] + [dat(x) == dat(rght(x)) + 1 for dat in cyc],
-        'indschema_rght_nil': lambda cyc: [key(x) == key(lft(x))] + [dat(x) == dat(lft(x)) + 2 for dat in cyc],
-        'indschema_gen': lambda cyc: [key(x) == -1*sum([dat(x) for dat in cyc])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
-        'goalschema': lambda cyc: [key(x) < 0],
-        'lemmaschema': lambda cyc: [key(x) < 0] + [dat(x) > 0 for dat in cyc],
-        'grammar': '(> Val 0) (< Val 0)'
-    },
-    # a,b -> 2, 4, key=2 || alx + arx, blx + brx, key = 3a + 5b; key%2 == 0; key%2 == 0 & a%2 == 0 & b%2 == 0
-    'di%2==0': {
-        'baseschema': lambda cyc: [key(x) == 2] + [dat(x) == 2*idx for idx, dat in enumerate(cyc)], 
-        'indschema_lft_nil': lambda cyc: [key(x) == key(rght(x))] + [dat(x) == dat(rght(x)) + 2 for dat in cyc],
-        'indschema_rght_nil': lambda cyc: [key(x) == key(lft(x))] + [dat(x) == dat(lft(x)) + 2 for dat in cyc],
-        'indschema_gen': lambda cyc: [key(x) == sum([(2*idx+1)*dat(x) for idx, dat in enumerate(cyc)])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
-        'goalschema': lambda cyc: [key(x) % 2 == 0],
-        'lemmaschema': lambda cyc: [key(x) % 2 == 0] + [dat(x) % 2 == 0 for dat in cyc],
-        'grammar': '(= 0 (mod Val 2))'
-    },
-    # a,b,c -> 6, 4, 2, key=1 || alx + arx, blx + brx, clx + crx, key = 2(a - b) + 3(b-c); key > 0; key > 0 & a > b
-    'di>di+1': {
-        'baseschema': lambda cyc: [key(x) == -1] + [dat(x) == 2*(len(cyc)-idx) for idx, dat in enumerate(cyc)], 
-        'indschema_lft_nil': lambda cyc: [key(x) == key(rght(x))] + [dat(x) == dat(rght(x)) + 1 for dat in cyc],
-        'indschema_rght_nil': lambda cyc: [key(x) == key(lft(x))] + [dat(x) == dat(lft(x)) + 1 for dat in cyc],
-        'indschema_gen': lambda cyc: [key(x) == sum([(i+1)*(cyc[i+1](x) - cyc[i](x)) for i in range(len(cyc)-1)])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
-        'goalschema': lambda cyc: [key(x) < 0],
-        'lemmaschema': lambda cyc: [key(x) < 0] + [cyc[i](x) > cyc[i+1](x) for i in range(len(cyc)-1)],
-        'grammar': '(< Val 0) (> Val Val)'
-    },
 
-}
-# Loop over properties
-for propidx, (propname, propvals) in enumerate(properties_4.items()):
-    # Loop over datastructures
-    for structidx, (structname, structcond) in enumerate(treetypes.items()):
-        # Loop over cycle lengths
-        for cycle_length in range(num_min_datafields, num_datafields + 1):
-            # Initialize a deterministic random seed according to the example
-            random.seed(14112021 + propidx + structidx + cycle_length)
-            cycle = random.sample(d, cycle_length)
+###################################### End of factory building loop #################################
 
-            # Construct the relevant predicates and properties
-            curr = {
-'datafields': d,
-'treetype': (structname, structcond),
-'basecase': binary_anded(propvals['baseschema'](cycle)),
-'indcase_lft_nil': binary_anded(propvals['indschema_lft_nil'](cycle)),
-'indcase_rght_nil': binary_anded(propvals['indschema_rght_nil'](cycle)),
-'indcase_gen': binary_anded(propvals['indschema_gen'](cycle)),
-'goalprop': binary_anded(propvals['goalschema'](cycle)),
-'lemmaprop': binary_anded(propvals['lemmaschema'](cycle)),
-'synth_grammar': propvals['grammar']
-                    }
-            name = propname + '__' + structname + '__' + f'cycle={",".join(c.name() for c in cycle)}/{str(num_datafields)}' + '__linearsizelemma'
-            factory[name] = curr
 
-###################################### End of Batch 4 #################################
-
-# Template
-# curr = {
-#         'datafields': d,
-#         'treetype': True, #or other tree property
-#         'basecase': And(d[0](x) == 1, d[1](x) == 1),
-#         'indcase_lft_nil': And(d[0](x) == d[1](rght(x)) + 1, d[1](x) == d[0](rght(x)) + 1),
-#         'indcase_rght_nil': And(d[0](x) == d[1](lft(x)) + 1, d[1](x) == d[0](lft(x)) + 1),
-#         'indcase_gen': And(d[0](x) == d[1](lft(x)) + 1, d[1](x) == d[0](lft(x)) + 1),
-#         'goalprop': d[0](x) > 0,
-#         'lemmaprop': And(d[0](x) > 0, d[1](x) > 0)
-#         }
-# name = 'namestr'
-# factory[name] = curr
+# # # Batch 3: individual examples that do not have a schema across cycle lengths. Varied across datastructures.
+# # properties_3 = {
+# #     # a,b -> 4, 2 || (anx - bnx), bnx/2; a >= 0; a >= 0 & a >= 2*b
+# #     '4,2!!d0nx-d1nx,d1nx/2!!>=0': {
+# #         'basecase': And(d[0](x) == 64, d[1](x) == 32), 
+# #         'indcase_lft_nil': And(d[0](x) == d[0](rght(x)) - d[1](rght(x)), d[1](x) == d[1](rght(x))/2),
+# #         'indcase_rght_nil': And(d[0](x) == d[0](lft(x)) - d[1](lft(x)), d[1](x) == d[1](lft(x))/2),
+# #         'indcase_gen': And(d[0](x) == d[0](lft(x)) - d[1](lft(x)), d[1](x) == d[1](lft(x))/2),
+# #         'goalprop': d[0](x) >= 0,
+# #         'lemmaprop': And(d[0](x) >= 0, d[0](x) >= 2*d[1](x)),
+# #         'synth_grammar': '(>= Val 0) (>= Val Val) (>= Val (+ Val Val))'
+# #     },
+# #     # a,b -> 2, 3 || (anx + bnx + 1), bnx + 2; a%2 == 0; a + a%2 == 0 & b%2 == 1
+# #     '2,3!!d0nx+d1nx+1,d1nx+2!!a%2=0': {
+# #         'basecase': And(d[0](x) == 2, d[1](x) == 3), 
+# #         'indcase_lft_nil': And(d[0](x) == d[0](rght(x)) + d[1](rght(x)) + 1, d[1](x) == d[1](rght(x)) + 2),
+# #         'indcase_rght_nil': And(d[0](x) == d[0](lft(x)) + d[1](lft(x)) + 1, d[1](x) == d[1](lft(x)) + 2),
+# #         'indcase_gen': And(d[0](x) == d[0](lft(x)) + d[1](lft(x)) + 1, d[1](x) == d[1](lft(x)) + 2),
+# #         'goalprop': d[0](x) % 2 == 0,
+# #         'lemmaprop': And(d[0](x) % 2 == 0, d[1](x) % 2 == 1),
+# #         'synth_grammar': '(= 0 (mod Val 2)) (= 1 (mod Val 2))'
+# #     }
+# # }
+# # # Loop over properties
+# # for propidx, (propname, propvals) in enumerate(properties_3.items()):
+# #     # Loop over datastructures
+# #     for structidx, (structname, structcond) in enumerate(treetypes.items()):
+# #         # Construct the relevant predicates and properties
+# #         curr = {
+# #                 'datafields': d,
+# #                 'treetype': (structname, structcond),
+# #                 **propvals
+# #                 }
+# #         name = propname + '__' + structname + '__silobenchmark'
+# #         factory[name] = curr
+# # 
+# # ###################################### End of Batch 3 #################################
+# 
+# # Template
+# # curr = {
+# #         'datafields': d,
+# #         'treetype': True, #or other tree property
+# #         'basecase': And(d[0](x) == 1, d[1](x) == 1),
+# #         'indcase_lft_nil': And(d[0](x) == d[1](rght(x)) + 1, d[1](x) == d[0](rght(x)) + 1),
+# #         'indcase_rght_nil': And(d[0](x) == d[1](lft(x)) + 1, d[1](x) == d[0](lft(x)) + 1),
+# #         'indcase_gen': And(d[0](x) == d[1](lft(x)) + 1, d[1](x) == d[0](lft(x)) + 1),
+# #         'goalprop': d[0](x) > 0,
+# #         'lemmaprop': And(d[0](x) > 0, d[1](x) > 0)
+# #         }
+# # name = 'namestr'
+# # factory[name] = curr

@@ -5,13 +5,13 @@
 
            ((Start Bool) (Loc Int) (LocLeaf Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
                    (not (= Loc nil))
                    (lst Loc)
                    (lseg Loc Loc)))
             (Loc Int (LocLeaf))
-            (LocLeaf Int (x y nil)))
+            (LocLeaf Int (x y)))
 
 )
 

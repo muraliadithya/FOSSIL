@@ -2,9 +2,9 @@
 
            ((Start Bool) (I Int) (ILeaf Int) (Loc Int) (LocLeaf Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
-                   (not (= LocLeaf nil))
+                   (not (= Loc nil))
                    (red Loc)
                    (black Loc)
                    (<= I I)
@@ -17,7 +17,7 @@
                    (black_height Loc)))
             (Loc Int (LocLeaf
                  (nxt LocLeaf)))
-            (LocLeaf Int (x nil)))
+            (LocLeaf Int (x)))
 )
 
 (synth-fun rswitch () Int

@@ -2,22 +2,19 @@
 
            ((Start Bool) (I Int) (Loc Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
                    (<= I I)
                    (= I I)
                    (not (= Loc nil))
                    (member x (htree x))
-                   (member x (htree nil))
-                   (member nil (htree x))
-                   (member nil (htree nil))
                    (tree Loc)
                    (bst Loc)))
             (I Int (
                    (key Loc)
                    (minr Loc)
                    (maxr Loc)))
-            (Loc Int (x nil)))
+            (Loc Int (x)))
 )
 
 (synth-fun rswitch () Int

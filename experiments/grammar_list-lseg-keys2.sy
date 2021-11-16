@@ -3,19 +3,18 @@
 (synth-fun lemma ((x Int) (y Int) (k Int) (nil Int)) Bool
            ((Start Bool) (I Int) (Loc Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
                    (= I I)
                    (<= I I)
                    (not (= Loc nil))
                    (member k (keys x))
                    (member k (keys y))
-                   (member k (keys nil))
                    (lseg Loc Loc)
                    (lst Loc)))
             (I Int (k
                    (key Loc)))
-            (Loc Int (x y nil
+            (Loc Int (x y
                      (nxt Loc))))
  )
 

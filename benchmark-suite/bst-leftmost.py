@@ -11,6 +11,12 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), hbst(rght(x)))
+               == fgsetsort.lattice_bottom,
+               SetIntersect(hbst(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
+               == fgsetsort.lattice_bottom)
+
 # declarations
 x = Var('x', fgsort)
 y, nil = Consts('y nil', fgsort)
@@ -32,8 +38,9 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
                                                 And(key(x) <= minr(rght(x)),
-                                                    SetIntersect(hbst(lft(x)), hbst(rght(x)))
-                                                    == fgsetsort.lattice_bottom))))))))
+                                                    And(notInChildren(x),
+                                                        SetIntersect(hbst(lft(x)), hbst(rght(x)))
+                                                        == fgsetsort.lattice_bottom)))))))))
 AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
                              SetAdd(SetUnion(hbst(lft(x)), hbst(rght(x))), x)))
 AddRecDefinition(leftmost, x, If(x == nil, x,

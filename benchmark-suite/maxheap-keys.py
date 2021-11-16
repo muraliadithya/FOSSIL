@@ -12,6 +12,12 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), htree(rght(x)))
+               == fgsetsort.lattice_bottom,
+               SetIntersect(htree(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
+               == fgsetsort.lattice_bottom)
+
 # declarations
 x, y = Vars('x y', fgsort)
 nil, ret = Consts('nil ret', fgsort)
@@ -23,12 +29,13 @@ rght = Function('rght', fgsort, fgsort)
 maxheap = RecFunction('maxheap', fgsort, boolsort)
 htree = RecFunction('htree', fgsort, fgsetsort)
 AddRecDefinition(maxheap, x, If(x == nil, True,
-                                And(SetIntersect(htree(lft(x)), htree(rght(x)))
-                                    == fgsetsort.lattice_bottom,
-                                    And(maxheap(lft(x)),
-                                        And(maxheap(rght(x)),
-                                            And(key(lft(x)) <= key(x),
-                                                key(rght(x)) <= key(x)))))))
+                                And(notInChildren(x),
+                                    And(SetIntersect(htree(lft(x)), htree(rght(x)))
+                                        == fgsetsort.lattice_bottom,
+                                        And(maxheap(lft(x)),
+                                            And(maxheap(rght(x)),
+                                                And(key(lft(x)) <= key(x),
+                                                    key(rght(x)) <= key(x))))))))
 AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
 AddRecDefinition(keys, x, If(x == nil, fgsetsort.lattice_bottom,

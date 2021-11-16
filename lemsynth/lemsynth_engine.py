@@ -199,7 +199,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.use_cex_true_models:
                     if options.verbose >= 4:
                         print('using true counterexample models')
-                    true_cex_model = gen_lfp_model(3, annctx, invalid_formula=z3py_lemma)
+                    true_cex_model = gen_lfp_model(5, annctx, invalid_formula=z3py_lemma)
                     if true_cex_model is not None:
                         true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
                         const = [arg for arg in lemma_grammar_args if not is_var_decl(arg, annctx)]

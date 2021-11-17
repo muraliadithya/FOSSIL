@@ -1,9 +1,9 @@
 (synth-fun lemma ((x Int) (y Int) (z Int) (k Int) (nil Int)) Bool
            ((Start Bool) (I Int) (Loc Int) (LocLeaf Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                   (=> Start Start)
-                  (not (= LocLeaf nil))
+                  (not (= Loc nil))
                   (= I I)
                   (<= I I)
                   (lseg Loc Loc)))
@@ -11,7 +11,7 @@
                   (key Loc)))
            (Loc Int (LocLeaf
                     (nxt LocLeaf)))
-           (LocLeaf Int (x y z nil)))
+           (LocLeaf Int (x y z)))
 )
 
 (synth-fun rswitch () Int

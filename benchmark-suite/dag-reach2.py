@@ -11,18 +11,26 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), htree(rght(x)))
+               == fgsetsort.lattice_bottom,
+               SetIntersect(htree(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
+               == fgsetsort.lattice_bottom)
+
 # declarations
 x, y = Vars('x y', fgsort)
 nil, ret = Consts('nil ret', fgsort)
-k = Const('k', intsort)
-key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
+htree = RecFunction('htree', fgsort, fgsetsort)
 dag = RecFunction('dag', fgsort, boolsort)
 reach_lr = RecFunction('reach_lr', fgsort, fgsort, boolsort)
-AddRecDefinition(dag, x, If(x == nil, True, And(dag(lft(x)), dag(rght(x)))))
+AddRecDefinition(dag, x, If(x == nil, True, And(notInChildren(x),
+                                                And(dag(lft(x)), dag(rght(x))))))
 AddRecDefinition(reach_lr, (x, y), If(x == y, True,
                                       Or(reach_lr(lft(x), y), reach_lr(rght(x), y))))
+AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
+                              SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
@@ -59,7 +67,7 @@ else:
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, nil]
-lemma_grammar_terms = {v1, v2, nil}
+lemma_grammar_terms = {v1, v2, nil, lft(v1)}
 
 name = 'dag-reach2'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

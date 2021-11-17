@@ -2,24 +2,19 @@
 
            ((Start Bool) (I Int) (Loc Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
                    (= I I)
                    (<= I I)
                    (not (= Loc nil))
                    (member x (hlst x))
                    (member x (hlst y))
-                   (member x (hlst nil))
                    (member y (hlst x))
                    (member y (hlst y))
-                   (member y (hlst nil))
-                   (member nil (hlst x))
-                   (member nil (hlst y))
-                   (member nil (hlst nil))
                    (lst Loc)
                    (lseg Loc Loc)))
             (I Int (k))
-            (Loc Int (x y nil)))
+            (Loc Int (x y)))
 )
 
 (synth-fun rswitch () Int

@@ -11,6 +11,12 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), hbst(rght(x)))
+               == fgsetsort.lattice_bottom,
+               SetIntersect(hbst(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
+               == fgsetsort.lattice_bottom)
+
 # declarations
 x = Var('x', fgsort)
 y, nil = Consts('y nil', fgsort)
@@ -32,8 +38,9 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
                                                 And(key(x) <= minr(rght(x)),
-                                                    SetIntersect(hbst(lft(x)), hbst(rght(x)))
-                                                    == fgsetsort.lattice_bottom))))))))
+                                                    And(notInChildren(x),
+                                                        SetIntersect(hbst(lft(x)), hbst(rght(x)))
+                                                        == fgsetsort.lattice_bottom)))))))))
 AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
                              SetAdd(SetUnion(hbst(lft(x)), hbst(rght(x))), x)))
 AddRecDefinition(leftmost, x, If(x == nil, x,
@@ -42,9 +49,8 @@ AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
 # vc
-goal = Implies(bst(x), Implies(And(And(x != nil, key(x) != k),
-                                   y == leftmost(x)),
-                               key(y) == minr(x)))
+goal = Implies(bst(x), Implies(And(x != nil, key(x) != k),
+                                   key(leftmost(x)) == minr(x)))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -75,11 +81,12 @@ else:
     print('goal (with lemmas) is invalid')
 
 # lemma synthesis
-v1, v2 = Vars('v1 v2', fgsort)
-lemma_grammar_args = [v1, v2, nil]
-lemma_grammar_terms = {v1, v2, nil, leftmost(rght(v1)), leftmost(v1), leftmost(lft(v1)), leftmost(v2), leftmost(nil)}
+v = Var('v', fgsort)
+lemma_grammar_args = [v, k, nil]
+lemma_grammar_terms = {v, leftmost(lft(v)), leftmost(v), leftmost(rght(v))}
 
 name = 'bst-leftmost'
+# name = 'bst-leftmost-lvl0'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

@@ -11,6 +11,12 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), hbst(rght(x)))
+               == fgsetsort.lattice_bottom,
+               SetIntersect(hbst(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
+               == fgsetsort.lattice_bottom)
+
 # declarations
 x = Var('x', fgsort)
 y, nil = Consts('y nil', fgsort)
@@ -31,8 +37,9 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
                                                 And(key(x) <= minr(rght(x)),
-                                                    SetIntersect(hbst(lft(x)), hbst(rght(x)))
-                                                    == fgsetsort.lattice_bottom))))))))
+                                                    And(notInChildren(x),
+                                                        SetIntersect(hbst(lft(x)), hbst(rght(x)))
+                                                        == fgsetsort.lattice_bottom)))))))))
 AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
                              SetAdd(SetUnion(hbst(lft(x)), hbst(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)
@@ -76,7 +83,7 @@ else:
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, k, nil]
-lemma_grammar_terms = {v1, v2, k, nil}
+lemma_grammar_terms = {v1, v2, k, lft(v1), rght(v1), lft(v2), rght(v2)}
 
 name = 'bst-minimal'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

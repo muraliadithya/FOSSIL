@@ -3,9 +3,10 @@
 
            ((Start Bool (
                    (=> Start Start)
+                   (not (= Loc nil))
                    (reach_lr Loc Loc)
                    (dag Loc)))
-            (Loc Int (x y nil)))
+            (Loc Int (x y)))
 )
 
 (synth-fun rswitch () Int

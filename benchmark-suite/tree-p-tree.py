@@ -11,11 +11,15 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), htree(rght(x)))
+               == fgsetsort.lattice_bottom,
+               SetIntersect(htree(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
+               == fgsetsort.lattice_bottom)
+
 # declarations
 x = Var('x', fgsort)
 nil, ret = Consts('nil ret', fgsort)
-k = Const('k', intsort)
-key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
 parent = Function('parent', fgsort, fgsort)
@@ -23,14 +27,16 @@ tree = RecFunction('tree', fgsort, boolsort)
 tree_p = RecFunction('tree_p', fgsort, boolsort)
 htree = RecFunction('htree', fgsort, fgsetsort)
 AddRecDefinition(tree, x, If(x == nil, True,
-                             And(SetIntersect(htree(lft(x)), htree(rght(x)))
-                                 == fgsetsort.lattice_bottom,
-                                 And(tree(lft(x)), tree(rght(x))))))
+                             And(notInChildren(x),
+                                 And(SetIntersect(htree(lft(x)), htree(rght(x)))
+                                     == fgsetsort.lattice_bottom,
+                                     And(tree(lft(x)), tree(rght(x)))))))
 AddRecDefinition(tree_p, x, If(x == nil, True,
-                               And(SetIntersect(htree(lft(x)), htree(rght(x)))
-                                   == fgsetsort.lattice_bottom,
-                                   And(And(parent(lft(x)) == x, parent(rght(x)) == x),
-                                       And(tree_p(lft(x)), tree_p(rght(x)))))))
+                               And(notInChildren(x),
+                                   And(SetIntersect(htree(lft(x)), htree(rght(x)))
+                                       == fgsetsort.lattice_bottom,
+                                       And(And(parent(lft(x)) == x, parent(rght(x)) == x),
+                                           And(tree_p(lft(x)), tree_p(rght(x))))))))
 AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)

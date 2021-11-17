@@ -11,9 +11,15 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), htree(rght(x)))
+               == fgsetsort.lattice_bottom,
+               SetIntersect(htree(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
+               == fgsetsort.lattice_bottom)
+
 # declarations
-x, y, z = Vars('x y z', fgsort)
-nil, ret = Consts('nil ret', fgsort)
+x, y = Vars('x y', fgsort)
+nil, ret, z = Consts('nil ret z', fgsort)
 k = Const('k', intsort)
 key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
@@ -22,9 +28,10 @@ tree = RecFunction('tree', fgsort, boolsort)
 htree = RecFunction('htree', fgsort, fgsetsort)
 reach_lr = RecFunction('reach_lr', fgsort, fgsort, boolsort)
 AddRecDefinition(tree, x, If(x == nil, True,
-                             And(SetIntersect(htree(lft(x)), htree(rght(x)))
-                                 == fgsetsort.lattice_bottom,
-                                 And(tree(lft(x)), tree(rght(x))))))
+                             And(notInChildren(x),
+                                 And(SetIntersect(htree(lft(x)), htree(rght(x)))
+                                     == fgsetsort.lattice_bottom,
+                                     And(tree(lft(x)), tree(rght(x)))))))
 AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
 AddRecDefinition(reach_lr, (x, y), If(x == y, True,
@@ -69,10 +76,9 @@ else:
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, nil]
-lemma_grammar_terms = {v1, v2, nil}
+lemma_grammar_terms = {v1, v2}
 
 name = 'reach-left-right'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)
-pp

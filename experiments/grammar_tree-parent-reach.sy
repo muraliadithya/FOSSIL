@@ -1,21 +1,16 @@
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
            ((Start Bool) (Loc Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
                    (not (= Loc nil))
                    (member x (htree_p x))
                    (member x (htree_p y))
-                   (member x (htree_p nil))
                    (member y (htree_p x))
                    (member y (htree_p y))
-                   (member y (htree_p nil))
-                   (member nil (htree_p x))
-                   (member nil (htree_p y))
-                   (member nil (htree_p nil))
                    (reach_lr Loc Loc)
                    (tree_p Loc)))
-            (Loc Int (x y nil)))
+            (Loc Int (x y)))
 )
 
 (synth-fun rswitch () Int

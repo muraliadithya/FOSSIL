@@ -12,6 +12,12 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), htree(rght(x)))
+               == fgsetsort.lattice_bottom,
+               SetIntersect(htree(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
+               == fgsetsort.lattice_bottom)
+
 # declarations
 x, y = Vars('x y', fgsort)
 nil, ret = Consts('nil ret', fgsort)
@@ -22,12 +28,13 @@ rght = Function('rght', fgsort, fgsort)
 maxheap = RecFunction('maxheap', fgsort, boolsort)
 htree = RecFunction('htree', fgsort, fgsetsort)
 AddRecDefinition(maxheap, x, If(x == nil, True,
-                                And(SetIntersect(htree(lft(x)), htree(rght(x)))
-                                    == fgsetsort.lattice_bottom,
-                                    And(maxheap(lft(x)),
-                                        And(maxheap(rght(x)),
-                                            And(key(lft(x)) <= key(x),
-                                                key(rght(x)) <= key(x)))))))
+                                And(notInChildren(x),
+                                    And(SetIntersect(htree(lft(x)), htree(rght(x)))
+                                        == fgsetsort.lattice_bottom,
+                                        And(maxheap(lft(x)),
+                                            And(maxheap(rght(x)),
+                                                And(key(lft(x)) <= key(x),
+                                                    key(rght(x)) <= key(x))))))))
 AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)
@@ -66,9 +73,10 @@ else:
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, k, nil]
-lemma_grammar_terms = {v1, v2, k, nil}
+lemma_grammar_terms = {v1, v2, k, lft(v1), lft(v2), rght(lft(v1)), rght(rght(v1)), rght(v2)}
 
 name = 'maxheap-htree-key'
+# name = 'maxheap-htree-key-lvl0'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

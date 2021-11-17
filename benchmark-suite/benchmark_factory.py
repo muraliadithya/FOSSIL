@@ -1,4 +1,5 @@
 import itertools
+import hashlib
 import random
 
 import z3
@@ -41,7 +42,7 @@ from naturalproofs.decl_api import Const, Consts, Var, Vars, Function, RecFuncti
 # if (n.d1 is 0 then n.d2=left(n).d2+right(n).d2 else n,d2=left(n).d2+1 where n.d1 is either 1 or 0
 # If X is a leaf, v(X) is 7, 23, or 31. • If X has one child Y , then v(X) = v(Y ) + 7. • If X has two children Y and Z, then v(X) = v(Y )v(Z). 
 # google search cs173 strong induction
-# only implement the abstract framework for trees!!!!
+# only implement the abstract framework for trees||||
 
 # Grammar cues
 # set of vals: all datafields and 0
@@ -136,14 +137,14 @@ mixmethods = {
 
 ## Variant dimension tree type
 treetypes = {
-    # 'dag': True,
-    # 'tree': SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom,
+    'dag': True,
+    'tree': SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom,
     'maxheap': And(And(key(lft(x)) <= key(x), key(rght(x)) <= key(x)),
                    SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom),
     'bst': And(And(And(-100 < key(x), key(x) < 100), And(maxr(lft(x)) <= key(x), key(x) <= minr(rght(x)))),
                SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom),
-    # 'tree_p': And(And(parent(lft(x)) == x, parent(rght(x)) == x),
-    #               SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom)
+    'tree_p': And(And(parent(lft(x)) == x, parent(rght(x)) == x),
+                  SetIntersect(htree(lft(x)), htree(rght(x))) == fgsetsort.lattice_bottom)
 }
 # For each type of tree also add the condition that x is not a member of the left or right subtrees
 for treetype in treetypes:
@@ -157,40 +158,40 @@ def cycidx(cyc, idx):
 
 
 properties = {
-    # # a,b -> 2, 4 || bnx + 1, anx + 1; a > 1; a > 1 & b > 1
-    # 'idx+1!!exp+1!!>0': {
-    #     'baseschema': lambda cyc: binary_anded([dat(x) == idx+1 for idx, dat in enumerate(cyc)]),
-    #     'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + 1),
-    #     'goalschema': lambda cyc:  cyc[0](x) > 0,
-    #     'lemmaschema': lambda cyc: binary_anded([dat(x) > 0 for dat in cyc]),
-    #     'grammar': '(> Val 0)'
-    # },
-    # # a,b -> -2, -4 || bnx - 1, anx - 1; a < 0; a < 0 & b < 0
-    # '(idx+1)*-2!!exp-1!!<0': {
-    #     'baseschema': lambda cyc: binary_anded([dat(x) == (idx+1)*-2 for idx, dat in enumerate(cyc)]), 
-    #     'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) - 1),
-    #     'goalschema': lambda cyc:  cyc[0](x) < 0,
-    #     'lemmaschema': lambda cyc: binary_anded([dat(x) < 0 for dat in cyc]),
-    #     'grammar': '(< Val 0)'
-    # },
-    # # a,b -> 2, 4 || bnx + 2, anx + 2; a % 2 == 0; a % 2 == 0 & b % 2 == 0
-    # '2!!exp+2*(idx+1)!!%2==0': {
-    #     'baseschema': lambda cyc: binary_anded([dat(x) == 2 for idx, dat in enumerate(cyc)]),
-    #     'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + (idx+1)*2),
-    #     'goalschema': lambda cyc:  cyc[0](x) % 2 == 0,
-    #     'lemmaschema': lambda cyc: binary_anded([dat(x) % 2 == 0 for dat in cyc]),
-    #     'grammar': '(= 0 (mod Val 2))'
-    # },
-    # # a,b -> 1, 3 || bnx + 2, anx + 2; a % 2 == 1; a % 2 == 1 & b % 2 == 1
-    # '2*idx+1!!exp+2*(idx+1)!!%2==1': {
-    #     'baseschema': lambda cyc: binary_anded([dat(x) == 2*idx + 1 for idx, dat in enumerate(cyc)]),
-    #     'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + (idx+1)*2),
-    #     'goalschema': lambda cyc:  cyc[0](x) % 2 == 1,
-    #     'lemmaschema': lambda cyc: binary_anded([dat(x) % 2 == 1 for dat in cyc]),
-    #     'grammar': '(= 1 (mod Val 2))'
-    # },
+    # a,b -> 2, 4 || bnx + 1, anx + 1; a > 1; a > 1 & b > 1
+    'idx+1||exp+1||>0': {
+        'baseschema': lambda cyc: binary_anded([dat(x) == idx+1 for idx, dat in enumerate(cyc)]),
+        'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + 1),
+        'goalschema': lambda cyc:  cyc[0](x) > 0,
+        'lemmaschema': lambda cyc: binary_anded([dat(x) > 0 for dat in cyc]),
+        'grammar': '(> Val 0)'
+    },
+    # a,b -> -2, -4 || bnx - 1, anx - 1; a < 0; a < 0 & b < 0
+    '(idx+1)*-2||exp-1||<0': {
+        'baseschema': lambda cyc: binary_anded([dat(x) == (idx+1)*-2 for idx, dat in enumerate(cyc)]), 
+        'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) - 1),
+        'goalschema': lambda cyc:  cyc[0](x) < 0,
+        'lemmaschema': lambda cyc: binary_anded([dat(x) < 0 for dat in cyc]),
+        'grammar': '(< Val 0)'
+    },
+    # a,b -> 2, 4 || bnx + 2, anx + 2; a % 2 == 0; a % 2 == 0 & b % 2 == 0
+    '2||exp+2*(idx+1)||%2==0': {
+        'baseschema': lambda cyc: binary_anded([dat(x) == 2 for idx, dat in enumerate(cyc)]),
+        'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + (idx+1)*2),
+        'goalschema': lambda cyc:  cyc[0](x) % 2 == 0,
+        'lemmaschema': lambda cyc: binary_anded([dat(x) % 2 == 0 for dat in cyc]),
+        'grammar': '(= 0 (mod Val 2))'
+    },
+    # a,b -> 1, 3 || bnx + 2, anx + 2; a % 2 == 1; a % 2 == 1 & b % 2 == 1
+    '2*idx+1||exp+2*(idx+1)||%2==1': {
+        'baseschema': lambda cyc: binary_anded([dat(x) == 2*idx + 1 for idx, dat in enumerate(cyc)]),
+        'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) + (idx+1)*2),
+        'goalschema': lambda cyc:  cyc[0](x) % 2 == 1,
+        'lemmaschema': lambda cyc: binary_anded([dat(x) % 2 == 1 for dat in cyc]),
+        'grammar': '(= 1 (mod Val 2))'
+    },
     # a,b -> -1, -1 || bnx * 2, anx * 2; a < 0; a < 0 & b < 0
-    '-(idx+1)!!exp*2!!<0': {
+    '-(idx+1)||exp*2||<0': {
         'baseschema': lambda cyc: binary_anded([dat(x) == -(idx+1) for idx, dat in enumerate(cyc)]), 
         'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) * 2),
         'goalschema': lambda cyc:  cyc[0](x) < 0,
@@ -198,7 +199,7 @@ properties = {
         'grammar': '(< Val 0)'
     },
     # a,b -> 2, 4 || bnx * 2, anx * 2; a > 0; a > 0 & b > 0
-    '(idx+1)*2!!exp*2!!>0': {
+    '(idx+1)*2||exp*2||>0': {
         'baseschema': lambda cyc: binary_anded([dat(x) == (idx+1)*2 for idx, dat in enumerate(cyc)]), 
         'indschema': lambda cyc: (lambda idx, arg: cycidx(cyc, idx+1)(arg) * 2),
         'goalschema': lambda cyc:  cyc[0](x) > 0,
@@ -207,41 +208,41 @@ properties = {
     },
     # End of simple examples
     # a,b,c -> 6, 4, 2 || 2anx - cnx, 2bnx - cnx, anx; a > 0; a > 0 & a > b
-    '2*(n-idx)!!2d1-dk,2d2-dk,..d1!!>0': {
+    '2*(n-idx)||2d1-dk,2d2-dk,..d1||>0': {
         'baseschema': lambda cyc: binary_anded([dat(x) == 2*(len(cyc)-idx) for idx, dat in enumerate(cyc)]),
         'indschema': lambda cyc: (lambda idx, arg: 2*cyc[idx](arg) - cyc[-1](arg) if idx < len(cyc)-1 else cyc[0](arg)),
         'goalschema': lambda cyc: cyc[0](x) > 0,
         'lemmaschema': lambda cyc: And(cyc[0](x) > 0, cyc[0](x) > cyc[-1](x)),
         'grammar': '(> Val 0) (> Val Val)'
     },
-    # # Key update examples that require an additional conjunct in the inductive case schema
-    # # a,b -> 1, 2 key=1 || alx + arx, blx + brx, key = a + b; key > 0; key > 0 & a > 0 & b > 0
-    # 'di>0keyupdate': {
-    #     'baseschema': lambda cyc: binary_anded([key(x) == -1] + [dat(x) == idx+1 for idx, dat in enumerate(cyc)]), 
-    #     'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == -1*sum([dat(x) for dat in cyc])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
-    #     'goalschema': lambda cyc: key(x) < 0,
-    #     'lemmaschema': lambda cyc: binary_anded([key(x) < 0] + [dat(x) > 0 for dat in cyc]),
-    #     'grammar': '(> Val 0) (< Val 0)',
-    #     'indschema_extra': lambda cyc: binary_anded([key(x) == -1*sum([dat(x) for dat in cyc])])
-    # },
-    # # a,b -> 2, 4, key=2 || alx + arx, blx + brx, key = 3a + 5b; key%2 == 0; key%2 == 0 & a%2 == 0 & b%2 == 0
-    # 'di%2==0keyupdate': {
-    #     'baseschema': lambda cyc: binary_anded([key(x) == 2] + [dat(x) == 2*idx for idx, dat in enumerate(cyc)]), 
-    #     'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == sum([(2*idx+1)*dat(x) for idx, dat in enumerate(cyc)])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
-    #     'goalschema': lambda cyc: key(x) % 2 == 0,
-    #     'lemmaschema': lambda cyc: binary_anded([key(x) % 2 == 0] + [dat(x) % 2 == 0 for dat in cyc]),
-    #     'grammar': '(= 0 (mod Val 2))',
-    #     'indschema_extra': lambda cyc: binary_anded([key(x) == sum([(2*idx+1)*dat(x) for idx, dat in enumerate(cyc)])])
-    # },
-    # # a,b,c -> 6, 4, 2, key=1 || alx + arx, blx + brx, clx + crx, key = 2(a - b) + 3(b-c); key > 0; key > 0 & a > b
-    # 'di>di+1keyupdate': {
-    #     'baseschema': lambda cyc: binary_anded([key(x) == -1] + [dat(x) == 2*(len(cyc)-idx) for idx, dat in enumerate(cyc)]), 
-    #     'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == sum([(i+1)*(cyc[i+1](x) - cyc[i](x)) for i in range(len(cyc)-1)])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
-    #     'goalschema': lambda cyc: key(x) < 0,
-    #     'lemmaschema': lambda cyc: binary_anded([key(x) < 0] + [cycidx(cyc, i)(x) > cycidx(cyc, i+1)(x) for i in range(len(cyc)-1)]),
-    #     'grammar': '(< Val 0) (> Val Val)',
-    #     'indschema_extra': lambda cyc: binary_anded([key(x) == sum([(i+1)*(cyc[i+1](x) - cyc[i](x)) for i in range(len(cyc)-1)])])
-    # }
+    # Key update examples that require an additional conjunct in the inductive case schema
+    # a,b -> 1, 2 key=1 || alx + arx, blx + brx, key = a + b; key > 0; key > 0 & a > 0 & b > 0
+    'di>0keyupdate': {
+        'baseschema': lambda cyc: binary_anded([key(x) == -1] + [dat(x) == idx+1 for idx, dat in enumerate(cyc)]), 
+        'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == -1*sum([dat(x) for dat in cyc])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
+        'goalschema': lambda cyc: key(x) < 0,
+        'lemmaschema': lambda cyc: binary_anded([key(x) < 0] + [dat(x) > 0 for dat in cyc]),
+        'grammar': '(> Val 0) (< Val 0)',
+        'indschema_extra': lambda cyc: binary_anded([key(x) == -1*sum([dat(x) for dat in cyc])])
+    },
+    # a,b -> 2, 4, key=2 || alx + arx, blx + brx, key = 3a + 5b; key%2 == 0; key%2 == 0 & a%2 == 0 & b%2 == 0
+    'di%2==0keyupdate': {
+        'baseschema': lambda cyc: binary_anded([key(x) == 2] + [dat(x) == 2*idx for idx, dat in enumerate(cyc)]), 
+        'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == sum([(2*idx+1)*dat(x) for idx, dat in enumerate(cyc)])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
+        'goalschema': lambda cyc: key(x) % 2 == 0,
+        'lemmaschema': lambda cyc: binary_anded([key(x) % 2 == 0] + [dat(x) % 2 == 0 for dat in cyc]),
+        'grammar': '(= 0 (mod Val 2))',
+        'indschema_extra': lambda cyc: binary_anded([key(x) == sum([(2*idx+1)*dat(x) for idx, dat in enumerate(cyc)])])
+    },
+    # a,b,c -> 6, 4, 2, key=1 || alx + arx, blx + brx, clx + crx, key = 2(a - b) + 3(b-c); key > 0; key > 0 & a > b
+    'di>di+1keyupdate': {
+        'baseschema': lambda cyc: binary_anded([key(x) == -1] + [dat(x) == 2*(len(cyc)-idx) for idx, dat in enumerate(cyc)]), 
+        'indschema': lambda cyc: (lambda idx, arg: 3*cycidx(cyc, idx)(arg)),#[key(x) == sum([(i+1)*(cyc[i+1](x) - cyc[i](x)) for i in range(len(cyc)-1)])] + [dat(x) == dat(lft(x)) + dat(rght(x)) for dat in cyc],
+        'goalschema': lambda cyc: key(x) < 0,
+        'lemmaschema': lambda cyc: binary_anded([key(x) < 0] + [cycidx(cyc, i)(x) > cycidx(cyc, i+1)(x) for i in range(len(cyc)-1)]),
+        'grammar': '(< Val 0) (> Val Val)',
+        'indschema_extra': lambda cyc: binary_anded([key(x) == sum([(i+1)*(cyc[i+1](x) - cyc[i](x)) for i in range(len(cyc)-1)])])
+    }
 }
 ############################# End of preamble ##########################################################
 
@@ -260,7 +261,7 @@ for datafield_combo_idx, (datafield_combo_name, datafield_combo) in enumerate(da
             for (updateidx, (updatename, updatecond)), (mixid, (mixname, mixmethod)) in \
                     itertools.product(enumerate(update_conds.items()), enumerate(mixmethods.items())):
                 # Deterministically choose a random seed according to the example
-                random.seed(16112021 + datafield_combo_idx + propidx + structidx + updateidx + mixid)
+                random.seed(hashlib.md5((datafield_combo_name + propname + structname + updatename + mixname).encode('utf-8')).hexdigest())
                 cycle = random.sample(fields, num_active)
 
                 # Check for additional induction schema clause for key update examples
@@ -285,7 +286,7 @@ for datafield_combo_idx, (datafield_combo_name, datafield_combo) in enumerate(da
 # # # Batch 3: individual examples that do not have a schema across cycle lengths. Varied across datastructures.
 # # properties_3 = {
 # #     # a,b -> 4, 2 || (anx - bnx), bnx/2; a >= 0; a >= 0 & a >= 2*b
-# #     '4,2!!d0nx-d1nx,d1nx/2!!>=0': {
+# #     '4,2||d0nx-d1nx,d1nx/2||>=0': {
 # #         'basecase': And(d[0](x) == 64, d[1](x) == 32), 
 # #         'indcase_lft_nil': And(d[0](x) == d[0](rght(x)) - d[1](rght(x)), d[1](x) == d[1](rght(x))/2),
 # #         'indcase_rght_nil': And(d[0](x) == d[0](lft(x)) - d[1](lft(x)), d[1](x) == d[1](lft(x))/2),
@@ -295,7 +296,7 @@ for datafield_combo_idx, (datafield_combo_name, datafield_combo) in enumerate(da
 # #         'synth_grammar': '(>= Val 0) (>= Val Val) (>= Val (+ Val Val))'
 # #     },
 # #     # a,b -> 2, 3 || (anx + bnx + 1), bnx + 2; a%2 == 0; a + a%2 == 0 & b%2 == 1
-# #     '2,3!!d0nx+d1nx+1,d1nx+2!!a%2=0': {
+# #     '2,3||d0nx+d1nx+1,d1nx+2||a%2=0': {
 # #         'basecase': And(d[0](x) == 2, d[1](x) == 3), 
 # #         'indcase_lft_nil': And(d[0](x) == d[0](rght(x)) + d[1](rght(x)) + 1, d[1](x) == d[1](rght(x)) + 2),
 # #         'indcase_rght_nil': And(d[0](x) == d[0](lft(x)) + d[1](lft(x)) + 1, d[1](x) == d[1](lft(x)) + 2),

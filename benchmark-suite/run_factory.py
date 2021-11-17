@@ -20,6 +20,7 @@ from lemsynth.lemsynth_engine import solveProblem
 # Command-line arguments to run specific benchmark
 argparser = argparse.ArgumentParser()
 argparser.add_argument('--name')
+argparser.add_argument('--dry', action='store_true')
 args = argparser.parse_args()
 
 x = signature['x']
@@ -33,15 +34,16 @@ factory_counter = 0
 for bench_name, metavars in factory.items():
     if args.name and bench_name != args.name:
         continue
-    # Check cache to see if already run
-    with open('autobench.cache', 'a+') as autobench_cache:
-        autobench_cache.seek(0)
-        cache = autobench_cache.read().split('\n')
-        if any(bench == bench_name for bench in cache):
-            # Benchmark already run
-            continue
-        else:
-            autobench_cache.write(bench_name + '\n')
+    if not args.dry:
+        # Check cache to see if already run
+        with open('autobench.cache', 'a+') as autobench_cache:
+            autobench_cache.seek(0)
+            cache = autobench_cache.read().split('\n')
+            if any(bench == bench_name for bench in cache):
+                # Benchmark already run
+                continue
+            else:
+                autobench_cache.write(bench_name + '\n')
 
     datafields = metavars['datafields']
     structname, structcond = metavars['treetype']
@@ -107,9 +109,13 @@ for bench_name, metavars in factory.items():
     except ValueError as err:
         continue
     factory_counter = factory_counter + 1
-    # with open('autobench.cache', 'a') as f:
-    #     f.write(bench_name + '\n')
-    # print(bench_name)
+    if args.dry:
+        with open('autobench.cache', 'a') as f:
+            f.write(bench_name + '\n')
+        print(bench_name)
+        continue
+
+    # Not a dry run
     print(f'Running automatically generated benchmark: {bench_name}')
 
     # lemma synthesis
@@ -147,4 +153,7 @@ for bench_name, metavars in factory.items():
 
     solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, theorem_name, grammar_string)
 
-# print(factory_counter)
+
+# Rerport on total number of sucessful benchmarks if it is a dry run
+if args.dry:
+    print(factory_counter)

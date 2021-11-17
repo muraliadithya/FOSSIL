@@ -2,12 +2,12 @@
 
         ((Start Bool) (Loc Int))
         
-           ((Start Bool (
+           ((Start Bool (false
                 (=> Start Start)
                 (not (= Loc nil))
                 (lst Loc)
                 (dlst Loc)))
-            (Loc Int (x nil)))
+            (Loc Int (x)))
 )
 
 (synth-fun rswitch () Int

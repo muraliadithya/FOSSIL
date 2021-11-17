@@ -19,7 +19,7 @@ Total lemmas proposed: 4
 10 | benchmark-suite/dag-reach2.py  SUCCESS: 16s
 Total lemmas proposed: 10
 11 | benchmark-suite/dlist-list.py  SUCCESS: 2s
-Total lemmas proposed: 3
+Total lemmas proposed: 1
 12 | benchmark-suite/even-list.py  SUCCESS: 2s
 Total lemmas proposed: 3
 13 | benchmark-suite/list-even-or-odd.py  SUCCESS: 3s + 6s
@@ -34,8 +34,8 @@ Total lemmas proposed: 21
 Total lemmas proposed: 6
 18 | benchmark-suite/listlen-list.py  SUCCESS: 1s
 Total lemmas proposed: 1
-19 | benchmark-suite/lseg-ext.py  FAILURE: 22s
-No lemmas proposed. Instance failed.
+19 | benchmark-suite/lseg-ext.py  FAILURE: 22s + 900s timeout
+Total lemmas proposed: n/a
 20 | benchmark-suite/lseg-list.py  SUCCESS: 11s
 Total lemmas proposed: 9
 21 | benchmark-suite/lseg-next-dyn.py  SUCCESS: 2s

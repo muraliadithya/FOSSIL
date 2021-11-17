@@ -18,8 +18,8 @@ Total lemmas proposed: 5
 Total lemmas proposed: 8
 10 | benchmark-suite/dag-reach2.py  SUCCESS: 10s
 Total lemmas proposed: 9
-11 | benchmark-suite/dlist-list.py  SUCCESS: 2s
-Total lemmas proposed: 3
+11 | benchmark-suite/dlist-list.py  SUCCESS: 1s
+Total lemmas proposed: 1
 12 | benchmark-suite/even-list.py  SUCCESS: 1s
 Total lemmas proposed: 2
 13 | benchmark-suite/list-even-or-odd.py  SUCCESS: 3s + 4s

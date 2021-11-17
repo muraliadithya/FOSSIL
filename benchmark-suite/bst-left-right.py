@@ -12,13 +12,7 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 def notInChildren(x):
-    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), hbst(rght(x)))
-               == fgsetsort.lattice_bottom,
-               SetIntersect(hbst(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
-               == fgsetsort.lattice_bottom)
-
-# def notInChildren(x):
-#     return And(Not(IsMember(x, hbst(lft(x)))), Not(IsMember(x, hbst(rght(x)))))
+    return And(Not(IsMember(x, hbst(lft(x)))), Not(IsMember(x, hbst(rght(x)))))
 
 # declarations
 x, y = Vars('x y', fgsort)
@@ -90,7 +84,7 @@ else:
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, nil]
-lemma_grammar_terms = {v1, v2, rght(v1)}
+lemma_grammar_terms = {v1, v2}
 
 name = 'bst-left-right'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

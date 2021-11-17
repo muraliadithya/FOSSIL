@@ -95,7 +95,7 @@ else:
 # lemma synthesis
 v = Var('v', fgsort)
 lemma_grammar_args = [v, k, nil]
-lemma_grammar_terms = {v, k, nil}
+lemma_grammar_terms = {v, k}
 
 name = 'bst-left'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))

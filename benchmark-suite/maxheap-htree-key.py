@@ -73,7 +73,7 @@ else:
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, k, nil]
-lemma_grammar_terms = {v1, v2, k, nil, lft(v1), lft(v2), rght(lft(v1)), rght(rght(v1)), rght(v2), rght(nil), lft(nil)}
+lemma_grammar_terms = {v1, v2, k, lft(v1), lft(v2), rght(lft(v1)), rght(rght(v1)), rght(v2)}
 
 name = 'maxheap-htree-key'
 # name = 'maxheap-htree-key-lvl0'

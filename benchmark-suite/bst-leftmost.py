@@ -83,7 +83,7 @@ else:
 # lemma synthesis
 v = Var('v', fgsort)
 lemma_grammar_args = [v, k, nil]
-lemma_grammar_terms = {v, k, nil, leftmost(v), leftmost(nil), lft(rght(v)), lft(lft(v))}
+lemma_grammar_terms = {v, leftmost(lft(v)), leftmost(v), leftmost(rght(v))}
 
 name = 'bst-leftmost'
 # name = 'bst-leftmost-lvl0'

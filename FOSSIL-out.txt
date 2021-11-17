@@ -1,9 +1,9 @@
-1 | benchmark-suite/bst-left-right.py  FAILURE: 58s
-RuntimeError: Lemmas reproposed with countermodels and streaming disabled. Unsupported.
+1 | benchmark-suite/bst-left-right.py  SUCCESS: 183s
+Total lemmas proposed: 25
 2 | benchmark-suite/bst-left.py  SUCCESS: 20s
 Total lemmas proposed: 6
-3 | benchmark-suite/bst-leftmost.py  FAILURE: 41s
-No lemmas proposed. Instance failed.
+3 | benchmark-suite/bst-leftmost.py  SUCCESS: 74s
+Total lemmas proposed: 16
 4 | benchmark-suite/bst-maximal.py  SUCCESS: 6s
 Total lemmas proposed: 4
 5 | benchmark-suite/bst-minimal.py  SUCCESS: 8s

@@ -1,100 +1,100 @@
-1 | benchmark-suite/bst-left-right.py  SUCCESS: 552s
-Total lemmas proposed: 76
-2 | benchmark-suite/bst-left.py  SUCCESS: 29s
-Total lemmas proposed: 15
-3 | benchmark-suite/bst-leftmost.py  SUCCESS: 49s + 159s
-Total lemmas proposed: 41
-4 | benchmark-suite/bst-maximal.py  SUCCESS: 9s
+1 | benchmark-suite/bst-left-right.py  FAILURE: 900s timeout
+Total lemmas proposed: n/a
+2 | benchmark-suite/bst-left.py  SUCCESS: 25s
+Total lemmas proposed: 17
+3 | benchmark-suite/bst-leftmost.py  SUCCESS: 39s + 147s
+Total lemmas proposed: 30
+4 | benchmark-suite/bst-maximal.py  SUCCESS: 15s
+Total lemmas proposed: 11
+5 | benchmark-suite/bst-minimal.py  SUCCESS: 15s
 Total lemmas proposed: 9
-5 | benchmark-suite/bst-minimal.py  SUCCESS: 7s
-Total lemmas proposed: 8
-6 | benchmark-suite/bst-right.py  SUCCESS: 179s
-Total lemmas proposed: 12
-7 | benchmark-suite/bst-tree.py  SUCCESS: 3s
+6 | benchmark-suite/bst-right.py  SUCCESS: 10s
+Total lemmas proposed: 9
+7 | benchmark-suite/bst-tree.py  SUCCESS: 5s
 Total lemmas proposed: 2
-8 | benchmark-suite/cyclic-next.py  SUCCESS: 7s + 10s
-Total lemmas proposed: 8
-9 | benchmark-suite/dag-reach.py  SUCCESS: 141s
-Total lemmas proposed: 18
-10 | benchmark-suite/dag-reach2.py  SUCCESS: 42s
-Total lemmas proposed: 27
+8 | benchmark-suite/cyclic-next.py  SUCCESS: 14s + 11s
+Total lemmas proposed: 9
+9 | benchmark-suite/dag-reach.py  SUCCESS: 4s
+Total lemmas proposed: 4
+10 | benchmark-suite/dag-reach2.py  SUCCESS: 16s
+Total lemmas proposed: 10
 11 | benchmark-suite/dlist-list.py  SUCCESS: 2s
 Total lemmas proposed: 3
-12 | benchmark-suite/even-list.py  SUCCESS: 1s
-Total lemmas proposed: 1
-13 | benchmark-suite/list-even-or-odd.py  SUCCESS: 2s + 12s
-Total lemmas proposed: 14
+12 | benchmark-suite/even-list.py  SUCCESS: 2s
+Total lemmas proposed: 3
+13 | benchmark-suite/list-even-or-odd.py  SUCCESS: 3s + 6s
+Total lemmas proposed: 10
 14 | benchmark-suite/list-hlist-list.py  SUCCESS: 2s
-Total lemmas proposed: 3
-15 | benchmark-suite/list-hlist-lseg.py  SUCCESS: 21s
-Total lemmas proposed: 29
-16 | benchmark-suite/list-lseg-keys.py  SUCCESS: 49s
-Total lemmas proposed: 47
-17 | benchmark-suite/list-lseg-keys2.py  SUCCESS: 28s
-Total lemmas proposed: 31
-18 | benchmark-suite/listlen-list.py  SUCCESS: 1s
-Total lemmas proposed: 2
-19 | benchmark-suite/lseg-ext.py  FAILURE: 16s + 900s timeout
-No lemmas proposed. Instance failed.
-20 | benchmark-suite/lseg-list.py  SUCCESS: 48s
-Total lemmas proposed: 28
-21 | benchmark-suite/lseg-next-dyn.py  SUCCESS: 1s
-Total lemmas proposed: 2
-22 | benchmark-suite/lseg-next.py  SUCCESS: 16s
-Total lemmas proposed: 10
-23 | benchmark-suite/lseg-nil-list.py  SUCCESS: 10s
-Total lemmas proposed: 10
-24 | benchmark-suite/lseg-trans.py  SUCCESS: 66s
-Total lemmas proposed: 17
-25 | benchmark-suite/lseg-trans2.py  SUCCESS: 18s
-Total lemmas proposed: 10
-26 | benchmark-suite/maxheap-dag.py  SUCCESS: 1s
-Total lemmas proposed: 1
-27 | benchmark-suite/maxheap-htree-key.py  SUCCESS: 8s + 68s
-Total lemmas proposed: 34
-28 | benchmark-suite/maxheap-keys.py  SUCCESS: 5s + 6s
-Total lemmas proposed: 6
-29 | benchmark-suite/maxheap-tree.py  SUCCESS: 1s
-Total lemmas proposed: 1
-30 | benchmark-suite/odd-list.py  SUCCESS: 3s
 Total lemmas proposed: 5
-31 | benchmark-suite/reach-left-right.py  SUCCESS: 91s
-Total lemmas proposed: 27
-32 | benchmark-suite/reachability.py  SUCCESS: 4s
+15 | benchmark-suite/list-hlist-lseg.py  SUCCESS: 4s
+Total lemmas proposed: 5
+16 | benchmark-suite/list-lseg-keys.py  SUCCESS: 21s
+Total lemmas proposed: 21
+17 | benchmark-suite/list-lseg-keys2.py  SUCCESS: 6s
+Total lemmas proposed: 6
+18 | benchmark-suite/listlen-list.py  SUCCESS: 1s
+Total lemmas proposed: 1
+19 | benchmark-suite/lseg-ext.py  FAILURE: 22s
+No lemmas proposed. Instance failed.
+20 | benchmark-suite/lseg-list.py  SUCCESS: 11s
+Total lemmas proposed: 9
+21 | benchmark-suite/lseg-next-dyn.py  SUCCESS: 2s
+Total lemmas proposed: 1
+22 | benchmark-suite/lseg-next.py  SUCCESS: 19s
+Total lemmas proposed: 11
+23 | benchmark-suite/lseg-nil-list.py  SUCCESS: 7s
+Total lemmas proposed: 6
+24 | benchmark-suite/lseg-trans.py  SUCCESS: 40s
+Total lemmas proposed: 14
+25 | benchmark-suite/lseg-trans2.py  SUCCESS: 16s
+Total lemmas proposed: 9
+26 | benchmark-suite/maxheap-dag.py  SUCCESS: 2s
+Total lemmas proposed: 2
+27 | benchmark-suite/maxheap-htree-key.py  SUCCESS: 58s + 75s
+Total lemmas proposed: 19
+28 | benchmark-suite/maxheap-keys.py  SUCCESS: 4s + 9s
+Total lemmas proposed: 7
+29 | benchmark-suite/maxheap-tree.py  SUCCESS: 3s
+Total lemmas proposed: 2
+30 | benchmark-suite/odd-list.py  SUCCESS: 2s
+Total lemmas proposed: 4
+31 | benchmark-suite/reach-left-right.py  SUCCESS: 48s
+Total lemmas proposed: 15
+32 | benchmark-suite/reachability.py  SUCCESS: 5s
 Total lemmas proposed: 3
-33 | benchmark-suite/reachability2.py  SUCCESS: 3s
+33 | benchmark-suite/reachability2.py  SUCCESS: 2s
 Total lemmas proposed: 2
-34 | benchmark-suite/reachability3.py  SUCCESS: 2s
+34 | benchmark-suite/reachability3.py  SUCCESS: 3s
 Total lemmas proposed: 2
-35 | benchmark-suite/reachability4.py  SUCCESS: 3s
+35 | benchmark-suite/reachability4.py  SUCCESS: 2s
 Total lemmas proposed: 2
-36 | benchmark-suite/reachability5.py  SUCCESS: 5s
-Total lemmas proposed: 3
+36 | benchmark-suite/reachability5.py  SUCCESS: 9s
+Total lemmas proposed: 4
 37 | benchmark-suite/reachability6.py  SUCCESS: 2s
 Total lemmas proposed: 2
-38 | benchmark-suite/rlist-black-height.py  SUCCESS: 2s + 6s
-Total lemmas proposed: 6
+38 | benchmark-suite/rlist-black-height.py  SUCCESS: 3s + 5s
+Total lemmas proposed: 7
 39 | benchmark-suite/rlist-list.py  SUCCESS: 1s
 Total lemmas proposed: 2
-40 | benchmark-suite/rlist-red-height.py  SUCCESS: 2s + 21s
-Total lemmas proposed: 16
+40 | benchmark-suite/rlist-red-height.py  SUCCESS: 2s + 7s
+Total lemmas proposed: 11
 41 | benchmark-suite/sdlist-dlist-slist.py  SUCCESS: 2s
 Total lemmas proposed: 3
-42 | benchmark-suite/sdlist-dlist.py  SUCCESS: 3s
-Total lemmas proposed: 3
+42 | benchmark-suite/sdlist-dlist.py  SUCCESS: 2s
+Total lemmas proposed: 2
 43 | benchmark-suite/slist-list.py  SUCCESS: 1s
 Total lemmas proposed: 2
-44 | benchmark-suite/slseg-nil-slist.py  SUCCESS: 12s
-Total lemmas proposed: 10
-45 | benchmark-suite/tree-dag.py  SUCCESS: 1s
+44 | benchmark-suite/slseg-nil-slist.py  SUCCESS: 7s
+Total lemmas proposed: 7
+45 | benchmark-suite/tree-dag.py  SUCCESS: 3s
+Total lemmas proposed: 3
+46 | benchmark-suite/tree-p-reach-tree.py  SUCCESS: 184s
+Total lemmas proposed: 33
+47 | benchmark-suite/tree-p-reach.py  SUCCESS: 84s
+Total lemmas proposed: 23
+48 | benchmark-suite/tree-p-tree.py  SUCCESS: 2s
 Total lemmas proposed: 2
-46 | benchmark-suite/tree-p-reach-tree.py  SUCCESS: 161s
-Total lemmas proposed: 41
-47 | benchmark-suite/tree-p-reach.py  SUCCESS: 79s
-Total lemmas proposed: 24
-48 | benchmark-suite/tree-p-tree.py  SUCCESS: 1s
-Total lemmas proposed: 1
-49 | benchmark-suite/tree-reach.py  SUCCESS: 292s
-Total lemmas proposed: 42
-50 | benchmark-suite/tree-reach2.py  SUCCESS: 125s
-Total lemmas proposed: 25
+49 | benchmark-suite/tree-reach.py  SUCCESS: 217s
+Total lemmas proposed: 20
+50 | benchmark-suite/tree-reach2.py  SUCCESS: 127s
+Total lemmas proposed: 18

@@ -133,12 +133,13 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
                                                 '-'.join(y_name.split(' ')),
                                                 '-'.join(measurement.split(' '))),
                 bbox_inches = 'tight', pad_inches = 0.2, dpi=100)
-    plt.show()
+    plt.show()       
 
-def process_done(filename):
+def process_done(filename, timeout=900):
     """
     Process the text printed to terminal from FOSSIL experiments, such as in benchmark-suite/done.txt.
     :param filename: string
+    :param timeout: float
     :return names: list
     :return results: dict
     """
@@ -151,6 +152,7 @@ def process_done(filename):
         for num,line in enumerate(output_file):
             if '|' in line:
                 line = line.split(' ')
+                # Identify test
                 try:
                     name = line[2].split('/')[1][:-3]
                 except:
@@ -158,24 +160,36 @@ def process_done(filename):
                 p_index = name.find('.')
                 if p_index != -1:
                     name = name[:p_index]
-                s_index = line[-1].find('s')
-                runtime = line[-1][:s_index]
-                if runtime[0] == 'F':
+                
+                # Locate outcome and runtimes
+                if 'F' in line[3]:
+                    # Failure case
                     runtime = -1.
-                    lem_prop = -1
+                    #lem_prop = -1
                     lem_val = -1
                     lemmas = []
                 else:
-                    runtime = float(runtime)
-                    if 0. < runtime and runtime < 1.:
-                        runtime = 1.
+                    # Success case
+                    runtime = 0.
+                    for word in line[4:]:
+                        if 's' in word:
+                            runtime += float(word[:word.find('s')])
+                    if 0 < runtime and runtime < 1:
+                        runtime = 1
+                    elif timeout < runtime:
+                        runtime = timeout
                     runtime = int(runtime)
+                
+                # Organize test results
                 results[name] = (runtime, lem_prop, lem_val, lemmas)
                 names.append(name)
-                lem_val = -1
+                lem_val = -1.
             elif 'Total lemmas proposed' in line:
                 line = line.split(' ')
-                lem_prop = int(line[-1][:-1])
+                if 'n/a' in line[-1]:
+                    lem_prop = -1
+                else:
+                    lem_prop = int(line[-1][:-1])
             elif 'VC' in line or 'Lemmas used to prove goal:' in line:
                 lem_val = 0
                 lemmas = []
@@ -234,4 +248,9 @@ def adjust(arr, mx=None, mn=1., log=True):
             mx = np.exp(1.05*np.log(np.max(arr)))
         else:
             mx = 1.05*np.max(arr)
-    return np.array([elt if elt >= 1 else mn if elt != -1 else mx+1 for elt in arr])
+    return np.array([
+        mx+1 if elt > mx else
+        elt if 1 <= elt else
+        mn if elt != -1 else
+        mx+1 for elt in arr
+    ])

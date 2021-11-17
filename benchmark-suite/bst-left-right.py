@@ -12,13 +12,7 @@ from naturalproofs.pfp import make_pfp_formula
 from lemsynth.lemsynth_engine import solveProblem
 
 def notInChildren(x):
-    return And(SetIntersect(SetAdd(fgsetsort.lattice_bottom, x), hbst(rght(x)))
-               == fgsetsort.lattice_bottom,
-               SetIntersect(hbst(lft(x)), SetAdd(fgsetsort.lattice_bottom, x))
-               == fgsetsort.lattice_bottom)
-
-# def notInChildren(x):
-#     return And(Not(IsMember(x, hbst(lft(x)))), Not(IsMember(x, hbst(rght(x)))))
+    return And(Not(IsMember(x, hbst(lft(x)))), Not(IsMember(x, hbst(rght(x)))))
 
 # declarations
 x, y = Vars('x y', fgsort)

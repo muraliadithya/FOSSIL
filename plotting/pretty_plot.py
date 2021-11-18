@@ -129,17 +129,16 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     fig.tight_layout()
 
     # Save and display plot
-    plt.savefig(plotdir + '{}-{}_{}.png'.format('-'.join(x_name.split(' ')),
-                                                '-'.join(y_name.split(' ')),
-                                                '-'.join(measurement.split(' '))),
-                bbox_inches = 'tight', pad_inches = 0.2, dpi=100)
+    savename = plotdir + '{}-{}_{}.png'.format(x_name, y_name, measurement).replace(' ','_').replace('[','_').replace(']','_')
+    plt.savefig(savename, bbox_inches = 'tight', pad_inches = 0.2, dpi=100)
     plt.show()       
 
-def process_done(filename, timeout=900):
+def process_done(filename, timeout=900, name_terminate=True):
     """
     Process the text printed to terminal from FOSSIL experiments, such as in benchmark-suite/done.txt.
     :param filename: string
     :param timeout: float
+    :param name_terminate: bool
     :return names: list
     :return results: dict
     """
@@ -151,6 +150,7 @@ def process_done(filename, timeout=900):
     with open(filename, 'r') as output_file:
         for num,line in enumerate(output_file):
             if '|' in line:
+                # Test runtime line
                 line = line.split(' ')
                 # Identify test
                 try:
@@ -165,7 +165,6 @@ def process_done(filename, timeout=900):
                 if 'F' in line[3]:
                     # Failure case
                     runtime = -1.
-                    #lem_prop = -1
                     lem_val = -1
                     lemmas = []
                 else:
@@ -173,6 +172,7 @@ def process_done(filename, timeout=900):
                     runtime = 0.
                     for word in line[4:]:
                         if 's' in word:
+                            # Word with a runtime delimited by s for seconds 
                             runtime += float(word[:word.find('s')])
                     if 0 < runtime and runtime < 1:
                         runtime = 1
@@ -180,17 +180,35 @@ def process_done(filename, timeout=900):
                         runtime = timeout
                     runtime = int(runtime)
                 
-                # Organize test results
-                results[name] = (runtime, lem_prop, lem_val, lemmas)
-                names.append(name)
-                lem_val = -1.
-            elif 'Total lemmas proposed' in line:
+                if name_terminate:
+                    # Organize test results
+                    results[name] = (runtime, lem_prop, lem_val, lemmas)
+                    names.append(name)
+                    lem_val = -1.
+                    lemmas = []
+            elif 'proposed' in line:
+                # Lemmas proposed count line
                 line = line.split(' ')
                 if 'n/a' in line[-1]:
                     lem_prop = -1
                 else:
                     lem_prop = int(line[-1][:-1])
-            elif 'VC' in line or 'Lemmas used to prove goal:' in line:
+                
+                if not name_terminate:
+                    # Organize test results
+                    results[name] = (runtime, lem_prop, lem_val, lemmas)
+                    names.append(name)
+                    lem_val = -1.
+                    lemmas = []
+            elif 'proved' in line:
+                # Lemmas proved count line
+                line = line.split(' ')
+                if 'n/a' in line[-1]:
+                    lem_val = -1
+                else:
+                    # Manual counting should agree with reported count
+                    assert(lem_val == int(line[-1][:-1]))
+            elif 'VC' in line or 'used to prove goal:' in line or 'unsat' in line:
                 lem_val = 0
                 lemmas = []
             elif lem_val >= 0:

@@ -93,8 +93,8 @@ Total lemmas proposed: 8
 47 | benchmark-suite/tree-p-reach.py  SUCCESS: 191s
 Total lemmas proposed: 10
 48 | benchmark-suite/tree-p-tree.py  SUCCESS: 1s
-
+Total lemmas proposed: n/a
 49 | benchmark-suite/tree-reach.py  SUCCESS: 103s
-
+Total lemmas proposed: n/a
 50 | benchmark-suite/tree-reach2.py  SUCCESS: 78s
-
+Total lemmas proposed: n/a

@@ -2,6 +2,7 @@ from z3 import *
 import itertools
 import time
 import warnings
+import itertools
 
 import lemsynth.grammar_utils as grammar
 from lemsynth.lemma_synthesis import getSygusOutput
@@ -16,6 +17,7 @@ import naturalproofs.proveroptions as proveroptions
 from naturalproofs.prover_utils import get_foreground_terms
 from naturalproofs.utils import get_all_subterms
 from naturalproofs.extensions.finitemodel import FiniteModel
+from naturalproofs.extensions.lfpmodels import gen_lfp_model
 
 
 def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None, annctx=default_annctx):
@@ -26,6 +28,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     valid_lemmas = set()
     invalid_lemmas = []
     cex_models = []
+    true_cex_models = []
 
     # Determine proof mode for goal
     goal_instantiation_mode = config_params.get('goal_instantiation_mode', None)
@@ -190,7 +193,29 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                                          'Terms needed after pfp computation: {}'
                                          ''.format(str(z3py_lemma_body), remaining_terms))
                 invalid_lemmas = invalid_lemmas + [z3py_lemma]
-                if options.use_cex_models:
+
+                use_cex_models_fallback = False
+                if options.use_cex_true_models:
+                    if options.verbose >= 4:
+                        print('using true counterexample models')
+                    true_cex_model = gen_lfp_model(5, annctx, invalid_formula=z3py_lemma)
+                    if true_cex_model is not None:
+                        true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
+                        const = [arg for arg in lemma_grammar_args if not is_var_decl(arg, annctx)]
+                        lemma_arity = len(lemma_grammar_args) - len(const)
+                        args = itertools.product(true_model_terms, repeat=lemma_arity)
+                        instantiations = [ arg for arg in args if
+                                           z3.is_false(true_cex_model.smtmodel.eval(z3.substitute(z3py_lemma[1],
+                                                                                                  list(zip(lemma_grammar_args[:lemma_arity], arg))),
+                                                                                    model_completion=True)) ]
+                        true_cex_models = true_cex_models + [(true_cex_model, {instantiations[0]})]
+                        config_params['true_cex_models'] = true_cex_models
+                    else:
+                        # No LFP countermodel found. Supplant with PFP countermodel.
+                        use_cex_models_fallback = True
+                        if options.verbose >= 4:
+                            print('No true countermodel obtained. Using pfp countermodel instead.')
+                if options.use_cex_models or use_cex_models_fallback:
                     extraction_terms = lemma_npsolution.extraction_terms
                     cex_model = FiniteModel(lemma_npsolution.model, extraction_terms, annctx=annctx)
                     cex_models = cex_models + [cex_model]
@@ -203,11 +228,12 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     # TODO: introduce warning or extend streaming algorithm to multiple lemma case
                     goal_npsolution = goal_fo_solver.solve(goal, {z3py_lemma})
                     if not goal_npsolution.if_sat:
-                        # Lemma is useful. Exit.
+                        # Lemma is useful. Wrap up processes and exit.
                         print('Goal has been proven. Lemmas used to prove goal:')
                         for lem in valid_lemmas:
                             print(lem[1])
                         if options.analytics:
+                            # Update analytics entries for the current lemma before exiting.
                             total_time = config_params['analytics']['time_charged'] + config_params['analytics'][
                                 'lemma_time']
                             if options.verbose >= 10:

@@ -20,20 +20,20 @@ lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
 tree = RecFunction('tree', fgsort, boolsort)
 htree = RecFunction('htree', fgsort, fgsetsort)
-reach = RecFunction('reach', fgsort, fgsort, boolsort)
+reach_lr = RecFunction('reach_lr', fgsort, fgsort, boolsort)
 AddRecDefinition(tree, x, If(x == nil, True,
                              And(SetIntersect(htree(lft(x)), htree(rght(x)))
                                  == fgsetsort.lattice_bottom,
                                  And(tree(lft(x)), tree(rght(x))))))
 AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
-AddRecDefinition(reach, (x, y), If(x == y, True,
-                                   Or(reach(lft(x), y), reach(rght(x), y))))
+AddRecDefinition(reach_lr, (x, y), If(x == y, True,
+                                      Or(reach_lr(lft(x), y), reach_lr(rght(x), y))))
 AddAxiom((), lft(nil) == nil)
 AddAxiom((), rght(nil) == nil)
 
 # vc
-goal = Implies(tree(x), Implies(reach(x, y), tree(y)))
+goal = Implies(tree(x), Implies(reach_lr(x, y), tree(y)))
 
 # check validity with natural proof solver and no hardcoded lemmas
 np_solver = NPSolver()
@@ -45,7 +45,7 @@ else:
 
 # hardcoded lemmas
 lemma_params = (x,y)
-lemma_body = Implies(reach(x, y), Implies(tree(x), tree(y)))
+lemma_body = Implies(reach_lr(x, y), Implies(tree(x), tree(y)))
 lemmas = {(lemma_params, lemma_body)}
 
 # check validity of lemmas
@@ -67,7 +67,7 @@ v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, nil]
 lemma_grammar_terms = {v1, v2, nil, rght(lft(v1)), rght(rght(v1))}
 
-name = 'tree-reach'
+name = 'tree-reach2'
 grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

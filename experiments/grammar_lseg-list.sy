@@ -7,6 +7,7 @@
 
            ((Start Bool (
                    (=> Start Start)
+                   (not (= Loc nil))
                    (lst Loc)
                    (lseg Loc Loc)))
             (Loc Int (x y nil)))

@@ -4,8 +4,8 @@
            ((Start Bool (
                    (=> Start Start)
                    (not (= LocLeaf nil))
-                   (= Loc Loc)
                    (= I I)
+                   (<= I I)
                    (bst Loc)))
             (I Int (
                    (key Loc)

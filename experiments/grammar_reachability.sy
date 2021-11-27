@@ -5,7 +5,7 @@
 
            ((Start Bool) (Progvar Int) (Progvar1 Int) (Progstate Int))
 
-           ((Start Bool (Start
+           ((Start Bool (
                    (and Start Start)
                    (or Start Start)
                    (= Progvar Progvar)))

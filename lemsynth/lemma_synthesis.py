@@ -125,7 +125,7 @@ def sygusBigModelEncoding(models, vocab, set_defs, annctx):
 
 
 # Generate constraints corresponding to false model for SyGuS
-def generateFalseConstraints(model, lemma_args, terms, annctx):
+def generateConstraints(model, lemma_args, terms, is_true_constraint, annctx, instantiations=None):
     const = [arg for arg in lemma_args if not is_var_decl(arg, annctx)]
     const_values = [model.smtmodel.eval(cs, model_completion=True).as_long() + (model.offset if is_expr_fg_sort(cs, annctx) else 0) for cs in const]
     const_values = ['(- ' + str(cv * -1) + ')' if cv < 0 else str(cv) for cv in const_values]
@@ -133,8 +133,10 @@ def generateFalseConstraints(model, lemma_args, terms, annctx):
     constraints = ''
     lemma_arity = len(lemma_args) - len(const)
     eval_terms = {model.smtmodel.eval(term, model_completion=True).as_long() + model.offset for term in terms}
-    args = itertools.product(eval_terms, repeat=lemma_arity)
-    for arg in args:
+
+    if instantiations is None:
+        instantiations = itertools.product(eval_terms, repeat=lemma_arity)
+    for arg in instantiations:
         curr = ''
         recs = get_boolean_recursive_definitions()
         arg_str = [str(elt) for elt in arg]
@@ -144,10 +146,16 @@ def generateFalseConstraints(model, lemma_args, terms, annctx):
             # Assuming first 'arity' arguments of lemma variables are arguments for recursive definition
             lhs = '({} {})'.format(recs[i].name(), ' '.join(arg_str[:rec_arity]))
             rhs = '(lemma {} {})'.format(' '.join(arg_str), const_values)
-            curr_constraint = '(=> {} (not (=> {} {})))\n'.format(rswitch, lhs, rhs)
+            if is_true_constraint:
+                curr_constraint = '(=> {} (=> {} {}))\n'.format(rswitch, lhs, rhs)
+            else:
+                curr_constraint = '(=> {} (not (=> {} {})))\n'.format(rswitch, lhs, rhs)
             curr = curr + curr_constraint
         constraints = constraints + '(and {})\n'.format(curr)
-    out = '(constraint (or {}))'.format(constraints)
+    if is_true_constraint:
+        out = '(constraint (and {}))'.format(constraints)
+    else:
+        out = '(constraint (or {}))'.format(constraints)
     return out
 
 
@@ -217,7 +225,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
         raise Exception('Something is wrong. A fixed solver object for the goal is needed. Consult an expert.')
     goal_npsolution = goal_fo_solver.solve(goal, lemmas)
     if not goal_npsolution.if_sat:
-        # Lemmas generated up to this point are useful. Exit.
+        # Lemmas generated up to this point are useful. Wrap up processes and exit.
         print('Goal has been proven. Lemmas used to prove goal:')
         for lemma in lemmas:
             print(lemma[1])
@@ -250,6 +258,9 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
     goal_instantiation_terms = goal_npsolution.instantiation_terms
     goal_extraction_terms = goal_npsolution.extraction_terms
     false_finitemodel = FiniteModel(goal_npsolution.model, goal_extraction_terms, annctx=annctx)
+
+    # use_cex_models = config_params.get('use_cex_models', True)
+    cex_models = config_params.get('cex_models', [])
 
     # Adding offsets to make sure: (i) all elements in all models are positive (ii) models do not overlap
     # Making the universe of the false model positive
@@ -286,7 +297,27 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
         cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
     cex_models = cex_models_with_offset
 
-    all_models = [cex_model.finitemodel for cex_model in cex_models] + [false_finitemodel.finitemodel]
+    # Add true counterexample model to true models if use_cex_true_models is True
+    true_cex_models = config_params.get('true_cex_models', [])
+    if options.use_cex_true_models:
+        true_cex_models_with_offset = []
+        for true_cex_model in true_cex_models:
+            # Deepcopy the countermodels so the originals are not affected
+            true_cex_offset_model = true_cex_model[0].copy()
+            # Make the universe of the model positive and shift the model by accumulated offset
+            true_cex_model_universe = true_cex_offset_model.get_fg_elements()
+            non_negative_offset = min(true_cex_model_universe)
+            if non_negative_offset >= 0:
+                non_negative_offset = 0
+            true_cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
+            # Compute new accumulated offset
+            accumulated_offset = max(true_cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
+            true_cex_model_term_universe = { IntVal(elem) for elem in true_cex_model_universe }
+            instantiation_terms = {tuple(elem.as_long() + true_cex_offset_model.offset for elem in instantiation) for instantiation in true_cex_model[1]}
+            true_cex_models_with_offset = true_cex_models_with_offset + [(true_cex_offset_model, true_cex_model_term_universe, instantiation_terms)]
+        true_cex_models = true_cex_models_with_offset
+
+    all_models = [cex_model.finitemodel for cex_model in cex_models] + [true_cex_model[0].finitemodel for true_cex_model in true_cex_models] + [false_finitemodel.finitemodel]
 
     vocab = get_vocabulary(annctx)
     set_defs = {func for func in vocab if 'Array' in str(func.range())}
@@ -313,13 +344,18 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
             out.write('\n')
         out.write('\n')
         out.write(';; constraints from false model\n')
-        false_constraints = generateFalseConstraints(false_finitemodel, lemma_args, goal_instantiation_terms, annctx)
+        false_constraints = generateConstraints(false_finitemodel, lemma_args, goal_instantiation_terms, False, annctx)
         out.write(false_constraints)
         out.write('\n')
         out.write('\n')
-        out.write(';; constraints from true models\n')
-        true_constraints = ''
-        # true_constraints = generateAllTrueConstraints(true_models, lemma_args, fcts_z3)
+        out.write(';; constraints from true counterexample models\n')
+        if options.use_cex_true_models:
+            true_constraints = ''
+            for true_cex_model in true_cex_models:
+                curr_true_constraint = generateConstraints(true_cex_model[0], lemma_args, true_cex_model[1], True, annctx, instantiations=true_cex_model[2])
+                true_constraints += curr_true_constraint + '\n'
+        else:
+            true_constraints = ''
         out.write(true_constraints)
         out.write('\n')
         out.write('(check-synth)')

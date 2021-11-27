@@ -3,9 +3,18 @@ set_param('model.compact', False)
 import re
 
 from naturalproofs.decl_api import get_recursive_definition, get_vocabulary
-from naturalproofs.uct import get_uct_sort
+# from naturalproofs.uct import get_uct_sort
 
-from naturalproofs.extensions.finitemodel_utils import transform_fg_universe
+# from naturalproofs.extensions.finitemodel_utils import transform_fg_universe
+
+
+###########################
+# Support for synthesis modes
+
+
+class StopProposal(Exception):
+    pass
+
 
 ############################
 # Support for python models

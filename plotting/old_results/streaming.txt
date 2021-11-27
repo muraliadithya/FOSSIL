@@ -1,0 +1,548 @@
+Running benchmark-suite/bst-left-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m1[0m | [1mbenchmark-suite/bst-left-right.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/bst-left.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m2[0m | [1mbenchmark-suite/bst-left.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/bst-leftmost.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m3[0m | [1mbenchmark-suite/bst-leftmost.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/bst-maximal.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m4[0m | [1mbenchmark-suite/bst-maximal.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/bst-minimal.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m5[0m | [1mbenchmark-suite/bst-minimal.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/bst-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m6[0m | [1mbenchmark-suite/bst-right.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/bst-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v), tree(v))
+Total lemmas proposed: 1
+Total time charged: 3.182082176208496s
+[94m7[0m | [1mbenchmark-suite/bst-tree.py[0m [32m SUCCESS: 7s[0m
+
+Running benchmark-suite/cyclic-next.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), lseg(nxt(v1), nxt(v2)))
+Total lemmas proposed: 10
+Total time charged: 13.450115203857422s
+[94m8[0m | [1mbenchmark-suite/cyclic-next.py[0m [32m SUCCESS: 10s[0m
+
+Running benchmark-suite/dag-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m9[0m | [1mbenchmark-suite/dag-reach.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/dag-reach2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m10[0m | [1mbenchmark-suite/dag-reach2.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/dlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(dlst(v), lst(v))
+Total lemmas proposed: 1
+Total time charged: 2.3968162536621094s
+[94m11[0m | [1mbenchmark-suite/dlist-list.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/even-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(even_lst(v), lst(v))
+Total lemmas proposed: 3
+Total time charged: 2.524545907974243s
+[94m12[0m | [1mbenchmark-suite/even-list.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/list-even-or-odd.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m13[0m | [1mbenchmark-suite/list-even-or-odd.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/list-hlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m14[0m | [1mbenchmark-suite/list-hlist-list.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/list-hlist-lseg.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m15[0m | [1mbenchmark-suite/list-hlist-lseg.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/list-lseg-keys.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(keys(v2)[k], keys(v1)[k]))
+Total lemmas proposed: 16
+Total time charged: 6.577128648757935s
+[94m16[0m | [1mbenchmark-suite/list-lseg-keys.py[0m [32m SUCCESS: 6s[0m
+
+Running benchmark-suite/list-lseg-keys2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(keys(v2)[k], keys(v1)[k]))
+Total lemmas proposed: 18
+Total time charged: 6.129415988922119s
+[94m17[0m | [1mbenchmark-suite/list-lseg-keys2.py[0m [32m SUCCESS: 6s[0m
+
+Running benchmark-suite/listlen-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lstlen_bool(v), lst(v))
+Total lemmas proposed: 1
+Total time charged: 2.0666561126708984s
+[94m18[0m | [1mbenchmark-suite/listlen-list.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/lseg-ext.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m19[0m | [1mbenchmark-suite/lseg-ext.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/lseg-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), lst(v1) == lst(v2))
+Implies(lst(v1), lseg(v1, nil))
+Total lemmas proposed: 11
+Total time charged: 14.546885013580322s
+[94m20[0m | [1mbenchmark-suite/lseg-list.py[0m [32m SUCCESS: 10s[0m
+
+Running benchmark-suite/lseg-next-dyn.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lsegy(v1), lsegz_p(v1))
+Total lemmas proposed: 1
+Total time charged: 2.278074026107788s
+[94m21[0m | [1mbenchmark-suite/lseg-next-dyn.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/lseg-next.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), lseg(nxt(v1), nxt(v2)))
+Total lemmas proposed: 11
+Total time charged: 15.650178670883179s
+[94m22[0m | [1mbenchmark-suite/lseg-next.py[0m [32m SUCCESS: 11s[0m
+
+Running benchmark-suite/lseg-nil-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), lst(v2) == lst(v1))
+Total lemmas proposed: 7
+Total time charged: 8.57420825958252s
+[94m23[0m | [1mbenchmark-suite/lseg-nil-list.py[0m [32m SUCCESS: 8s[0m
+
+Running benchmark-suite/lseg-trans.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m24[0m | [1mbenchmark-suite/lseg-trans.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/lseg-trans2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(lseg(v2, z), lseg(v1, z)))
+Total lemmas proposed: 16
+Total time charged: 25.05786108970642s
+[94m25[0m | [1mbenchmark-suite/lseg-trans2.py[0m [32m SUCCESS: 17s[0m
+
+Running benchmark-suite/maxheap-dag.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(maxheap(v), dag(v))
+Total lemmas proposed: 3
+Total time charged: 2.7472610473632812s
+[94m26[0m | [1mbenchmark-suite/maxheap-dag.py[0m [32m SUCCESS: 6s[0m
+
+Running benchmark-suite/maxheap-htree-key.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m27[0m | [1mbenchmark-suite/maxheap-htree-key.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/maxheap-keys.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m28[0m | [1mbenchmark-suite/maxheap-keys.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/maxheap-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m29[0m | [1mbenchmark-suite/maxheap-tree.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/odd-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(odd_lst(v), lst(v))
+Implies(even_lst(v), lst(v))
+Total lemmas proposed: 5
+Total time charged: 2.8167872428894043s
+[94m30[0m | [1mbenchmark-suite/odd-list.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/pretty_plot.py:
+---------------------------------------------------
+[94m31[0m | [1mbenchmark-suite/pretty_plot.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/reach-left-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach(v1, v2),
+        Implies(htree(v2)[v2], htree(v1)[v2]))
+Total lemmas proposed: 34
+Total time charged: 20.588391304016113s
+[94m32[0m | [1mbenchmark-suite/reach-left-right.py[0m [32m SUCCESS: 58s[0m
+
+Running benchmark-suite/reachability.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m33[0m | [1mbenchmark-suite/reachability.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/reachability2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m34[0m | [1mbenchmark-suite/reachability2.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/reachability3.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m35[0m | [1mbenchmark-suite/reachability3.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/reachability4.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m36[0m | [1mbenchmark-suite/reachability4.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/reachability5.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m37[0m | [1mbenchmark-suite/reachability5.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/reachability6.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m38[0m | [1mbenchmark-suite/reachability6.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/rlist-black-height.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m39[0m | [1mbenchmark-suite/rlist-black-height.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/rlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(rlst(v), lst(v))
+Total lemmas proposed: 1
+Total time charged: 2.0803921222686768s
+[94m40[0m | [1mbenchmark-suite/rlist-list.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/rlist-red-height.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m41[0m | [1mbenchmark-suite/rlist-red-height.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/sdlist-dlist-slist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m42[0m | [1mbenchmark-suite/sdlist-dlist-slist.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/sdlist-dlist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(sdlst(v), dlst(v))
+Total lemmas proposed: 1
+Total time charged: 2.554158926010132s
+[94m43[0m | [1mbenchmark-suite/sdlist-dlist.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/slist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(slst(v), lst(v))
+Total lemmas proposed: 1
+Total time charged: 2.0983989238739014s
+[94m44[0m | [1mbenchmark-suite/slist-list.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/slseg-nil-slist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(slseg(v1, v2), Implies(slst(v2), slst(v1)))
+Total lemmas proposed: 6
+Total time charged: 7.357393980026245s
+[94m45[0m | [1mbenchmark-suite/slseg-nil-slist.py[0m [32m SUCCESS: 8s[0m
+
+Running benchmark-suite/tree-dag.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(tree(v1), dag(v1))
+Total lemmas proposed: 1
+Total time charged: 2.113974094390869s
+[94m46[0m | [1mbenchmark-suite/tree-dag.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/tree-p-reach-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m47[0m | [1mbenchmark-suite/tree-p-reach-tree.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/tree-p-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m48[0m | [1mbenchmark-suite/tree-p-reach.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/tree-p-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+Goal has been proven. Lemmas used to prove goal:
+Implies(tree_p(v1), tree(v1))
+Total lemmas proposed: 1
+Total time charged: 2.1983070373535156s
+[94m49[0m | [1mbenchmark-suite/tree-p-tree.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/tree-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m50[0m | [1mbenchmark-suite/tree-reach.py[0m [31m FAILURE[0m
+
+Running benchmark-suite/tree-reach2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+[94m51[0m | [1mbenchmark-suite/tree-reach2.py[0m [31m FAILURE[0m
+
+---------------------------------------------------
+    [1m[31m30 out of 51 programs did not successfully run.[0m

@@ -1,5 +1,6 @@
 import subprocess
 import itertools
+import time
 import warnings
 
 from z3 import *
@@ -8,6 +9,8 @@ set_param('model.compact', False)
 import lemsynth.options as options
 from lemsynth.induction_constraints import generate_pfp_constraint
 from lemsynth.cvc4_compliance import cvc4_compliant_formula_sexpr
+from lemsynth.ProcessStreamer import ProcessStreamer, Timeout
+from lemsynth.utils import StopProposal
 
 from naturalproofs.decl_api import get_uct_signature, get_boolean_recursive_definitions, is_expr_fg_sort
 from naturalproofs.prover import NPSolver
@@ -188,8 +191,30 @@ def z3Preamble():
     return insert_def + '\n' + member_def + '\n' + empset_def + '\n'
 
 
+# Handler for converting synthesis query outputs to a generator that yields lemmas
+# TODO: Move cvc4 compliance forth-and-back and lemma translation into this module
+def process_synth_results(iterable):
+    try:
+        # Each result comes in pairs of the lemma rhs (body) and the lemma lhs (called rswitch)
+        # Looping through iterable/generator two entries at a time: standard grouper recipe from itertools docs
+        yield from itertools.zip_longest(*([iterable]*2), fillvalue=None)
+    # Special exception class to handle graceful termination of synthesis process(es)
+    except StopProposal:
+        # Cannot ascertain the type of the iterable to be a generator in a clean way
+        # Check minimally for handling lists and throw the exception up to the iterable otherwise
+        if type(iterable) != list:
+            try:
+                iterable.throw(StopProposal)
+            except StopIteration:
+                pass
+    except Timeout:
+        # If the generators raises a timeout then there are no more lemmas
+        pass
+    return
+
+
 # write output to a file that can be parsed by CVC4 SyGuS
-def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
+def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_string, config_params, annctx):
     # Make log folder if it does not exist already
     os.makedirs(options.log_file_path, exist_ok=True)
 
@@ -200,15 +225,17 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         raise Exception('Something is wrong. A fixed solver object for the goal is needed. Consult an expert.')
     goal_npsolution = goal_fo_solver.solve(goal, lemmas)
     if not goal_npsolution.if_sat:
-        # Lemmas generated up to this point are useful. Exit.
+        # Lemmas generated up to this point are useful. Wrap up processes and exit.
         print('Goal has been proven. Lemmas used to prove goal:')
         for lemma in lemmas:
             print(lemma[1])
-        print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
-        if options.streaming_synthesis_swtich:
-            total_time = final_out['time_charged'] + final_out['lemma_time']
-            if options.verbose > 0:
-                print('Total time charged: ' + str(total_time) + 's')
+        if options.analytics:
+            if options.verbose >= 10:
+                print('Total lemmas proposed: ' + str(config_params['analytics']['total_lemmas']))
+            if options.streaming_synthesis_swtich:
+                total_time = config_params['analytics']['time_charged'] + config_params['analytics']['lemma_time']
+                if options.verbose > 0:
+                    print('Total time charged: ' + str(total_time) + 's')
         exit(0)
 
     # Temprarily disabling caching or overriding of goal instantiation or extraction terms
@@ -246,24 +273,29 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         false_finitemodel.add_fg_element_offset(abs(non_negative_offset))
     false_model_relative_offset = max(false_model_fg_universe) + abs(non_negative_offset) + 1
 
-    # Add counterexample models to true models if use_cex_models is True
+    # Extract counterexample models from config_params with default value being []
+    if options.use_cex_models:
+        cex_models = config_params.get('cex_models', [])
+    else:
+        cex_models = []
+
+    # Add counterexample models to all models if there are any
     accumulated_offset = false_model_relative_offset
-    if cex_models != []:
-        cex_models_with_offset = []
-        for cex_model in cex_models:
-            # Deepcopy the countermodels so the originals are not affected
-            cex_offset_model = cex_model.copy()
-            # Make the universe of the model positive and shift the model by accumulated offset
-            cex_model_universe = cex_offset_model.get_fg_elements()
-            non_negative_offset = min(cex_model_universe)
-            if non_negative_offset >= 0:
-                non_negative_offset = 0
-            cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
-            # Compute new accumulated offset
-            accumulated_offset = max(cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
-            # Add model to cex_models_with_offset
-            cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
-        cex_models = cex_models_with_offset
+    cex_models_with_offset = []
+    for cex_model in cex_models:
+        # Deepcopy the countermodels so the originals are not affected
+        cex_offset_model = cex_model.copy()
+        # Make the universe of the model positive and shift the model by accumulated offset
+        cex_model_universe = cex_offset_model.get_fg_elements()
+        non_negative_offset = min(cex_model_universe)
+        if non_negative_offset >= 0:
+            non_negative_offset = 0
+        cex_offset_model.add_fg_element_offset(abs(non_negative_offset) + accumulated_offset)
+        # Compute new accumulated offset
+        accumulated_offset = max(cex_model_universe) + abs(non_negative_offset) + accumulated_offset + 1
+        # Add model to cex_models_with_offset
+        cex_models_with_offset = cex_models_with_offset + [cex_offset_model]
+    cex_models = cex_models_with_offset
 
     # Add true counterexample model to true models if use_cex_true_models is True
     true_cex_models = config_params.get('true_cex_models', [])
@@ -296,6 +328,8 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         if options.synthesis_solver == options.minisy:
             out.write(z3Preamble())
             out.write('\n')
+        elif options.synthesis_solver == options.cvc4sy:
+            out.write('(set-logic ALL)\n')
         out.write(';; combination of true models and false model\n')
         out.write(sygus_model_definitions)
         out.write('\n\n')
@@ -304,7 +338,7 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write(grammar_string)
         out.write('\n')
         out.write(';; pfp constraints from counterexample models\n')
-        if cex_models != []:
+        if options.use_cex_models:
             cex_pfp_constraints = generateAllCexConstraints(cex_models, lemma_args, annctx)
             out.write(cex_pfp_constraints)
             out.write('\n')
@@ -326,59 +360,36 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
         out.write('\n')
         out.write('(check-synth)')
         out.close()
+    if options.analytics:
+        config_params['analytics']['proposal_start_time'] = time.time()
     # Optionally prefetching a bunch of lemmas to check each one rather than iterating through each one.
     if options.streaming_synthesis_swtich:
-        # Must include a parameter in the overall call for number of lemmas to be prefetched
-        # Currently hardcoded to be -1, so streaming can only be interrupted by timeout
-        prefetch_count = config_params.get('prefetch_count', -1)
-        # Default streaming timeout is 
-        streaming_timeout = config_params['streaming_timeout']
-        k_lemmas_file = '{}/{}_KLemmas.txt'.format(options.log_file_path, problem_instance_name)
+        # Default streaming timeout
+        streaming_timeout = config_params.get('streaming_timeout', 60)
+        k_lemmas_file = '{}/{}_KLemmas.stream'.format(options.log_file_path, problem_instance_name)
         if options.synthesis_solver != options.cvc4sy:
             raise RuntimeError('Streaming only supported wtih CVC4Sy.')
-        proc = subprocess.Popen(['cvc4', '--lang=sygus2', '--sygus-stream', out_file],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                universal_newlines=True)
-        prefetch_proc = subprocess.Popen(['python3', 'lemsynth/prefetch_lemmas.py', 
-                                          k_lemmas_file, str(prefetch_count)], 
-                                         stdin=proc.stdout, stdout=subprocess.PIPE, 
-                                         universal_newlines=True)
-        try:
-            # Timeout given is given in seconds.
-            standard_out, standard_err = prefetch_proc.communicate(timeout=streaming_timeout)
-        except subprocess.TimeoutExpired:
-            prefetch_proc.kill()
-        proc.kill()
-        with open(k_lemmas_file, 'r') as k_lemmas:
-            lemmas = k_lemmas.readlines()
-            # Lemmas are returned as strings. Possibly terminated by '\n'
-            # Removing possible '\n' before returning
-            lemmas = [lemma[:-1] if lemma[-1] == '\n' else lemma for lemma in lemmas]
-            # List of lemmas returned in string format
-            synth_results = [res[:-1] + ' )' for res in lemmas]
-            return synth_results
+        ps = ProcessStreamer(cmdlist=['cvc4', '--lang=sygus2', '--sygus-stream', out_file], 
+                             timeout=streaming_timeout, 
+                             logfile=k_lemmas_file)
+        if options.analytics:
+            # Analytics are needed. So stream only when next() is called on the generator
+            # This will help time the production of each proposal
+            return process_synth_results(ps.stream(lazystream=True))
+        else:
+            return process_synth_results(ps.stream())
     else:
         if options.synthesis_solver == options.minisy:
-            proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file),
-                                    shell=True, stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, universal_newlines=True)
-            out, err = proc.communicate()
+            proc = subprocess.Popen('minisy {} --smtsolver=z3'.format(out_file), 
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
+                                    shell=True, universal_newlines=True)
+            minisy_out, err = proc.communicate()
             # Convert output to string
-            out, err = str(out), str(err)
-            # print('out:{} err:{}'.format(out, err))
-            if out == '':
+            minisy_out, err = str(minisy_out), str(err)
+            if minisy_out == '':
                 print(err)
                 return None
-            satisfiability = out.split('\n')[0]
-            if satisfiability in {'unsat', 'unknown'}:
-                print('Synthesis solver returns {}. Exiting.'.format(satisfiability))
-                return None
-            else:
-                # Post processing
-                synth_results = '\n'.join(out.split('\n'))
-                synth_results = ['(define-fun' + res for res in synth_results.split('(define-fun')[1:]]
-                synth_results = [' '.join([part for part in res.split('\n') if part != '']) for res in synth_results]
-                return synth_results
+            return process_synth_results(iter(minisy_out.strip().split('\n')))
         else:
             proc = subprocess.Popen(['cvc4', '--lang=sygus2', out_file],
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -387,10 +398,8 @@ def getSygusOutput(lemmas, final_out, lemma_args, goal, problem_instance_name, g
             if cvc4_out == '':
                 print(err)
                 return None
-            elif cvc4_out == 'unknown\n':
-                print('CVC4 SyGuS returns unknown. Exiting.')
+            res = cvc4_out.strip().split('\n')
+            if res[0] == 'unknown':
+                print('Synthesis engine returned unknown.')
                 return None
-            else:
-                lemma = str(cvc4_out).split('\n')[1:][:-1]
-                synth_results = [ res[:-1] + ' )' for res in lemma ]
-                return synth_results
+            return process_synth_results(iter(res[1:]))

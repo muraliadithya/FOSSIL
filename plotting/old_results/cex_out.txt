@@ -1,0 +1,604 @@
+Running benchmark-suite/bst-left-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v1), maxr(nil) <= minr(v1))
+Implies(bst(v1),
+        Implies(hbst(v1)[v2], minr(v1) <= minr(v2)))
+Implies(bst(v1), Implies(hbst(v1)[nil], hbst(nil)[nil]))
+Implies(bst(v1),
+        Implies(hbst(v1)[v2], maxr(v2) <= maxr(v1)))
+Implies(bst(v1), maxr(v1) <= minr(nil))
+Total lemmas proposed: 25
+[94m1[0m | [1mbenchmark-suite/bst-left-right.py[0m [32m SUCCESS: 132s[0m
+
+Running benchmark-suite/bst-left.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v), maxr(v) <= minr(nil))
+Implies(bst(v), Implies(keys(v)[k], minr(v) <= k))
+Implies(bst(v), Implies(minr(nil) <= maxr(v), keys(nil)[k]))
+Total lemmas proposed: 11
+| benchmark-suite/bst-left.py SUCCESS: 82s
+
+Running benchmark-suite/bst-leftmost.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v1), bst(leftmost(v1)))
+Implies(bst(v1), minr(v1) == minr(leftmost(v1)))
+Implies(bst(v1),
+        Implies(Implies(bst(leftmost(nil)), Not(v1 == nil)),
+                minr(leftmost(v1)) == key(leftmost(v1))))
+Total lemmas proposed: 14
+| benchmark-suite/bst-leftmost.py SUCCESS: 59s
+
+Running benchmark-suite/bst-maximal.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v1), Implies(hbst(v1)[v2], bst(v2)))
+Total lemmas proposed: 5
+| benchmark-suite/bst-maximal.py SUCCESS: 5s
+
+Running benchmark-suite/bst-minimal.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v1), Implies(hbst(v1)[v2], bst(v2)))
+Total lemmas proposed: 6
+[94m5[0m | [1mbenchmark-suite/bst-minimal.py[0m [32m SUCCESS: 7s[0m
+
+Running benchmark-suite/bst-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v), Implies(keys(v)[k], k <= maxr(v)))
+Total lemmas proposed: 6
+[94m6[0m | [1mbenchmark-suite/bst-right.py[0m [32m SUCCESS: 119s[0m
+
+Running benchmark-suite/bst-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v), tree(v))
+Total lemmas proposed: 1
+[94m7[0m | [1mbenchmark-suite/bst-tree.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/cyclic-next.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), lseg(nxt(v1), nxt(v2)))
+Total lemmas proposed: 7
+[94m8[0m | [1mbenchmark-suite/cyclic-next.py[0m [32m SUCCESS: 10s[0m
+
+Running benchmark-suite/dag-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(dag(v1), reach_lr(v1, nil))
+Implies(reach_lr(v1, v2), Implies(dag(v1), dag(v2)))
+Total lemmas proposed: 7
+[94m9[0m | [1mbenchmark-suite/dag-reach.py[0m [32m SUCCESS: 6s[0m
+
+Running benchmark-suite/dag-reach2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(dag(v1), reach_lr(v1, nil))
+Implies(reach_lr(v1, v2), Implies(dag(v1), dag(v2)))
+Total lemmas proposed: 8
+[94m10[0m | [1mbenchmark-suite/dag-reach2.py[0m [32m SUCCESS: 7s[0m
+
+Running benchmark-suite/dlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(dlst(v), lst(v))
+Total lemmas proposed: 1
+[94m11[0m | [1mbenchmark-suite/dlist-list.py[0m [32m SUCCESS: 1s[0m
+
+Running benchmark-suite/even-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(even_lst(v), lst(v))
+Total lemmas proposed: 1
+[94m12[0m | [1mbenchmark-suite/even-list.py[0m [32m SUCCESS: 2s[0m
+
+Running benchmark-suite/list-even-or-odd.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(odd_lst(v), even_lst(nxt(v)))
+Implies(even_lst(v),
+        Implies(Not(nxt(v) == nil), odd_lst(nxt(v))))
+Implies(lst(v),
+        Implies(Implies(even_lst(v), odd_lst(nxt(nil))),
+                even_lst(nxt(v))))
+Total lemmas proposed: 7
+[94m13[0m | [1mbenchmark-suite/list-even-or-odd.py[0m [32m SUCCESS: 9s[0m
+
+Running benchmark-suite/list-hlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lst(v1), Implies(hlst(v1)[v2], lst(v2)))
+Total lemmas proposed: 5
+[94m14[0m | [1mbenchmark-suite/list-hlist-list.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/list-hlist-lseg.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lst(v1), lseg(v1, nil))
+Implies(lst(v1), Implies(hlst(v1)[v2], lseg(v2, nil)))
+Implies(lst(v1), Implies(hlst(v1)[v2], lseg(v1, v2)))
+Implies(lst(v1), Implies(hlst(v1)[v2], lst(v2)))
+Total lemmas proposed: 14
+[94m15[0m | [1mbenchmark-suite/list-hlist-lseg.py[0m [32m SUCCESS: 13s[0m
+
+Running benchmark-suite/list-lseg-keys.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lst(v1), lseg(v1, nil))
+Implies(lseg(v1, v2), Implies(keys(v2)[k], keys(v1)[k]))
+Implies(lseg(v1, v2), Implies(lst(v1), lseg(v2, nil)))
+Total lemmas proposed: 15
+[94m16[0m | [1mbenchmark-suite/list-lseg-keys.py[0m [32m SUCCESS: 20s[0m
+
+Running benchmark-suite/list-lseg-keys2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lst(v1), lseg(v1, nil))
+Implies(lseg(v1, v2), Implies(lst(v1), lst(v2)))
+Implies(lseg(v1, v2), Implies(keys(v2)[k], keys(v1)[k]))
+Total lemmas proposed: 17
+[94m17[0m | [1mbenchmark-suite/list-lseg-keys2.py[0m [32m SUCCESS: 19s[0m
+
+Running benchmark-suite/listlen-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lstlen_bool(v), lst(v))
+Total lemmas proposed: 1
+[94m18[0m | [1mbenchmark-suite/listlen-list.py[0m [32m SUCCESS: 1s[0m
+
+Running benchmark-suite/lseg-ext.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2),
+        Implies(Implies(lseg(z, z), lseg(v1, z)),
+                Or(lseg(v2, z), lseg(z, v2))))
+Total lemmas proposed: 7
+[94m19[0m | [1mbenchmark-suite/lseg-ext.py[0m [32m SUCCESS: 5s[0m
+
+Running benchmark-suite/lseg-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lst(v1), lseg(v1, nil))
+Implies(lseg(v1, v2), Implies(lst(v2), lst(v1)))
+Total lemmas proposed: 9
+[94m20[0m | [1mbenchmark-suite/lseg-list.py[0m [32m SUCCESS: 11s[0m
+
+Running benchmark-suite/lseg-next-dyn.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lsegy(v1), lsegz_p(v1))
+Total lemmas proposed: 1
+[94m21[0m | [1mbenchmark-suite/lseg-next-dyn.py[0m [32m SUCCESS: 2s[0m
+
+Running benchmark-suite/lseg-next.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), lseg(nxt(v1), nxt(v2)))
+Total lemmas proposed: 6
+[94m22[0m | [1mbenchmark-suite/lseg-next.py[0m [32m SUCCESS: 9s[0m
+
+Running benchmark-suite/lseg-nil-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(lst(v2), lst(v1)))
+Total lemmas proposed: 8
+[94m23[0m | [1mbenchmark-suite/lseg-nil-list.py[0m [32m SUCCESS: 10s[0m
+
+Running benchmark-suite/lseg-trans.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(lseg(v2, z), lseg(v1, z)))
+Total lemmas proposed: 5
+[94m24[0m | [1mbenchmark-suite/lseg-trans.py[0m [32m SUCCESS: 8s[0m
+
+Running benchmark-suite/lseg-trans2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(lseg(v2, z), lseg(v1, z)))
+Total lemmas proposed: 8
+[94m25[0m | [1mbenchmark-suite/lseg-trans2.py[0m [32m SUCCESS: 16s[0m
+
+Running benchmark-suite/maxheap-dag.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(maxheap(v), dag(v))
+Total lemmas proposed: 2
+[94m26[0m | [1mbenchmark-suite/maxheap-dag.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/maxheap-htree-key.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(maxheap(v1),
+        Implies(htree(v1)[v2], key(v2) <= key(v1)))
+Total lemmas proposed: 5
+[94m27[0m | [1mbenchmark-suite/maxheap-htree-key.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/maxheap-keys.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(maxheap(v), Implies(keys(v)[k], k <= key(v)))
+Total lemmas proposed: 5
+[94m28[0m | [1mbenchmark-suite/maxheap-keys.py[0m [32m SUCCESS: 14s[0m
+
+Running benchmark-suite/maxheap-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(maxheap(v), tree(v))
+Total lemmas proposed: 2
+[94m29[0m | [1mbenchmark-suite/maxheap-tree.py[0m [32m SUCCESS: 2s[0m
+
+Running benchmark-suite/odd-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(odd_lst(v), lst(v))
+Implies(even_lst(v), lst(v))
+Total lemmas proposed: 4
+[94m30[0m | [1mbenchmark-suite/odd-list.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/reach-left-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_lr(v1, v2),
+        Implies(tree(v1), reach_lr(v2, nil)))
+Implies(reach_lr(v1, v2),
+        Implies(htree(v2)[v2], htree(v1)[v1]))
+Implies(reach_lr(v1, v2),
+        Implies(htree(v2)[v2], htree(v1)[v2]))
+Implies(tree(v1), Implies(htree(v1)[v2], reach_lr(v2, nil)))
+Implies(tree(v1),
+        Implies(reach_lr(nil, v2), reach_lr(v1, v2)))
+Implies(tree(v1), reach_lr(v1, nil))
+Total lemmas proposed: 19
+[94m31[0m | [1mbenchmark-suite/reach-left-right.py[0m [32m SUCCESS: 89s[0m
+
+Running benchmark-suite/reachability.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_pgm(z), Or(v2(z) == c, v2(z) == v1(z)))
+Total lemmas proposed: 8
+[94m32[0m | [1mbenchmark-suite/reachability.py[0m [32m SUCCESS: 10s[0m
+
+Running benchmark-suite/reachability2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_pgm(z), v1(z) == v2(z))
+Total lemmas proposed: 3
+[94m33[0m | [1mbenchmark-suite/reachability2.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/reachability3.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_pgm(z), v1(z) == v2(z))
+Total lemmas proposed: 3
+[94m34[0m | [1mbenchmark-suite/reachability3.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/reachability4.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_pgm(z), v1(z) == v2(z))
+Total lemmas proposed: 3
+[94m35[0m | [1mbenchmark-suite/reachability4.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/reachability5.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_pgm(z), Or(c == v2(z), n(v2(z)) == v1(z)))
+Total lemmas proposed: 11
+[94m36[0m | [1mbenchmark-suite/reachability5.py[0m [32m SUCCESS: 16s[0m
+
+Running benchmark-suite/reachability6.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_pgm(z), v1(z) == n(v2(z)))
+Total lemmas proposed: 3
+[94m37[0m | [1mbenchmark-suite/reachability6.py[0m [32m SUCCESS: 4s[0m
+
+Running benchmark-suite/rlist-black-height.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(rlst(v),
+        red_height(v) + black_height(nxt(nil)) ==
+        1 + black_height(nxt(v)))
+Total lemmas proposed: 4
+[94m38[0m | [1mbenchmark-suite/rlist-black-height.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/rlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(rlst(v), lst(v))
+Total lemmas proposed: 1
+[94m39[0m | [1mbenchmark-suite/rlist-list.py[0m [32m SUCCESS: 1s[0m
+
+Running benchmark-suite/rlist-red-height.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(rlst(v), red_height(v) == 1 + black_height(nxt(v)))
+Total lemmas proposed: 2
+[94m40[0m | [1mbenchmark-suite/rlist-red-height.py[0m [32m SUCCESS: 2s[0m
+
+Running benchmark-suite/sdlist-dlist-slist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(sdlst(v), dlst(v))
+Implies(sdlst(v), slst(v))
+Total lemmas proposed: 3
+[94m41[0m | [1mbenchmark-suite/sdlist-dlist-slist.py[0m [32m SUCCESS: 3s[0m
+
+Running benchmark-suite/sdlist-dlist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(sdlst(v), dlst(v))
+Total lemmas proposed: 1
+[94m42[0m | [1mbenchmark-suite/sdlist-dlist.py[0m [32m SUCCESS: 2s[0m
+
+Running benchmark-suite/slist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(slst(v), lst(v))
+Total lemmas proposed: 1
+[94m43[0m | [1mbenchmark-suite/slist-list.py[0m [32m SUCCESS: 1s[0m
+
+Running benchmark-suite/slseg-nil-slist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(slseg(v1, v2), slst(v2) == slst(v1))
+Total lemmas proposed: 9
+[94m44[0m | [1mbenchmark-suite/slseg-nil-slist.py[0m [32m SUCCESS: 13s[0m
+
+Running benchmark-suite/tree-dag.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(tree(v1), dag(v1))
+Total lemmas proposed: 1
+[94m45[0m | [1mbenchmark-suite/tree-dag.py[0m [32m SUCCESS: 1s[0m
+
+Running benchmark-suite/tree-p-reach-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(tree_p(v1), tree(v1))
+Implies(reach_lr(v1, v2), Implies(tree_p(v1), tree_p(v2)))
+Total lemmas proposed: 6
+[94m46[0m | [1mbenchmark-suite/tree-p-reach-tree.py[0m [32m SUCCESS: 12s[0m
+
+Running benchmark-suite/tree-p-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(tree_p(v1), reach_lr(v1, nil))
+Implies(reach_lr(v1, v2), Implies(tree_p(v1), tree_p(v2)))
+Total lemmas proposed: 13
+[94m47[0m | [1mbenchmark-suite/tree-p-reach.py[0m [32m SUCCESS: 24s[0m
+
+Running benchmark-suite/tree-p-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(tree_p(v1), tree(v1))
+Total lemmas proposed: 1
+[94m48[0m | [1mbenchmark-suite/tree-p-tree.py[0m [32m SUCCESS: 1s[0m
+
+Running benchmark-suite/tree-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_lr(v1, v2), Implies(tree(v1), tree(v2)))
+Implies(tree(v1), reach_lr(v1, nil))
+Total lemmas proposed: 10
+[94m49[0m | [1mbenchmark-suite/tree-reach.py[0m [32m SUCCESS: 48s[0m
+
+Running benchmark-suite/tree-reach2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_lr(v1, v2), Implies(tree(v1), tree(v2)))
+Implies(tree(v1), reach_lr(v1, nil))
+Total lemmas proposed: 11
+[94m50[0m | [1mbenchmark-suite/tree-reach2.py[0m [32m SUCCESS: 35s[0m
+
+---------------------------------------------------
+    [1m[32m50 programs have been successfully run.[0m

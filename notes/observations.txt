@@ -1,0 +1,36 @@
+----------------------------------------
+Old tool
+----------------------------------------
+
+Things to talk about the tool in the paper:
+- CVC4Sy does not support uninterpreted sorts, Z3 does not support subsorting. Our tool is therefore notrivial and not reducible to existing tools.
+- Sensitivity of results to changes in grammar. Obvious because cvc4sy likely does enumerative synthesis.
+- Experiments with putting in lemmas discovered in earlier examples -- shows reusability. Many problems end up fiding true lemmas that are maybe unnecessary for that particular example, but could be
+useful for others.-- TODO: find a concrete example where this happens.
+- 
+
+
+
+TODO Future:
+- Simplify translating to cvc4 format and then back again when z3 is used
+- Recdefs with bindings instead of rswitch
+- BitVec encoding for fgsort
+- Serious logging infrastructure
+- Grammar sampler + lemsynth engine (much later)
+- 
+
+
+--------------------------------------
+New tool
+---------------------------------------
+
+TODO:
+- clean up tests/ folder to only have a minimal set of tests for the tool
+- clean up old_tool folder by salvaging any examples that are not included in the current benchmark suite, and delete everything else
+- clean up counterexample-tests/ and counterexample_tests/ folders by adding them to the main test suite
+- Update README and requirements.txt (should include matplotlib etc for plotting code)
+- log all results for the main tool as well as adt and slcomp benchmarks in google drive.
+- experiment with synthetic benchmarks with all counterexamples but synth engine cvc4sy
+- experiment to determine how many examples actually have dependent lemmas. Evaluate by switching off previous valid lemmas when proving a new one.
+- generalise the type2 counterexample generation to arbitrary recdefs with positive recursion (rather than a fixed list)
+- debug reproposal

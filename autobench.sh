@@ -21,7 +21,7 @@ function final_report () {
 while IFS= read -r line;
   do
     START=$(date +%s)
-    timeout 100 python3 -u benchmark-suite/run_factory.py --name=$line
+    timeout 100 python3 -u autobench/run_factory.py --name=$line
     exit_code=$?
     END=$(date +%s)
     DIFF=$(( $END - $START ))

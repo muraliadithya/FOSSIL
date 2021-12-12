@@ -25,6 +25,7 @@ New tool
 ---------------------------------------
 
 TODO:
+- ensure solver on master runs in all modes without any frills: all counterexamples, no type2 counterexamples, and no counterexamples at all (i.e, streaming with cvc4sy). The first two modes should run with both minisy and cvc4sy.
 - clean up tests/ folder to only have a minimal set of tests for the tool
 - clean up old_tool folder by salvaging any examples that are not included in the current benchmark suite, and delete everything else
 - clean up counterexample-tests/ and counterexample_tests/ folders by adding them to the main test suite

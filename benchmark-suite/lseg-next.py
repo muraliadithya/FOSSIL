@@ -60,6 +60,6 @@ lemma_grammar_args = [v1, v2, z, k, nil]
 lemma_grammar_terms = {z, nxt(z), k, v1, nil, nxt(nil), v2, nxt(v2), nxt(v1), nxt(nxt(v1)), nxt(nxt(nxt(v1)))}
 
 name = 'lseg-next'
-grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

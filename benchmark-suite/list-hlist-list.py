@@ -59,6 +59,6 @@ lemma_grammar_args = [v1, v2, k, nil]
 lemma_grammar_terms = {v1, v2, k, nil}
 
 name = 'list-hlist-list'
-grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

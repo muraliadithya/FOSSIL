@@ -67,6 +67,6 @@ lemma_grammar_args = [v, nil]
 lemma_grammar_terms = {v, nil, prv(v), prv(nil), nxt(nxt(nil)), nxt(prv(nxt(nxt(v)))), nxt(prv(nxt(nil))), nxt(prv(nxt(x))), nxt(nxt(nxt(v)))}
 
 name = 'sdlist-dlist'
-grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

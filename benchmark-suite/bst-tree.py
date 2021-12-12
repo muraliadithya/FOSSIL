@@ -81,6 +81,6 @@ lemma_grammar_args = [v, nil]
 lemma_grammar_terms = {v, nil, lft(lft(v)), lft(rght(v)), rght(nil)}
 
 name = 'bst-tree'
-grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

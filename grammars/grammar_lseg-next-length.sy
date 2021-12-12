@@ -1,0 +1,26 @@
+;; TODO: this should be generated from the problem parameters
+;; lemma to synthesize
+(synth-fun lemma ((x Int) (nil Int) (y Int) (yp Int)) Bool
+           ((Start Bool) (I Int) (Loc Int))
+
+           ((Start Bool
+                  ((=> Start Start)
+                   (and Start Start)
+                   (= I I)
+                   (= Loc Loc)
+                   (lseglen_y_bool Loc) (lseglen_yp_bool Loc)))
+            (I Int (
+                   (lseglen_y_int Loc)
+                   (lseglen_yp_int Loc)
+                   (+ I 1)))
+            (Loc Int (x y yp
+                     (next x)
+                     (next y)
+                     (next yp)
+                     )))
+)
+
+(synth-fun rswitch () Int
+           ((Start Int))
+           ((Start Int (1)))
+)

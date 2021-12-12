@@ -1,0 +1,43 @@
+;; lemma to synthesize - simplified grammar
+;; Try this with (= B1 B1) commented out. The result is displayed as two lemmas.
+(synth-fun lemma ((x Int) (nil Int) (k Int)) Bool
+
+           ((Start Bool) (B1 Bool) (S (Set Int)) (S1 (Set Int)) (Key Int) (Loc Int))
+
+           ((Start Bool
+                  (
+                  (= B1 B1)
+                  (=> B1 B1)
+                  (and B1 B1)
+                  (or B1 B1)
+                   ))
+           (B1 Bool
+                  ((member Key S)
+                   (slist Loc)
+                   (slist_find_k Loc)
+                   ))
+            (S (Set Int)
+                  (
+                   (insert Key S1)
+                   (keys Loc)
+                   ))
+            (S1 (Set Int)
+                  (
+                   (keys Loc)
+                   ))
+            (Key Int 
+            	   (
+            	    k
+                   (key Loc)
+                   ))
+            (Loc Int (x nil
+                     )))
+)
+
+(synth-fun rswitch () Int
+
+           ((Start Int))
+
+           ((Start Int (0 1)))
+
+)

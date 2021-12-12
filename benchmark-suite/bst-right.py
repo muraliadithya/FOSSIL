@@ -87,6 +87,6 @@ lemma_grammar_args = [v, k, nil]
 lemma_grammar_terms = {v, k, nil, rght(rght(v)), rght(lft(v))}
 
 name = 'bst-right'
-grammar_string = importlib_resources.read_text('experiments', 'grammar_{}.sy'.format(name))
+grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

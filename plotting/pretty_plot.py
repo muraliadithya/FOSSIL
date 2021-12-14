@@ -6,7 +6,7 @@ from matplotlib.lines import Line2D
 
 def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagonal=True, square=True,
                 measurement='runtime', unit='s', mark='o', bands=True, bands_curve=True, offset_band_label=False,
-                tm_val=None, x_leg='lower right', y_leg='center right', plotdir='./plots/'):
+                tm_val=None, x_leg='lower right', y_leg='center right', z_leg='upper left', plotdir='./plots/'):
     """
     Display plot for batch of FOSSIL experiments.
     Data for each axis is given in x and y, respectively. String names may be specified for axis/symbol labels.
@@ -57,12 +57,20 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
 
     # Plot the timeouts
     tm_factor = 1.05
-    x_t = np.exp(tm_factor*np.log(np.max(data[0])))*np.ones(len(np.where(timeout_x)[0]))
-    ax_scatter.scatter(x_t, data[1,np.where(timeout_x)],
+    tm_x = np.where(timeout_x & ~timeout_y)
+    x_t = np.exp(tm_factor*np.log(np.max(data[0])))*np.ones_like(tm_x[0])
+    ax_scatter.scatter(x_t, data[1, tm_x],
                        color='green', marker='>', s=60)
-    y_t = np.exp(tm_factor*np.log(np.max(data[1])))*np.ones(len(np.where(timeout_y)[0]))
-    ax_scatter.scatter(data[0,np.where(timeout_y)], y_t,
+    tm_y = np.where(timeout_y & ~timeout_x)
+    y_t = np.exp(tm_factor*np.log(np.max(data[1])))*np.ones_like(tm_y[0])
+    ax_scatter.scatter(data[0, tm_y], y_t,
                        color='maroon', marker='^', s=60)
+    # Plot tests on which both tools timed out
+    tm_z = np.where(timeout_x & timeout_y)
+    z_t = np.exp(tm_factor*np.log(np.max(data)))*np.ones_like(tm_z[0])
+    ax_scatter.scatter(z_t, z_t,
+                       color='orange', marker='D', s=45)
+    
     # Plot the data
     ax_scatter.scatter(no_timeout[0], no_timeout[1], marker=mark, s=(50 if mark=='o' else 30),
                        c=colors, cmap=cmap)
@@ -110,18 +118,25 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
         ax_scatter.plot(dd, dd_below, '-', alpha=0.3, color='yellowgreen')
 
     # Manually set legends
-    if np.any(timeout_x):
+    if np.any(tm_x[0]):
+        print('printing X legend')
         legend_elements_x = [Line2D([0],[0], color='w', marker='>', 
                                    label='{}\ntimeout'.format(x_name),
                                    markerfacecolor='green', markersize=10)]
         legend_x = ax_scatter.legend(handles=legend_elements_x, loc=x_leg, prop={"size":12})
         ax_scatter.add_artist(legend_x)
-    if np.any(timeout_y):
+    if np.any(tm_y[0]):
         legend_elements_y = [Line2D([0],[0], color='w', marker='^', 
                                    label='{}\ntimeout'.format(y_name),
                                    markerfacecolor='maroon', markersize=10)]
         legend_y = ax_scatter.legend(handles=legend_elements_y, loc=y_leg)
         ax_scatter.add_artist(legend_y)
+    if np.any(tm_z[0]):
+        legend_elements_z = [Line2D([0],[0], color='w', marker='D', 
+                                   label='both timeout',
+                                   markerfacecolor='orange', markersize=8)]
+        legend_z = ax_scatter.legend(handles=legend_elements_z, loc=z_leg, fontsize=12)
+        ax_scatter.add_artist(legend_z)
 
     # Set text
     ax_scatter.set_xlabel('{} {} {}'.format(x_name, measurement, '({})'.format(unit) if unit else ''))

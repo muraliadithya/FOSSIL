@@ -142,7 +142,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 print('total lemmas so far: ' + str(config_params['analytics']['total_lemmas']))
 
             if z3py_lemma in invalid_lemmas or z3py_lemma in valid_lemmas:
-                if options.use_cex_models:
+                if options.use_cex_models or options.use_cex_true_models:
                     print('lemma has already been proposed')
                     if z3py_lemma in invalid_lemmas:
                         print('Something is wrong. Lemma was re-proposed in the presence of countermodels. '

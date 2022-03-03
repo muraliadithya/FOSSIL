@@ -61,6 +61,8 @@ class NPSolver:
         :param lemmas: set of z3.BoolRef  
         :return: NPSolution  
         """
+        z3.set_param('smt.random_seed', 0)
+        z3.set_param('sat.random_seed', 0)
         # TODO: check that the given lemmas are legitimate bound formula instances with their formal parameters from
         #  the foreground sort.
         options = self.options

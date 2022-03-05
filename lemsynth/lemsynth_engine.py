@@ -20,7 +20,8 @@ from naturalproofs.extensions.finitemodel import FiniteModel
 from naturalproofs.extensions.lfpmodels import gen_lfp_model
 
 
-def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None, annctx=default_annctx):
+def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None,
+                 annctx=default_annctx):
     # Extract relevant parameters for running the verification-synthesis engine from config_params
     if config_params is None:
         config_params = {}
@@ -32,8 +33,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
     # Determine proof mode for goal
     goal_instantiation_mode = config_params.get('goal_instantiation_mode', None)
-    supported_goal_instantiation_modes = {proveroptions.manual_instantiation, 
-                                          proveroptions.depth_one_stratified_instantiation, 
+    supported_goal_instantiation_modes = {proveroptions.manual_instantiation,
+                                          proveroptions.depth_one_stratified_instantiation,
                                           proveroptions.fixed_depth}
     if goal_instantiation_mode is None:
         # depth one stratified instantiation by default
@@ -112,7 +113,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
     # continuously get valid lemmas until goal has been proven
     while True:
-        sygus_results = getSygusOutput(valid_lemmas, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
+        sygus_results = getSygusOutput(valid_lemmas, lemma_grammar_args, goal, name, grammar_string, config_params,
+                                       annctx)
         if sygus_results is None or sygus_results == []:
             exit('No lemmas proposed. Instance failed.')
         for rhs_pre, lhs_pre in sygus_results:
@@ -123,7 +125,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
             # Casting the lemma into a Z3Py expression
             if options.analytics:
                 curr_time = time.time()
-                config_params['analytics']['lemma_time'] = int(curr_time - 
+                config_params['analytics']['lemma_time'] = int(curr_time -
                                                                config_params['analytics']['proposal_start_time'])
             pre_validation = time.time()
             rhs_lemma = translateLemma(rhs_pre, lemma_grammar_args, addl_decls, swap_fcts, replace_fcts, annctx)
@@ -150,7 +152,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     # TODO: remove after replacing this with a check for terms in the grammar
                     if z3py_lemma in valid_lemmas:
                         print('This is a currently known limitation of the tool. Consider restricting your grammar to '
-                              'have terms of lesser height.') 
+                              'have terms of lesser height.')
                     exit('Instance failed.')
                 else:
                     # No countermodels. Check if streaming mode for synthesis is enabled.
@@ -198,16 +200,20 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.use_cex_true_models:
                     if options.verbose >= 4:
                         print('using true counterexample models')
-                    true_cex_model = gen_lfp_model(5, annctx, invalid_formula=z3py_lemma)
+                    true_model_size = 5
+                    true_cex_model = gen_lfp_model(true_model_size, annctx, invalid_formula=z3py_lemma)
                     if true_cex_model is not None:
-                        true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
+                        # true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
+                        # HACK
+                        true_model_terms = {z3.IntVal(i) for i in range(true_model_size)}
                         const = [arg for arg in lemma_grammar_args if not is_var_decl(arg, annctx)]
                         lemma_arity = len(lemma_grammar_args) - len(const)
                         args = itertools.product(true_model_terms, repeat=lemma_arity)
-                        instantiations = [ arg for arg in args if
-                                           z3.is_false(true_cex_model.smtmodel.eval(z3.substitute(z3py_lemma[1],
-                                                                                                  list(zip(lemma_grammar_args[:lemma_arity], arg))),
-                                                                                    model_completion=True)) ]
+                        instantiations = [arg for arg in args if
+                                          z3.is_false(true_cex_model.smtmodel.eval(
+                                              z3.substitute(z3py_lemma[1],
+                                                            list(zip(lemma_grammar_args[:lemma_arity], arg))),
+                                              model_completion=True))]
                         true_cex_models = true_cex_models + [(true_cex_model, {instantiations[0]})]
                         config_params['true_cex_models'] = true_cex_models
                     else:

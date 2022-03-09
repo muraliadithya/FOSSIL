@@ -201,11 +201,10 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     if options.verbose >= 4:
                         print('using true counterexample models')
                     true_model_size = 5
-                    true_cex_model = gen_lfp_model(true_model_size, annctx, invalid_formula=z3py_lemma)
+                    true_cex_model, true_model_terms = gen_lfp_model(true_model_size, annctx, invalid_formula=z3py_lemma)
                     if true_cex_model is not None:
+                        # Use after gen_lfp_model fixes values on elements not in the lfp (as sort.lattice_bottom) 
                         # true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
-                        # HACK
-                        true_model_terms = {z3.IntVal(i) for i in range(true_model_size)}
                         const = [arg for arg in lemma_grammar_args if not is_var_decl(arg, annctx)]
                         lemma_arity = len(lemma_grammar_args) - len(const)
                         args = itertools.product(true_model_terms, repeat=lemma_arity)

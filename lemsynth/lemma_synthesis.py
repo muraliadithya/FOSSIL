@@ -259,9 +259,6 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
     goal_extraction_terms = goal_npsolution.extraction_terms
     false_finitemodel = FiniteModel(goal_npsolution.model, goal_extraction_terms, annctx=annctx)
 
-    # use_cex_models = config_params.get('use_cex_models', True)
-    cex_models = config_params.get('cex_models', [])
-
     # Adding offsets to make sure: (i) all elements in all models are positive (ii) models do not overlap
     # Making the universe of the false model positive
     false_model_fg_universe = false_finitemodel.get_fg_elements()
@@ -274,10 +271,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
     false_model_relative_offset = max(false_model_fg_universe) + abs(non_negative_offset) + 1
 
     # Extract counterexample models from config_params with default value being []
-    if options.use_cex_models:
-        cex_models = config_params.get('cex_models', [])
-    else:
-        cex_models = []
+    cex_models = config_params.get('cex_models', [])
 
     # Add counterexample models to all models if there are any
     accumulated_offset = false_model_relative_offset
@@ -299,7 +293,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
 
     # Add true counterexample model to true models if use_cex_true_models is True
     true_cex_models = config_params.get('true_cex_models', [])
-    if options.use_cex_true_models:
+    if true_cex_models:
         true_cex_models_with_offset = []
         for true_cex_model in true_cex_models:
             # Deepcopy the countermodels so the originals are not affected
@@ -325,6 +319,8 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
 
     sygus_model_definitions = sygusBigModelEncoding(all_models, vocab, set_defs, annctx)
     with open(out_file, 'w') as out:
+        out.write('(set-option :smt.random-seed 0)\n')
+        out.write('(set-option :sat.random-seed 0)\n')
         if options.synthesis_solver == options.minisy:
             out.write(z3Preamble())
             out.write('\n')
@@ -338,7 +334,7 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
         out.write(grammar_string)
         out.write('\n')
         out.write(';; pfp constraints from counterexample models\n')
-        if options.use_cex_models:
+        if cex_models:
             cex_pfp_constraints = generateAllCexConstraints(cex_models, lemma_args, annctx)
             out.write(cex_pfp_constraints)
             out.write('\n')
@@ -349,14 +345,12 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
         out.write('\n')
         out.write('\n')
         out.write(';; constraints from true counterexample models\n')
-        if options.use_cex_true_models:
+        if true_cex_models:
             true_constraints = ''
             for true_cex_model in true_cex_models:
                 curr_true_constraint = generateConstraints(true_cex_model[0], lemma_args, true_cex_model[1], True, annctx, instantiations=true_cex_model[2])
                 true_constraints += curr_true_constraint + '\n'
-        else:
-            true_constraints = ''
-        out.write(true_constraints)
+            out.write(true_constraints)
         out.write('\n')
         out.write('(check-synth)')
         out.close()

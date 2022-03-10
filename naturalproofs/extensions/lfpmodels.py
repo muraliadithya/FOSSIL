@@ -364,6 +364,9 @@ def gen_lfp_model(size, annctx, invalid_formula=None):
         formal_vars, body = invalid_formula
         constraints.append(Or([Not(apply_bound_formula(invalid_formula, args))
                                for args in itertools.product(universe, repeat=len(formal_vars))]))
+
+    z3.set_param('smt.random_seed', 0)
+    z3.set_param('sat.random_seed', 0)
     sol = z3.Solver()
     sol.add(constraints)
     if sol.check() == z3.sat:

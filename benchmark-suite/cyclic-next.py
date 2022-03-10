@@ -61,6 +61,7 @@ lemma_grammar_args = [v1, v2, nil]
 lemma_grammar_terms = {v1, v2, nil, nxt(v2), nxt(nxt(v1)), nxt(nil)}
 
 name = 'cyclic-next'
+# name = 'cyclic-next-lvl0'
 grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

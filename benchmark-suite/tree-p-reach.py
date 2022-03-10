@@ -11,11 +11,12 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(Not(IsMember(x, htree_p(lft(x)))), Not(IsMember(x, htree_p(rght(x)))))
+
 # declarations
 x, y = Vars('x y', fgsort)
 nil, ret = Consts('nil ret', fgsort)
-k = Const('k', intsort)
-key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
 parent = Function('parent', fgsort, fgsort)
@@ -23,10 +24,11 @@ tree_p = RecFunction('tree_p', fgsort, boolsort)
 htree_p = RecFunction('htree_p', fgsort, fgsetsort)
 reach_lr = RecFunction('reach_lr', fgsort, fgsort, boolsort)
 AddRecDefinition(tree_p, x, If(x == nil, True,
-                               And(SetIntersect(htree_p(lft(x)), htree_p(rght(x)))
-                                   == fgsetsort.lattice_bottom,
-                                   And(And(parent(lft(x)) == x, parent(rght(x)) == x),
-                                       And(tree_p(lft(x)), tree_p(rght(x)))))))
+                               And(notInChildren(x),
+                                   And(SetIntersect(htree_p(lft(x)), htree_p(rght(x)))
+                                       == fgsetsort.lattice_bottom,
+                                       And(And(parent(lft(x)) == x, parent(rght(x)) == x),
+                                           And(tree_p(lft(x)), tree_p(rght(x))))))))
 AddRecDefinition(htree_p, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree_p(lft(x)), htree_p(rght(x))), x)))
 AddRecDefinition(reach_lr, (x, y), If(x == y, True,

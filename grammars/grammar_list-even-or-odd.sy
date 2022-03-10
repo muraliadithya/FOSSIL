@@ -2,7 +2,7 @@
 
            ((Start Bool) (Loc Int) (LocLeaf Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
                    (not (= Loc nil))
                    (lst Loc)
@@ -10,7 +10,7 @@
                    (even_lst Loc)))
             (Loc Int (LocLeaf
                  (nxt LocLeaf)))
-            (LocLeaf Int (x nil)))
+            (LocLeaf Int (x)))
 )
 
 (synth-fun rswitch () Int

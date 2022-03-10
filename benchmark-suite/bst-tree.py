@@ -11,10 +11,12 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(Not(IsMember(x, htree(lft(x)))), Not(IsMember(x, htree(rght(x)))))
+
 # declarations
 x = Var('x', fgsort)
 nil, ret = Consts('nil ret', fgsort)
-k = Const('k', intsort)
 key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
@@ -27,7 +29,9 @@ AddRecDefinition(minr, x, If(x == nil, 100, min_intsort(key(x), minr(lft(x)), mi
 AddRecDefinition(maxr, x, If(x == nil, -1, max_intsort(key(x), maxr(lft(x)), maxr(rght(x)))))
 AddRecDefinition(tree, x, If(x == nil, True, And(tree(lft(x)), tree(rght(x)))))
 AddRecDefinition(tree, x, If(x == nil, True,
-                             And(SetIntersect(htree(lft(x)), htree(rght(x)))
+                             And(And(And(Not(IsMember(x, htree(lft(x)))),
+                                         Not(IsMember(x, htree(rght(x)))))),
+                                 SetIntersect(htree(lft(x)), htree(rght(x)))
                                  == fgsetsort.lattice_bottom,
                                  And(tree(lft(x)), tree(rght(x))))))
 AddRecDefinition(bst, x, If(x == nil, True,
@@ -37,8 +41,9 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
                                                 And(key(x) <= minr(rght(x)),
-                                                    SetIntersect(htree(lft(x)), htree(rght(x)))
-                                                    == fgsetsort.lattice_bottom))))))))
+                                                    And(notInChildren(x),
+                                                        SetIntersect(htree(lft(x)), htree(rght(x)))
+                                                        == fgsetsort.lattice_bottom)))))))))
 AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)

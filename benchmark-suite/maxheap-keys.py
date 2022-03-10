@@ -12,6 +12,9 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(Not(IsMember(x, htree(lft(x)))), Not(IsMember(x, htree(rght(x)))))
+
 # declarations
 x, y = Vars('x y', fgsort)
 nil, ret = Consts('nil ret', fgsort)
@@ -23,12 +26,13 @@ rght = Function('rght', fgsort, fgsort)
 maxheap = RecFunction('maxheap', fgsort, boolsort)
 htree = RecFunction('htree', fgsort, fgsetsort)
 AddRecDefinition(maxheap, x, If(x == nil, True,
-                                And(SetIntersect(htree(lft(x)), htree(rght(x)))
-                                    == fgsetsort.lattice_bottom,
-                                    And(maxheap(lft(x)),
-                                        And(maxheap(rght(x)),
-                                            And(key(lft(x)) <= key(x),
-                                                key(rght(x)) <= key(x)))))))
+                                And(notInChildren(x),
+                                    And(SetIntersect(htree(lft(x)), htree(rght(x)))
+                                        == fgsetsort.lattice_bottom,
+                                        And(maxheap(lft(x)),
+                                            And(maxheap(rght(x)),
+                                                And(key(lft(x)) <= key(x),
+                                                    key(rght(x)) <= key(x))))))))
 AddRecDefinition(htree, x, If(x == nil, fgsetsort.lattice_bottom,
                               SetAdd(SetUnion(htree(lft(x)), htree(rght(x))), x)))
 AddRecDefinition(keys, x, If(x == nil, fgsetsort.lattice_bottom,
@@ -69,9 +73,10 @@ else:
 # lemma synthesis
 v = Var('v', fgsort)
 lemma_grammar_args = [v, k, nil]
-lemma_grammar_terms = {v, k, nil, rght(v), lft(v)}
+lemma_grammar_terms = {v, k, nil, rght(v), lft(v), lft(nil), rght(nil)}
 
 name = 'maxheap-keys'
+# name = 'maxheap-keys-lvl0'
 grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))
 
 solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string)

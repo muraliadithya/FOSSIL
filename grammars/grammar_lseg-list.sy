@@ -5,12 +5,12 @@
 
            ((Start Bool) (Loc Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
                    (not (= Loc nil))
                    (lst Loc)
                    (lseg Loc Loc)))
-            (Loc Int (x y nil)))
+            (Loc Int (x y)))
 
 )
 

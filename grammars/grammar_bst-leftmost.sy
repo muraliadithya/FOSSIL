@@ -1,19 +1,20 @@
-(synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
+(synth-fun lemma ((x Int) (k Int) (nil Int)) Bool
            ((Start Bool) (I Int) (Loc Int) (LocLeaf Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
-                   (not (= LocLeaf nil))
+                   (not (= Loc nil))
                    (= I I)
                    (<= I I)
+                   (member x (hbst x))
                    (bst Loc)))
-            (I Int (
+            (I Int (k
                    (key Loc)
                    (minr Loc)
                    (maxr Loc)))
             (Loc Int (LocLeaf
                  (leftmost LocLeaf)))
-            (LocLeaf Int (x y nil)))
+            (LocLeaf Int (x)))
 
  )
 

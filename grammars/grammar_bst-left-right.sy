@@ -3,7 +3,7 @@
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
            ((Start Bool) (I Int) (Loc Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                   (=> Start Start)
                   (<= I I)
                   (= I I)
@@ -11,18 +11,12 @@
                   (bst Loc)
                   (member x (hbst x))
                   (member x (hbst y))
-                  (member x (hbst nil))
                   (member y (hbst x))
-                  (member y (hbst y))
-                  (member y (hbst nil))
-                  (member nil (hbst x))
-                  (member nil (hbst y))
-                  (member nil (hbst nil))))
+                  (member y (hbst y))))
            (I Int (
-              (key Loc)
               (minr Loc)
               (maxr Loc)))
-           (Loc Int (x y nil)))
+           (Loc Int (x y)))
 )
 
 (synth-fun rswitch () Int

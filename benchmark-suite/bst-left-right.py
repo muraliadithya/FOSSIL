@@ -11,10 +11,12 @@ from naturalproofs.pfp import make_pfp_formula
 
 from lemsynth.lemsynth_engine import solveProblem
 
+def notInChildren(x):
+    return And(Not(IsMember(x, hbst(lft(x)))), Not(IsMember(x, hbst(rght(x)))))
+
 # declarations
-x, y, z = Vars('x y z', fgsort)
-nil = Const('nil', fgsort)
-k = Const('k', intsort)
+x, y = Vars('x y', fgsort)
+z, nil = Consts('z nil', fgsort)
 key = Function('key', fgsort, intsort)
 lft = Function('lft', fgsort, fgsort)
 rght = Function('rght', fgsort, fgsort)
@@ -31,8 +33,9 @@ AddRecDefinition(bst, x, If(x == nil, True,
                                         And(bst(rght(x)),
                                             And(maxr(lft(x)) <= key(x),
                                                 And(key(x) <= minr(rght(x)),
-                                                    SetIntersect(hbst(lft(x)), hbst(rght(x)))
-                                                    == fgsetsort.lattice_bottom))))))))
+                                                    And(notInChildren(x),
+                                                        SetIntersect(hbst(lft(x)), hbst(rght(x)))
+                                                        == fgsetsort.lattice_bottom)))))))))
 AddRecDefinition(hbst, x, If(x == nil, fgsetsort.lattice_bottom,
                              SetAdd(SetUnion(hbst(lft(x)), hbst(rght(x))), x)))
 AddAxiom((), lft(nil) == nil)
@@ -81,7 +84,7 @@ else:
 # lemma synthesis
 v1, v2 = Vars('v1 v2', fgsort)
 lemma_grammar_args = [v1, v2, nil]
-lemma_grammar_terms = {v1, v2, nil}
+lemma_grammar_terms = {v1, v2}
 
 name = 'bst-left-right'
 grammar_string = importlib_resources.read_text('grammars', 'grammar_{}.sy'.format(name))

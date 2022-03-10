@@ -1,14 +1,15 @@
 (synth-fun lemma ((x Int) (y Int) (k Int) (nil Int)) Bool
            ((Start Bool) (I Int) (Loc Int))
 
-           ((Start Bool (
+           ((Start Bool (false
                    (=> Start Start)
                    (<= I I)
                    (= I I)
+                   (not (= Loc nil))
                    (reach_lr Loc Loc)
                    (dag Loc)))
             (I Int (k))
-            (Loc Int (x y nil)))
+            (Loc Int (x y)))
 )
 
 (synth-fun rswitch () Int

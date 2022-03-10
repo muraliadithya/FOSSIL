@@ -1,6 +1,7 @@
 **/out*
 **/__pycache__/*
 **/logs/*
+**/*.cache
 **/autobenchlogs/*
 **/*_KLemmas.txt
 .idea/**

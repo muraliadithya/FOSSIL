@@ -1,0 +1,24 @@
+Old lvl1.txt
+--------------------
+benchmark-suite/bst-leftmost.py
+benchmark-suite/cyclic-next.py
+benchmark-suite/list-even-or-odd.py
+benchmark-suite/lseg-ext.py
+benchmark-suite/maxheap-htree-key.py
+benchmark-suite/maxheap-keys.py
+benchmark-suite/rlist-black-height.py
+benchmark-suite/rlist-red-height.py
+
+Grammar files with 'lvl0' in them
+---------------------------------
+grammars/grammar_bst-leftmost-lvl0.sy
+grammars/grammar_cyclic-next-lvl0.sy
+grammars/grammar_list-even-or-odd-lvl0.sy
+grammars/grammar_list-lseg-keys-lvl0.sy
+grammars/grammar_list-lseg-keys2-lvl0.sy
+grammars/grammar_lseg-ext-lvl0.sy
+grammars/grammar_lseg-next-lvl0.sy
+grammars/grammar_maxheap-htree-key-lvl0.sy
+grammars/grammar_maxheap-keys-lvl0.sy
+grammars/grammar_rlist-height-lvl0.sy
+

@@ -370,6 +370,6 @@ def gen_lfp_model(size, annctx, invalid_formula=None):
         lfp_model = sol.model()
         # Project model onto the numbers corresponding to the foreground universe
         finite_lfp_model = FiniteModel(lfp_model, universe, annctx=annctx)
-        return finite_lfp_model
+        return finite_lfp_model, universe
     else:
-        return None
+        return None, None

@@ -18,9 +18,9 @@ function final_report () {
   fi
 }
 
-# for file in `ls benchmark-suite/*.py`
+for file in `ls benchmark-suite/*.py`
 # for file in $(cat lvl1.txt)
-for file in `ls benchmark-suite/reachability*.py`
+# for file in `ls benchmark-suite/reachability*.py`
   do
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)

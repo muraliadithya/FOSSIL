@@ -1,11 +1,12 @@
 from z3 import *
+import itertools
 import time
 import warnings
 import itertools
 
 import lemsynth.grammar_utils as grammar
 from lemsynth.lemma_synthesis import getSygusOutput
-from lemsynth.utils import translateLemma 
+from lemsynth.utils import translateLemma, StopProposal
 import lemsynth.options as options
 
 from naturalproofs.AnnotatedContext import default_annctx
@@ -19,7 +20,8 @@ from naturalproofs.extensions.finitemodel import FiniteModel
 from naturalproofs.extensions.lfpmodels import gen_lfp_model
 
 
-def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None, annctx=default_annctx):
+def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None,
+                 annctx=default_annctx):
     # Extract relevant parameters for running the verification-synthesis engine from config_params
     if config_params is None:
         config_params = {}
@@ -31,8 +33,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
 
     # Determine proof mode for goal
     goal_instantiation_mode = config_params.get('goal_instantiation_mode', None)
-    supported_goal_instantiation_modes = {proveroptions.manual_instantiation, 
-                                          proveroptions.depth_one_stratified_instantiation, 
+    supported_goal_instantiation_modes = {proveroptions.manual_instantiation,
+                                          proveroptions.depth_one_stratified_instantiation,
                                           proveroptions.fixed_depth}
     if goal_instantiation_mode is None:
         # depth one stratified instantiation by default
@@ -69,17 +71,17 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         exit(0)
 
     # check if goal is fo provable using its own pfp
-    ## pfp_of_goal = make_pfp_formula(goal)
-    ## goal_pfp_solver = NPSolver()
-    ## goal_pfp_solver.options.instantiation_mode = goal_instantiation_mode
-    ## if goal_instantiation_mode == proveroptions.manual_instantiation:
-    ##     warnings.warn('Manual instantiation mode: PFP of goal will be proved using the same terms the goal itself.')
-    ## goal_pfp_npsolution = goal_pfp_solver.solve(pfp_of_goal)
-    ## if goal_pfp_npsolution.if_sat:
-    ##     print('goal cannot be proved using induction.')
-    ## else:
-    ##     print('goal is provable using induction.')
-    ##     exit(0)
+    pfp_of_goal = make_pfp_formula(goal)
+    goal_pfp_solver = NPSolver()
+    goal_pfp_solver.options.instantiation_mode = goal_instantiation_mode
+    if goal_instantiation_mode == proveroptions.manual_instantiation:
+        warnings.warn('Manual instantiation mode: PFP of goal will be proved using the same terms the goal itself.')
+    goal_pfp_npsolution = goal_pfp_solver.solve(pfp_of_goal)
+    if goal_pfp_npsolution.if_sat:
+        print('goal cannot be proved using induction.')
+    else:
+        print('goal is provable using induction.')
+        exit(0)
 
     # goal_npsolution_instantiation_terms = goal_fo_npsolution.extraction_terms
     # config_params['goal_npsolution_instantiation_terms'] = goal_npsolution_instantiation_terms
@@ -92,60 +94,57 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     # This set is constant
     lemma_instantiation_terms = grammar.lemma_instantiation_terms(lemma_grammar_args, lemma_grammar_terms, annctx)
 
-    # for streaming
+    # Initial timeout (in seconds) for streaming
     config_params['streaming_timeout'] = 450
-    # Dictionary for logging
-    final_out = {'total_lemmas': 0, 'time_charged': 0}
+    # Dictionary for logging pipeline analytics
+    if options.analytics:
+        config_params['analytics'] = {'total_lemmas': 0, 'time_charged': 0}
+
+    # Some fixed utility functions for interpreting synthesis outputs
+    # Values used to convert CVC4 versions of membership, insertion to z3py versions
+    SetIntSort = SetSort(IntSort())
+    membership = Function('membership', IntSort(), SetIntSort, BoolSort())
+    insertion = Function('insertion', IntSort(), SetIntSort, SetIntSort)
+    addl_decls = {'member': membership, 'insert': insertion}
+    swap_fcts = {insertion: SetAdd}
+    replace_fcts = {membership: IsMember}
+    # List of recursive boolean-valued rec defs that can appear on the left hand side of a lemma
+    recs = get_boolean_recursive_definitions()
 
     # continuously get valid lemmas until goal has been proven
     while True:
-        lemmas = getSygusOutput(valid_lemmas, final_out, lemma_grammar_args, goal, name, grammar_string, config_params, annctx)
-        if lemmas is None or lemmas == []:
+        sygus_results = getSygusOutput(valid_lemmas, lemma_grammar_args, goal, name, grammar_string, config_params,
+                                       annctx)
+        if sygus_results is None or sygus_results == []:
             exit('No lemmas proposed. Instance failed.')
-        # Each result comes in pairs of the lemma body and the lemma lhs (called rswitch)
-        lemmas = [(lemmas[i*2], lemmas[i*2+1]) for i in range(len(lemmas)//2)]
-        for lemma in lemmas:
-            pre_validation = time.time()
-            final_out['total_lemmas'] += 1
-            # convert CVC4 versions of membership, insertion to z3py versions
-            SetIntSort = SetSort(IntSort())
-            membership = Function('membership', IntSort(), SetIntSort, BoolSort())
-            insertion = Function('insertion', IntSort(), SetIntSort, SetIntSort)
-            addl_decls = {'member': membership, 'insert': insertion}
-            swap_fcts = {insertion: SetAdd}
-            replace_fcts = {membership: IsMember}
-
+        for rhs_pre, lhs_pre in sygus_results:
+            rhs_pre = rhs_pre.strip()
+            lhs_pre = lhs_pre.strip()
+            if options.analytics:
+                config_params['analytics']['total_lemmas'] += 1
             # Casting the lemma into a Z3Py expression
-            # Distinguish by output format of synthesis solver
-            if options.streaming_synthesis_swtich:
-                # Start time is constant because it's the time of the first line printed
-                start_time = lemmas[0][0].split(': ')[0]
-                curr_time = lemma[0].split(': ')[0]
-                lemma_time = float(curr_time) - float(start_time)
-                final_out['lemma_time'] = lemma_time
-                rhs_pre = lemma[0].split(': ')[1]
-                lhs_pre = lemma[1].split(': ')[1]
-            else:
-                rhs_pre = lemma[0]
-                lhs_pre = lemma[1]
+            if options.analytics:
+                curr_time = time.time()
+                config_params['analytics']['lemma_time'] = int(curr_time -
+                                                               config_params['analytics']['proposal_start_time'])
+            pre_validation = time.time()
             rhs_lemma = translateLemma(rhs_pre, lemma_grammar_args, addl_decls, swap_fcts, replace_fcts, annctx)
-            index = int(lhs_pre[-2])
-            recs = get_boolean_recursive_definitions()
-            lhs = recs[index]
-            lhs_arity = lhs.arity()
+            index = int(lhs_pre[:-1].split(' ')[-1])
+            lhs_func = recs[index]
+            lhs_arity = lhs_func.arity()
             lhs_lemma_args = tuple(lemma_grammar_args[:lhs_arity])
-            lhs_lemma = lhs(lhs_lemma_args)
+            lhs_lemma = lhs_func(lhs_lemma_args)
             z3py_lemma_body = Implies(lhs_lemma, rhs_lemma)
             z3py_lemma_params = tuple([arg for arg in lemma_grammar_args if is_var_decl(arg)])
             z3py_lemma = (z3py_lemma_params, z3py_lemma_body)
 
             if options.verbose > 0:
                 print('proposed lemma: {}'.format(str(z3py_lemma_body)))
-            if options.verbose >= 10:
-                print('total lemmas so far: ' + str(final_out['total_lemmas']))
+            if options.verbose >= 10 and options.analytics:
+                print('total lemmas so far: ' + str(config_params['analytics']['total_lemmas']))
 
             if z3py_lemma in invalid_lemmas or z3py_lemma in valid_lemmas:
-                if options.use_cex_models:
+                if options.use_cex_models or options.use_cex_true_models:
                     print('lemma has already been proposed')
                     if z3py_lemma in invalid_lemmas:
                         print('Something is wrong. Lemma was re-proposed in the presence of countermodels. '
@@ -153,32 +152,34 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     # TODO: remove after replacing this with a check for terms in the grammar
                     if z3py_lemma in valid_lemmas:
                         print('This is a currently known limitation of the tool. Consider restricting your grammar to '
-                              'have terms of lesser height.') 
+                              'have terms of lesser height.')
                     exit('Instance failed.')
                 else:
                     # No countermodels. Check if streaming mode for synthesis is enabled.
                     if not options.streaming_synthesis_swtich:
                         raise RuntimeError('Lemmas reproposed with countermodels and streaming disabled. Unsupported.')
-                    post_validation = time.time()
-                    validation_time = post_validation - pre_validation
-                    final_out['time_charged'] += validation_time
                     if options.verbose >= 7:
                         print('Countermodels not enabled. Retrying lemma synthesis.')
-                    if options.verbose >= 10:
-                        print('Current lemma handled in: ' + str(validation_time) + 's')
-                        print('Time charged so far: ' + str(final_out['time_charged']) + 's')
+                    if options.analytics:
+                        post_validation = time.time()
+                        validation_time = post_validation - pre_validation
+                        config_params['analytics']['time_charged'] += validation_time
+                        if options.verbose >= 10:
+                            print('Current lemma handled in: ' + str(validation_time) + 's')
+                            print('Time charged so far: ' + str(config_params['analytics']['time_charged']) + 's')
                     continue
             pfp_lemma = make_pfp_formula(z3py_lemma_body)
             lemmaprover = NPSolver()
             lemmaprover.options.instantiation_mode = proveroptions.manual_instantiation
             lemmaprover.options.terms_to_instantiate = lemma_instantiation_terms
             lemma_npsolution = lemmaprover.solve(pfp_lemma, valid_lemmas)
-            post_validation = time.time()
-            validation_time = post_validation - pre_validation
-            final_out['time_charged'] += validation_time
-            if options.verbose >= 10 and options.streaming_synthesis_swtich:
-                print('Current lemma handled in: ' + str(validation_time) + 's')
-                print('Time charged so far: ' + str(final_out['time_charged']) + 's')
+            if options.analytics and options.streaming_synthesis_swtich:
+                post_validation = time.time()
+                validation_time = post_validation - pre_validation
+                config_params['analytics']['time_charged'] += validation_time
+                if options.verbose >= 10:
+                    print('Current lemma handled in: ' + str(validation_time) + 's')
+                    print('Time charged so far: ' + str(config_params['analytics']['time_charged']) + 's')
             if lemma_npsolution.if_sat:
                 if options.verbose >= 4:
                     print('proposed lemma cannot be proved.')
@@ -199,16 +200,19 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.use_cex_true_models:
                     if options.verbose >= 4:
                         print('using true counterexample models')
-                    true_cex_model = gen_lfp_model(5, annctx, invalid_formula=z3py_lemma)
+                    true_model_size = 5
+                    true_cex_model, true_model_terms = gen_lfp_model(true_model_size, annctx, invalid_formula=z3py_lemma)
                     if true_cex_model is not None:
-                        true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
+                        # Use after gen_lfp_model fixes values on elements not in the lfp (as sort.lattice_bottom) 
+                        # true_model_terms = {z3.IntVal(elem) for elem in true_cex_model.fg_universe}
                         const = [arg for arg in lemma_grammar_args if not is_var_decl(arg, annctx)]
                         lemma_arity = len(lemma_grammar_args) - len(const)
                         args = itertools.product(true_model_terms, repeat=lemma_arity)
-                        instantiations = [ arg for arg in args if
-                                           z3.is_false(true_cex_model.smtmodel.eval(z3.substitute(z3py_lemma[1],
-                                                                                                  list(zip(lemma_grammar_args[:lemma_arity], arg))),
-                                                                                    model_completion=True)) ]
+                        instantiations = [arg for arg in args if
+                                          z3.is_false(true_cex_model.smtmodel.eval(
+                                              z3.substitute(z3py_lemma[1],
+                                                            list(zip(lemma_grammar_args[:lemma_arity], arg))),
+                                              model_completion=True))]
                         true_cex_models = true_cex_models + [(true_cex_model, {instantiations[0]})]
                         config_params['true_cex_models'] = true_cex_models
                     else:
@@ -229,34 +233,45 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     # TODO: introduce warning or extend streaming algorithm to multiple lemma case
                     goal_npsolution = goal_fo_solver.solve(goal, {z3py_lemma})
                     if not goal_npsolution.if_sat:
-                        # Lemma is useful. Exit.
+                        # Lemma is useful. Wrap up processes and exit.
                         print('Goal has been proven. Lemmas used to prove goal:')
                         for lem in valid_lemmas:
                             print(lem[1])
-                        print('Total lemmas proposed: ' + str(final_out['total_lemmas']))
-                        total_time = final_out['time_charged'] + final_out['lemma_time']
-                        if options.verbose > 0:
-                            print('Total time charged: ' + str(total_time) + 's')
+                        if options.analytics:
+                            # Update analytics entries for the current lemma before exiting.
+                            total_time = config_params['analytics']['time_charged'] + config_params['analytics'][
+                                'lemma_time']
+                            if options.verbose >= 10:
+                                print('Total lemmas proposed: ' + str(config_params['analytics']['total_lemmas']))
+                            if options.verbose > 0:
+                                print('Total time charged: ' + str(total_time) + 's')
+                        # Close the stream
+                        try:
+                            sygus_results.throw(StopProposal)
+                        except StopIteration:
+                            pass
                         exit(0)
-
-                # Reset countermodels and invalid lemmas to []. We have additional information to retry the proofs.
-                cex_models = []
-                invalid_lemmas = []
-                if options.streaming_synthesis_swtich:
-                    continue
+                    else:
+                        # Lemma does not help prove goal. Try the next lemma in the stream.
+                        continue
                 else:
-                    # End loop through lemma proposals
+                    # Not streaming mode: reset countermodels and invalid lemmas to [] and try synthesis again.
+                    # We have additional information to retry the proofs.
+                    cex_models = []
+                    invalid_lemmas = []
                     break
-            # Update countermodels and prefetch parameters before next round of synthesis
-            config_params['cex_models'] = cex_models
 
-        # reset everything and increase prefetching timeout if streaming is on
+        # Update countermodels before next round of synthesis
+        config_params['cex_models'] = cex_models
+        # reset everything and increase streaming timeout if streaming mode is on
         if options.streaming_synthesis_swtich:
-            final_out['time_charged'] = 0
-            if config_params['streaming_timeout'] >= 3600:
+            # Compute the timeout of the next streaming call
+            config_params['streaming_timeout'] *= 2
+            if config_params['streaming_timeout'] >= 1800:
+                # The following round of streaming will be too expensive. Exit.
                 exit('Timeout reached. Exiting')
-            else:
-                config_params['streaming_timeout'] *= 2
-            final_out['total_lemmas'] = 0
+            if options.analytics:
+                config_params['analytics']['time_charged'] = 0
+                config_params['analytics']['total_lemmas'] = 0
             valid_lemmas = set()
             invalid_lemmas = []

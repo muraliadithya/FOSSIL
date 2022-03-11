@@ -12,10 +12,8 @@
                    (member k (keys y))
                    (lseg Loc Loc)
                    (lst Loc)))
-            (I Int (k
-                   (key Loc)))
-            (Loc Int (x y
-                     (nxt Loc))))
+            (I Int (k))
+            (Loc Int (x y)))
  )
 
 (synth-fun rswitch () Int

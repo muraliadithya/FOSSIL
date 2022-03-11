@@ -9,8 +9,7 @@
                   (member x (htree x))
                   (member k (keys x))
                   (maxheap Loc)))
-           (I Int (k
-              (key Loc)))
+           (I Int (k))
            (Loc Int (LocLeaf))
            (LocLeaf Int (x)))
 )

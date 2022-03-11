@@ -8,7 +8,8 @@
                    (lst Loc)
                    (odd_lst Loc)
                    (even_lst Loc)))
-            (Loc Int (LocLeaf))
+            (Loc Int (LocLeaf
+                 (nxt LocLeaf)))
             (LocLeaf Int (x)))
 )
 

@@ -10,13 +10,11 @@
                    (<= I I)
                    (= I I)
                    (rlst Loc)))
-            (I Int (ILeaf
-               (+ ILeaf ILeaf)))
+            (I Int (ILeaf))
             (ILeaf Int (1
                    (red_height Loc)
                    (black_height Loc)))
-            (Loc Int (LocLeaf
-                 (nxt LocLeaf)))
+            (Loc Int (LocLeaf))
             (LocLeaf Int (x)))
 )
 

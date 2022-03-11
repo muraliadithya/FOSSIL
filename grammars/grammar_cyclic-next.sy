@@ -3,14 +3,13 @@
 (synth-fun lemma ((x Int) (y Int) (nil Int)) Bool
            ((Start Bool) (Loc Int) (LocLeaf Int))
 
-           ((Start Bool (false
+           ((Start Bool (
                   (=> Start Start)
-                  (not (= Loc nil))
+                  (not (= LocLeaf nil))
                   (lseg Loc Loc)
                   (cyclic Loc)))
-           (Loc Int (LocLeaf
-                    (nxt LocLeaf)))
-           (LocLeaf Int (x y)))
+           (Loc Int (LocLeaf))
+           (LocLeaf Int (x y nil)))
 )
 
 (synth-fun rswitch () Int

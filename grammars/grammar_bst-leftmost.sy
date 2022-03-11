@@ -9,7 +9,6 @@
                    (member x (hbst x))
                    (bst Loc)))
             (I Int (k
-                   (key Loc)
                    (minr Loc)
                    (maxr Loc)))
             (Loc Int (LocLeaf

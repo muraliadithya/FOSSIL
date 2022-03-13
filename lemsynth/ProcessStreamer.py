@@ -109,9 +109,9 @@ class ProcessStreamer:
             # Make sure to wait otherwise zombie processes can clog up system
             self.writer_proc.wait()
         # multiprocessing 'processes' need to be killed differently: check if alive first
-        if self.timeout is not None and self.timer_proc.is_alive():
+        # Last condition is added owing to a weird bug in multiprocessing that shows a finished process as alive
+        if self.timeout is not None and self.timer_proc.is_alive() and self.timer_proc._popen is not None:
             self.timer_proc.terminate()
-            self.timer_proc.join()
 
     # Auxiliary function to create a timer process
     def _timer(self, secs):

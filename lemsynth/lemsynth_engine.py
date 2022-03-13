@@ -95,7 +95,9 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     lemma_instantiation_terms = grammar.lemma_instantiation_terms(lemma_grammar_args, lemma_grammar_terms, annctx)
 
     # Initial timeout (in seconds) for streaming
-    config_params['streaming_timeout'] = 450
+    config_params['streaming_timeout'] = 15*60
+    if config_params['streaming_timeout'] < 20:
+        raise ValueError('Cannot time streams with small timeouts. Use >= 20 seconds.')
     # Dictionary for logging pipeline analytics
     if options.analytics:
         config_params['analytics'] = {'total_lemmas': 0, 'time_charged': 0}
@@ -267,7 +269,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
         if options.streaming_synthesis_swtich:
             # Compute the timeout of the next streaming call
             config_params['streaming_timeout'] *= 2
-            if config_params['streaming_timeout'] >= 1800:
+            # Make each streaming call 15 minutes flat
+            if config_params['streaming_timeout'] >= 15*60:
                 # The following round of streaming will be too expensive. Exit.
                 exit('Timeout reached. Exiting')
             if options.analytics:

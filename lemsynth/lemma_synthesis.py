@@ -319,8 +319,9 @@ def getSygusOutput(lemmas, lemma_args, goal, problem_instance_name, grammar_stri
 
     sygus_model_definitions = sygusBigModelEncoding(all_models, vocab, set_defs, annctx)
     with open(out_file, 'w') as out:
-        out.write('(set-option :smt.random-seed 0)\n')
-        out.write('(set-option :sat.random-seed 0)\n')
+        if options.synthesis_solver == options.minisy:
+            out.write('(set-option :smt.random-seed 0)\n')
+            out.write('(set-option :sat.random-seed 0)\n')
         if options.synthesis_solver == options.minisy:
             out.write(z3Preamble())
             out.write('\n')

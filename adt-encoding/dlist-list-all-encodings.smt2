@@ -57,4 +57,12 @@
                 (and (lst hret) (= (head hret) ret)))))
 ))
 
+;; goal -- combined encoding (with no head and tail): hangs, doesn't go through when lemma given
+;; (assert (not
+;; (forall ((hx ListOfLoc) (x Int) (xs ListOfLoc) (xs2 ListOfLoc) (hret ListOfLoc) (ret Int))
+;;         (=> (and (dlst hx) (= hx (cons x xs)))
+;;             (=> (ite (= x nil) (and (= ret nil) (= hret empty)) (and (= ret (nxt x)) (and (= hret xs) (= xs (cons ret xs2)))))
+;;                 (and (lst hret) (= hret (cons ret xs2))))))
+;; ))
+
 (check-sat)

@@ -13,7 +13,7 @@
 (declare-fun slst (ListOfLoc) Bool)
 
 (assert (lst empty))
-(assert (forall ((k Int) (x ListOfLoc)) 
+(assert (forall ((k Int))
         (= (lst (cons k empty))
 	   (= (nxt k) nil))
 ))
@@ -23,7 +23,7 @@
 ))
 
 (assert (slst empty))
-(assert (forall ((k Int) (x ListOfLoc)) 
+(assert (forall ((k Int))
 	(= (slst (cons k empty)) (= (nxt k) nil))
 ))
 (assert (forall ((k1 Int) (k2 Int) (x ListOfLoc)) 

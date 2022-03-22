@@ -15,11 +15,11 @@
 (assert (lst empty))
 (assert (forall ((k Int))
         (= (lst (cons k empty))
-	   (= (nxt k) nil))
+	   (and (not (= k nil)) (= (nxt k) nil)))
 ))
 (assert (forall ((k1 Int) (k2 Int) (x ListOfLoc)) 
 	(= (lst (cons k1 (cons k2 x))) 
-	   (and (= (nxt k1) k2) (lst (cons k2 x))))
+	   (and (= (nxt k1) k2) (not (= k1 nil)) (lst (cons k2 x))))
 ))
 
 (assert (slst empty))
@@ -28,7 +28,7 @@
 ))
 (assert (forall ((k1 Int) (k2 Int) (x ListOfLoc)) 
 	(= (slst (cons k1 (cons k2 x))) 
-	   (and (= (nxt k1) k2) (<= (key k1) (key k2)) (slst (cons k2 x))))
+	   (and (= (nxt k1) k2) (not (= k1 nil)) (<= (key k1) (key k2)) (slst (cons k2 x))))
 ))
 
 (declare-fun hx () ListOfLoc)
@@ -54,7 +54,7 @@
 ;;         (=> (and (slst hx) (= hx (cons x xs)))
 ;;             (=> (ite (= x nil) (= ret nil) (= ret (nxt x)))
 ;;                  (ite (= ret nil) (lst empty)
-;;                      (and (slst xs) (= (head xs) ret)))))
+;;                       (and (slst xs) (= (head xs) ret)))))
 ;; ))
 
 (check-sat)

@@ -1,9 +1,5 @@
 (set-logic ALL_SUPPORTED)
 
-;; preamble
-(define-fun iff ((b1 Bool) (b2 Bool)) Bool
-  (and (=> b1 b2) (=> b2 b1)))
-
 ;; heap
 (declare-datatypes () ((ListOfLoc (cons (head Int) (tail ListOfLoc)) (empty))))
 

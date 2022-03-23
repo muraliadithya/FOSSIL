@@ -38,6 +38,9 @@ class UCTSort:
     def get_lattice_bottom_element(self):
         return self.lattice_bottom
 
+    def __repr__(self):
+        return self.name
+
 
 # Sorts supported in the UCT fragment
 # Foreground sort

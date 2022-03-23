@@ -47,14 +47,17 @@
                         (and (lst hret) (= hret (cons ret rets))))))
 ))
 
-;; uncommenting below goes through using cvc4+ig (do not need to assume lemma)
+;; uncommenting below goes through using cvc4+ig (need lemma assumed)
+
+;; ;; lemma
+;; (assert (forall ((hx ListOfLoc)) (=> (slst hx) (lst hx))))
 
 ;; ;; goal with explicit heaplets
 ;; (assert (not
 ;;         (=> (and (slst hx) (= hx (cons x xs)))
 ;;             (=> (ite (= x nil) (= ret nil) (= ret (nxt x)))
 ;;                  (ite (= ret nil) (lst empty)
-;;                       (and (slst xs) (= (head xs) ret)))))
+;;                       (and (lst xs) (= (head xs) ret)))))
 ;; ))
 
 (check-sat)

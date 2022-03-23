@@ -45,7 +45,7 @@
 ;; goal
 (assert (not
         (=> (and (lseg hx y) (= hx (cons x xs)) (= hy (cons y ys)))
-	    (=> (ite (= x nil) (= ret nil) (= ret (nxt x)))
+            (=> (ite (= x nil) (= ret nil) (= ret (nxt x)))
                 (=> (lst hy)
                     (exists ((hret ListOfLoc))
                             (and (lst hret) (= hret (cons ret rets)))))))

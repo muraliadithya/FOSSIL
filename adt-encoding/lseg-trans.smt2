@@ -38,27 +38,21 @@
 (declare-fun y () Int)
 (declare-fun z () Int)
 (declare-fun ys () ListOfLoc)
-(declare-fun c () ListOfLoc)
+(declare-fun c () Int)
 
-;; lemma
-(assert (forall ((hx ListOfLoc) (hy ListOfLoc) (ys ListOfLoc) (y Int) (z Int))
-        (=> (and (lseg hx y) (= hy (cons y ys)) (lseg hy z)) (lseg hx z))
-))
+;; uncommenting lemma goes through using cvc4+ig
 
-;; ;; goal
-;; (assert (not
-;;         (=> (and (lseg hx y) (= hx (cons x xs)) (= hy (cons y (cons z ys))))
-;;             (=> (and (not (= hx c)) (lseg hx z))
-;;                 (exists ((hret ListOfLoc))
-;;                         (and (lst hret) (= hret (cons z ys))))))
+;; ;; lemma
+;; (assert (forall ((hx ListOfLoc) (hy ListOfLoc) (ys ListOfLoc) (y Int) (z Int))
+;;         (=> (and (lseg hx y) (= hy (cons y ys)) (lseg hy z)) (lseg hx z))
 ;; ))
 
 ;; goal
 (assert (not
-        (=> (and (lseg hx y) (= hx (cons x xs)) (= hy (cons y (cons z ys))))
-	    (=> (and (not (= hx c)) (lseg hx z))
-                (ite (= z nil) (lst empty)
-                     (and (lst ys) (= (head ys) z)))))
+        (=> (and (lseg hx y) (= hx (cons x xs)))
+            (=> (and (lst hy) (= hy (cons y ys)) (not (= x c)) (= (nxt y) z) (lseg hx z))
+                (exists ((hret ListOfLoc))
+                        (and (lst hret) (=> (not (= z nil)) (= hret (cons z ys)))))))
 ))
 
 (check-sat)

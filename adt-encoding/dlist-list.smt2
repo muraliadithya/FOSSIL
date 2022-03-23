@@ -58,7 +58,7 @@
 ;;         (=> (and (dlst hx) (= hx (cons x xs)))
 ;;             (=> (ite (= x nil) (= ret nil) (= ret (nxt x)))
 ;;                 (ite (= ret nil) (lst empty)
-;;                       (and (lst xs) (= (head xs) ret)))))
+;;                      (and (lst xs) (= (head xs) ret)))))
 ;; ))
 
 (check-sat)

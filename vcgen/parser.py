@@ -2,7 +2,7 @@ import z3
 import pyparsing as pp
 
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
-from naturalproofs.decl_api import Var, Function, RecFunction, AddRecDefinition
+from naturalproofs.decl_api import Var, Const, Function, RecFunction, AddRecDefinition
 
 from vcgen.utils import LParen, RParen
 from vcgen.utils import RedeclarationException, UnknownExpression
@@ -16,6 +16,7 @@ from vcgen.CombinatorLogic import CombinatorLogic
 # Some are suppressed since they are purely for better aesthetic of input. Some are not suppressed since they will be
 # used to make decisions during the parsing
 VariableDeclarationTag = pp.Literal("Var").suppress()
+ConstantDeclarationTag = pp.Literal("Const").suppress()
 FunctionDeclarationTag = pp.Literal("Function")
 RecFunctionDeclaractionTag = pp.Literal("RecFunction")
 RecFunctionDefinitionTag = pp.Literal("Def").suppress()
@@ -65,8 +66,9 @@ def translate_type(string, loc, tokens):
 
 # Grammar for declarations
 VarDecl = VariableDeclarationTag + VarName + Type
+ConstDecl = ConstantDeclarationTag + VarName + Type
 FuncDecl = (FunctionDeclarationTag ^ RecFunctionDeclaractionTag) + FuncName + Type[2, ...]
-FODecl = pp.Group(VarDecl ^ FuncDecl)
+FODecl = pp.Group(VarDecl ^ ConstDecl ^ FuncDecl)
 
 
 # Interpretation for declarations
@@ -77,6 +79,17 @@ def store_variable(string, loc, tokens):
     if _ is not None:
         raise RedeclarationException(f'Variable {var_name} is redeclared', loc, string)
     info_dict = {'type': var_type, 'value': Var(var_name, var_type), 'counter': 1}
+    vardict[var_name] = info_dict
+
+
+@ConstDecl.set_parse_action
+def store_constant(string, loc, tokens):
+    var_name, var_type = tokens
+    _ = vardict.get(var_name, None)
+    if _ is not None:
+        raise RedeclarationException(f'Constant {var_name} is redeclared', loc, string)
+    # Constants cannot be overwritten, so set counter to None
+    info_dict = {'type': var_type, 'value': Const(var_name, var_type), 'counter': None}
     vardict[var_name] = info_dict
 
 

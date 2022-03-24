@@ -322,3 +322,5 @@ Statements = Statement[...]
 
 
 Program = Decls + Annotation + Statements + Annotation
+# Add single and multiline comments (c++ style)
+Program = Program.ignore(pp.cpp_style_comment)

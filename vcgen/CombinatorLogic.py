@@ -14,7 +14,7 @@ from vcgen.utils import sort_to_setsort, BadType, LParen, RParen
 
 """
 TODO:
-1) If-Then-Else expressions for formulas (and possibly terms)
+1) Add true and false to formula grammar
 """
 
 
@@ -33,6 +33,11 @@ class CombinatorLogic:
         self.Formula = Formula
         self.Term = Term
 
+        # Keywords
+        IfKeyword = pp.Literal("If").suppress()
+        ThenKeyword = pp.Literal("Then").suppress()
+        ElseKeyword = pp.Literal("Else").suppress()
+
         # Grammar for terms
         IntConstTerm = pp.common.signed_integer
         SetIntConstTerm = pp.Literal("empSetInt")
@@ -42,7 +47,8 @@ class CombinatorLogic:
         BinTermOp = pp.one_of("+ - * & |")
         # Parse action for TermAtom will be defined automatically defined once the action for each OR piece is defined
         TermAtom = ConstTerm ^ self.Application
-        Term <<= TermAtom ^ (LParen + Term + BinTermOp + Term + RParen)
+        ITETerm = LParen + IfKeyword + Formula + ThenKeyword + Term + ElseKeyword + Term + RParen
+        Term <<= TermAtom ^ (LParen + Term + BinTermOp + Term + RParen) ^ ITETerm
 
         # Interpretation for terms
         # A term is interpreted as a z3.ExprRef. The interpretation functions below return both the interpretation and the
@@ -58,6 +64,15 @@ class CombinatorLogic:
         @SetIntConstTerm.set_parse_action
         def interpret_empty_intset(string, loc, tokens):
             return intsetsort.lattice_bottom, intsetsort
+
+        @ITETerm.set_parse_action
+        def interpret_ite_term(string, loc, tokens):
+            cond, (then_term, then_sort), (else_term, else_sort) = tokens
+            # Check that the expression is well-typed
+            if then_sort != else_sort:
+                raise BadType(f'Cannot interpret ITE term between arguments of type {then_sort} and {else_sort}',
+                              loc, string)
+            return If(cond, then_term, else_term), then_sort
 
         # TODO: This function is highly specific to its productions. Must be rewritten better if grammar is generalized.
         @Term.set_parse_action
@@ -155,9 +170,15 @@ class CombinatorLogic:
         # Grammar for boolean combinations
         UnBoolOp = "!"  # boolean negation
         BinBoolOp = pp.one_of("& | =>")  # boolean operators used infix
-        Formula <<= Atom ^ (LParen + UnBoolOp + Formula + RParen) ^ (LParen + Formula + BinBoolOp + Formula + RParen)
+        ITEFormula = LParen + IfKeyword + Formula + ThenKeyword + Formula + ElseKeyword + Formula + RParen
+        Formula <<= Atom ^ (LParen + UnBoolOp + Formula + RParen) ^ (LParen + Formula + BinBoolOp + Formula + RParen) ^ ITEFormula
 
         # Interpretation for boolean combinations
+        @ITEFormula.set_parse_action
+        def interpret_ite_formula(string, loc, tokens):
+            cond, then_formula, else_formula = tokens
+            return If(cond, then_formula, else_formula)
+
         @Formula.set_parse_action
         def interpret_formula(string, loc, tokens):
             numtok = len(tokens)

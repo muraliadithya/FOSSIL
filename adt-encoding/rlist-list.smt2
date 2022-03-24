@@ -1,14 +1,10 @@
-;; preamble
-(define-fun iff ((b1 Bool) (b2 Bool)) Bool
-  (and (=> b1 b2) (=> b2 b1)))
+(set-logic ALL_SUPPORTED)
 
 ;; heap
 (declare-datatypes () ((ListOfLoc (cons (head Int) (tail ListOfLoc)) (empty))))
 
-;; vars and unint functions
+;; unint functions
 (declare-fun nil () Int)
-(declare-fun ret () ListOfLoc)
-
 (declare-fun nxt (Int) Int)
 (declare-fun red (Int) Bool)
 (declare-fun black (Int) Bool)
@@ -17,36 +13,55 @@
 (declare-fun lst (ListOfLoc) Bool)
 (declare-fun rlst (ListOfLoc) Bool)
 
-(assert (forall ((x ListOfLoc))
-                (iff (lst x)
-                     (ite (= x empty)
-                          true
-                          (ite (= (nxt (head x)) nil)
-                               (= (tail x) empty)
-                               (and (not (= (tail x) empty))
-                                    (= (nxt (head x)) (head (tail x)))
-                                    (lst (tail x))))))))
+(assert (lst empty))
+(assert (forall ((k Int))
+        (= (lst (cons k empty))
+           (and (not (= k nil)) (= (nxt k) nil)))
+))
+(assert (forall ((k1 Int) (k2 Int) (x ListOfLoc))
+        (= (lst (cons k1 (cons k2 x)))
+           (and (= (nxt k1) k2) (not (= k1 nil)) (lst (cons k2 x))))
+))
 
-(assert (forall ((x ListOfLoc))
-                (iff (rlst x)
-                     (ite (= x empty)
-                          true
-                          (ite (= (nxt (head x)) nil)
-                               (= (tail x) empty)
-                               (and (not (= (tail x) empty))
-                                    (= (nxt (head x)) (head (tail x)))
-                                    (or (and (red (head x)) (not (black (head x)))
-                                             (black (nxt (head x))) (not (red (nxt (head x)))))
-                                        (and (black (head x)) (not (red (head x)))
-                                             (red (nxt (head x))) (not (black (nxt (head x))))))
-                                    (rlst (tail x))))))))
+(assert (rlst empty))
+(assert (forall ((k Int))
+        (= (rlst (cons k empty))
+           (and (not (= k nil)) (= (nxt k) nil) (black k)))
+))
+(assert (forall ((k1 Int) (k2 Int) (x ListOfLoc))
+        (= (rlst (cons k1 (cons k2 x)))
+           (and (= (nxt k1) k2) (not (= k1 nil)) (rlst (cons k2 x))
+                (or (and (red k1) (not (black k1)) (black k2) (not (red k2)))
+                    (and (black k1) (not (red k1)) (red k2) (not (black k2))))))
+))
 
-;; axioms
-(assert (= (nxt nil) nil))
-(assert (red nil))
+(declare-fun hx () ListOfLoc)
+(declare-fun x () Int)
+(declare-fun xs () ListOfLoc)
+(declare-fun ret () Int)
+(declare-fun rets () ListOfLoc)
+
+;; faithful encoding
 
 ;; goal
-(assert (not 
-(forall ((x ListOfLoc)) (=> (rlst x) (=> (ite (= x empty) (= ret empty) (= ret (tail x))) (lst ret))))
+(assert (not
+        (=> (and (rlst hx) (= hx (cons x xs)))
+            (=> (ite (= x nil) (= ret nil) (= ret (nxt x)))
+                 (exists ((hret ListOfLoc))
+                         (and (lst hret) (= hret (cons ret rets))))))
 ))
+
+;; uncommenting below goes through using cvc4+ig (need lemma assumed)
+
+;; ;; lemma
+;; (assert (forall ((hx ListOfLoc)) (=> (rlst hx) (lst hx))))
+
+;; ;; goal with explicit heaplets
+;; (assert (not
+;;         (=> (and (rlst hx) (= hx (cons x xs)))
+;;             (=> (ite (= x nil) (= ret nil) (= ret (nxt x)))
+;;                 (ite (= ret nil) (lst empty)
+;;                      (and (lst xs) (= (head xs) ret)))))
+;; ))
+
 (check-sat)

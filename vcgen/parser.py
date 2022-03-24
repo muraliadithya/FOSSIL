@@ -266,17 +266,18 @@ def store_annotation(string, loc, tokens):
 
 
 # Grammar for program terms and conditions
-# ProgTerm = pp.Forward()
-# ProgTerm <<= Variable ^ (pp.Combine(ProgTerm + Dot + FOFunction))
-# Program term has to be defined in this weird way because pyparsing has trouble with left recursion
-ProgTerm = Variable + (Dot + FOFunction)[...]
+# ProgApplication = pp.Forward()
+# ProgApplication <<= Variable ^ (pp.Combine(ProgApplication + Dot + FOFunction))
+# Program applications have to be defined in this weird way because pyparsing has trouble with left recursion
+ProgApplication = Variable + (Dot + FOFunction)[...]
 # The condition language is induced over the program term language defined above.
-prog_cond = CombinatorLogic(ProgTerm)
-ProgCond = prog_cond.Formula
+prog_logic = CombinatorLogic(ProgApplication)
+ProgTerm = prog_logic.Term
+ProgCond = prog_logic.Formula
 
 
-# Interpretation of program terms
-@ProgTerm.set_parse_action
+# Interpretation of program application expressions
+@ProgApplication.set_parse_action
 def interpret_prog_term(string, loc, tokens):
     if len(tokens) == 1:
         return tokens[0]
@@ -298,7 +299,7 @@ def interpret_prog_term(string, loc, tokens):
 
 # Grammar for program statements
 AssumeStatement = AssumeStatementTag + ProgCond
-AssignOrMutateStatement = ProgTerm + AssignmentOperator + ProgTerm
+AssignOrMutateStatement = ProgApplication + AssignmentOperator + ProgTerm
 Statement = AssumeStatement ^ AssignOrMutateStatement
 Statements = Statement[...]
 

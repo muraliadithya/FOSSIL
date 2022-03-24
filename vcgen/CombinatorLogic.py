@@ -14,7 +14,7 @@ from vcgen.utils import sort_to_setsort, BadType, LParen, RParen
 
 """
 TODO:
-1) Add true and false to formula grammar
+No outstanding TODOs
 """
 
 
@@ -42,11 +42,14 @@ class CombinatorLogic:
         IntConstTerm = pp.common.signed_integer
         SetIntConstTerm = pp.Literal("empSetInt")
         SetLocConstTerm = pp.Literal("empSetLoc")
-        ConstTerm = SetIntConstTerm ^ SetLocConstTerm ^ IntConstTerm
+        TrueTerm = pp.Literal("True")
+        FalseTerm = pp.Literal("False")
+        ConstTerm = SetIntConstTerm ^ SetLocConstTerm ^ TrueTerm ^ FalseTerm ^ IntConstTerm
         # UnTermOp = "singleton"  # constructing a singleton set
         BinTermOp = pp.one_of("+ - * & |")
         # Parse action for TermAtom will be defined automatically defined once the action for each OR piece is defined
-        TermAtom = ConstTerm ^ self.Application
+        # Keywords/named constants should come first as they should be matched with priority
+        TermAtom = ConstTerm | self.Application  # match first operator | instead of longest match operator ^
         ITETerm = LParen + IfKeyword + Formula + ThenKeyword + Term + ElseKeyword + Term + RParen
         Term <<= TermAtom ^ (LParen + Term + BinTermOp + Term + RParen) ^ ITETerm
 
@@ -64,6 +67,14 @@ class CombinatorLogic:
         @SetIntConstTerm.set_parse_action
         def interpret_empty_intset(string, loc, tokens):
             return intsetsort.lattice_bottom, intsetsort
+
+        @TrueTerm.set_parse_action
+        def interpret_true(string, loc, tokens):
+            return z3.BoolVal(True), boolsort
+
+        @FalseTerm.set_parse_action
+        def interpret_false(string, loc, tokens):
+            return z3.BoolVal(False), boolsort
 
         @ITETerm.set_parse_action
         def interpret_ite_term(string, loc, tokens):
@@ -116,8 +127,8 @@ class CombinatorLogic:
         # Relation operations used infix. 'in' is set membership and '<', '==', etc are polymorphic.
         CompOp = pp.one_of("== != < <= > >= in")
         CompAtom = LParen + Term + CompOp + Term + RParen
-        RelAtom = self.Application.copy()
-        Atom = CompAtom ^ RelAtom
+        BoolTerm = Term.copy()
+        Atom = BoolTerm ^ CompAtom
 
         # Interpretation for relational atoms
         @CompAtom.set_parse_action
@@ -159,7 +170,7 @@ class CombinatorLogic:
             op_lookup['!='] = lambda x, y: x != y
             return op_lookup[binop](arg1, arg2)
 
-        @RelAtom.add_parse_action
+        @BoolTerm.add_parse_action
         def interpret_relation(string, loc, tokens):
             term, term_sort = tokens[0]
             if term_sort != boolsort:

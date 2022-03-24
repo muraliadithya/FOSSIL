@@ -97,7 +97,7 @@ def make_recdef_unfoldings(recursive_definitions):
     else:
         unfoldings_dict = dict()
         for recursive_definition in recursive_definitions:
-            unfoldings_dict = {**unfoldings_dict, **_make_recdef_unfoldings_aux(recursive_definition)}
+            unfoldings_dict = {**unfoldings_dict}
         return unfoldings_dict
 
 

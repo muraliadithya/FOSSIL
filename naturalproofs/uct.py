@@ -2,6 +2,9 @@
 # Currently it is enough to define and handle the sorts that are supported.
 
 import z3
+import warnings
+
+import naturalproofs.AnnotatedContext
 from naturalproofs.AnnotatedContext import AnnotatedContext, default_annctx
 import naturalproofs.utils as utils
 
@@ -129,3 +132,29 @@ def max_intsort(*args, annctx=default_annctx):
     for arg in args[1:]:
         max_expr = z3.If(max_expr > arg, max_expr, arg)
     return max_expr
+
+
+# Function to replace default fg sort with another one
+def override_fgsort(sort, annctx=default_annctx):
+    """
+    Replacing the default foreground sort with the given z3.SortRef object, and returning a new
+    annotated context.
+    :param sort: z3.SortRef
+    :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext
+    :return: naturalproofs.AnnotatedContext.AnnotatedContext
+    """
+    warnings.warn('You are overriding the definition of the default foreground sort. The AnnotatedContext instance '
+                  'managing all the declarations will be refreshed, and you will have to declare everything '
+                  'once more. There are no guarantees that the solver will work as expected.')
+    annctx = AnnotatedContext()
+    global fgsort
+    fgsort = sort
+    # If the sort is a z3.DatatypeSortRef track constructors in the new annotated context.
+    if type(fgsort) == z3.DatatypeSortRef:
+        for i in range(fgsort.num_constructors()):
+            ctor = fgsort.constructor(i)
+            arity = ctor.arity()
+            signature = tuple([ctor.domain(j) for j in range(arity)] + [fgsort])
+            annctx.add_alias_annotation(ctor, signature)
+            annctx.add_vocabulary_annotation(ctor)
+    return annctx

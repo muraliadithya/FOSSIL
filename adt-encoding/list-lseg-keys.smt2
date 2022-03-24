@@ -1,14 +1,10 @@
-;; preamble
-(define-fun iff ((b1 Bool) (b2 Bool)) Bool
-  (and (=> b1 b2) (=> b2 b1)))
+(set-logic ALL_SUPPORTED)
 
 ;; heap
 (declare-datatypes () ((ListOfLoc (cons (head Int) (tail ListOfLoc)) (empty))))
 
-;; vars and unint functions
+;; unint functions
 (declare-fun nil () Int)
-(declare-fun k () Int)
-
 (declare-fun nxt (Int) Int)
 (declare-fun key (Int) Int)
 
@@ -17,44 +13,55 @@
 (declare-fun lseg (ListOfLoc Int) Bool)
 (declare-fun keys (ListOfLoc) (Set Int))
 
-(assert (forall ((x ListOfLoc))
-                (iff (lst x)
-                     (ite (= x empty)
-                          true
-                          (ite (= (nxt (head x)) nil)
-                               (= (tail x) empty)
-                               (and (not (= (tail x) empty))
-                                    (= (nxt (head x)) (head (tail x)))
-                                    (lst (tail x))))))))
+(assert (lst empty))
+(assert (forall ((k Int))
+        (= (lst (cons k empty))
+           (and (not (= k nil)) (= (nxt k) nil)))
+))
+(assert (forall ((k1 Int) (k2 Int) (x ListOfLoc))
+        (= (lst (cons k1 (cons k2 x)))
+           (and (= (nxt k1) k2) (not (= k1 nil)) (lst (cons k2 x))))
+))
 
-(assert (forall ((x ListOfLoc) (y Int))
-                (iff (lseg x y)
-                     (ite (= x empty)
-                          true
-                          (ite (= (nxt (head x)) y)
-                               (= (tail x) empty)
-                               (and (not (= (tail x) empty))
-                                    (= (nxt (head x)) (head (tail x)))
-                                    (lseg (tail x) y)))))))
+(assert (forall ((y Int)) (lseg empty y)))
+(assert (forall ((k Int) (y Int))
+        (= (lseg (cons k empty) y)
+           (and (not (= k nil)) (= (nxt k) y)))
+))
+(assert (forall ((k1 Int) (k2 Int) (x ListOfLoc) (y Int))
+        (= (lseg (cons k1 (cons k2 x)) y)
+           (and (= (nxt k1) k2) (not (= k1 nil)) (lseg (cons k2 x) y)))
+))
 
-(assert (forall ((x ListOfLoc))
-                (ite (= x empty)
-                     (= (keys x) (as emptyset (Set Int)))
-                     (ite (= (nxt (head x)) nil)
-                          (and (= (tail x) empty)
-                               (= (keys x) (singleton (key (head x)))))
-                          (and (not (= (tail x) empty))
-                               (= (nxt (head x)) (head (tail x)))
-                               (= (keys x) (insert (key (head x)) (keys (tail x)))))))))
+(assert (= (keys empty) (as emptyset (Set Int))))
+(assert (forall ((k Int))
+        (=> (and (not (= k nil)) (= (nxt k) nil))
+            (= (keys (cons k empty)) (singleton (key k))))
+))
+(assert (forall ((k1 Int) (k2 Int) (x ListOfLoc))
+        (=> (and (= (nxt k1) k2) (not (= k1 nil)))
+            (= (keys (cons k1 (cons k2 x))) (insert (key k1) (keys (cons k2 x)))))
+))
 
-;; axioms
-(assert (= (nxt nil) nil))
+(declare-fun hx () ListOfLoc)
+(declare-fun x () Int)
+(declare-fun xs () ListOfLoc)
+(declare-fun y () Int)
+(declare-fun k () Int)
+
+;; uncommenting lemma goes through using cvc4+ig
+
+;; ;; lemma
+;; (assert (forall ((hx ListOfLoc) (y Int) (k Int))
+;;         (=> (and (lseg hx y) (not (= y nil)) (lst hx) (= (key y) k))
+;;                (member k (keys hx)))
+;; ))
 
 ;; goal
-(assert (not 
-(forall ((x ListOfLoc) (y ListOfLoc))
-        (=> (lst x)
-            (=> (and (not (= y empty)) (lseg x (head y)) (= (key (head y)) k))
-                (member k (keys x)))))
+(assert (not
+        (=> (and (lst hx) (= hx (cons x xs)) (not (= y nil)) (lseg hx y) (= (key y) k))
+            (exists ((hret ListOfLoc) (hrets ListOfLoc))
+                    (and (member k (keys hret)) (= hret (cons x hrets)))))
 ))
+
 (check-sat)

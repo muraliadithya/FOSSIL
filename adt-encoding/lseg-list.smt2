@@ -40,7 +40,12 @@
 (declare-fun ret () Int)
 (declare-fun rets () ListOfLoc)
 
-;; faithful encoding
+;; uncommenting lemma goes through using cvc4+ig
+
+;; ;; lemma
+;; (assert (forall ((hx ListOfLoc) (y Int) (ys ListOfLoc) (hy ListOfLoc))
+;;         (=> (and (lseg hx y) (= hy (cons y ys))) (=> (lst hy) (lst hx)))
+;; ))
 
 ;; goal
 (assert (not
@@ -50,21 +55,5 @@
                     (exists ((hret ListOfLoc))
                             (and (lst hret) (= hret (cons ret rets)))))))
 ))
-
-;; uncommenting below goes through using cvc4+ig (need lemma assumed)
-
-;; ;; lemma
-;; (assert (forall ((hx ListOfLoc) (y Int) (hy ListOfLoc))
-;;         (=> (and (lseg hx y) (= hy (cons y ys))) (=> (lst hy) (lst hx)))
-;; ))
-
-;; ;; goal with explicit heaplets
-;; (assert (not
-;;         (=> (and (lseg hx y) (= hx (cons x xs)) (= hy (cons y ys)))
-;;             (=> (ite (= x nil) (= ret nil) (= ret (nxt x)))
-;;                 (=> (lst hy)
-;;                     (ite (= ret nil) (lst empty)
-;;                          (and (lst xs) (= (head xs) ret))))))
-;; ))
 
 (check-sat)

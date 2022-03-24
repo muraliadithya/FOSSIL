@@ -88,7 +88,7 @@ def store_field(string, loc, tokens):
         raise RedeclarationException(f'Function {func_name} is redeclared', loc, string)
     # Create temporary non-api objects for recfunctions
     info_dict = {'type': func_type,
-                 'value': z3.Function(func_name, *func_type) if func_tag == 'RecFunction' else Function(func_name, *func_type)}
+                 'value': z3.Function(func_name, *[uctsort.z3sort for uctsort in func_type]) if func_tag == 'RecFunction' else Function(func_name, *func_type)}
     funcdict[func_name] = info_dict
     if func_tag == 'RecFunction':
         recdefdict[func_name] = dict()
@@ -130,7 +130,7 @@ def interpret_application(string, loc, tokens):
         else:
             raise InterpretationException(f'Unknown function {func_name}', loc, string)
         # Check that the term is well-typed
-        func_signature = funcdict['type']
+        func_signature = funcdict[func_name]['type']
         expected_sorts = func_signature[:-1]
         obtained_sorts = [arg[1] for arg in args]
         if len(expected_sorts) != len(obtained_sorts):
@@ -193,7 +193,7 @@ Decls = FODecl[1, ...] + RecDef[...] + StopDecls
 def check_decls(string, loc, tokens):
     # Check whether every function declared as a recfunction has a definition
     no_body = [def_name for def_name, value in recdefdict.items() if value == dict()]
-    if not no_body:
+    if no_body:
         raise BadDefinitionException(f'The following were declared as recursive functions '
                                      f'but no definition was given: {", ".join(no_body)}')
     # Check whether footprint functions are defined for every normal recursive definition
@@ -230,12 +230,16 @@ def instantiate_prog_state(string, loc, tokens):
         # Declare the functions
         funcdict[def_name]['value'] = RecFunction(f'{def_name}@{state_name}', *funcdict[def_name]['type'])
         # Define the body expression
-        formal_params = [Var(f'{recdefdict[def_name]["params"][i]}@{state_name}', funcdict[def_name]['type'][i])
-                         for i in range(len(recdefdict[def_name]['params']))]
+        # formal_params = [Var(f'{recdefdict[def_name]["params"][i]}@{state_name}', funcdict[def_name]['type'][i])
+        #                  for i in range(len(recdefdict[def_name]['params']))]
+        formal_params = [vardict[var_name]['value'] for var_name in recdefdict[def_name]['params']]
         body_string = recdefdict[def_name]['body']
         parser_element = AnnotationFormula if funcdict[def_name]['type'][-1] == boolsort else AnnotationTerm
-        body = parser_element.parse_string(body_string)
-        AddRecDefinition(funcdict[def_name]['value'], formal_params, body)
+        body = parser_element.parse_string(body_string)[0]
+        # Get only the body for recursive definitions that return terms
+        if funcdict[def_name]['type'][-1] != boolsort:
+            body = body[0]
+        AddRecDefinition(funcdict[def_name]['value'], tuple(formal_params), body)
     # Construct state
     prog_state = ProgramState(vardict, funcdict, state_name)
     if state_name == 'pre':
@@ -262,8 +266,10 @@ def store_annotation(string, loc, tokens):
 
 
 # Grammar for program terms and conditions
-ProgTerm = pp.Forward()
-ProgTerm <<= Variable ^ (pp.Combine(ProgTerm + Dot + FOFunction))
+# ProgTerm = pp.Forward()
+# ProgTerm <<= Variable ^ (pp.Combine(ProgTerm + Dot + FOFunction))
+# Program term has to be defined in this weird way because pyparsing has trouble with left recursion
+ProgTerm = Variable + (Dot + FOFunction)[...]
 # The condition language is induced over the program term language defined above.
 prog_cond = CombinatorLogic(ProgTerm)
 ProgCond = prog_cond.Formula
@@ -274,17 +280,19 @@ ProgCond = prog_cond.Formula
 def interpret_prog_term(string, loc, tokens):
     if len(tokens) == 1:
         return tokens[0]
-    (subterm, subterm_sort), func_name = tokens
-    # Check that the expression is well-typed
-    func_info = funcdict.get(func_name, None)
-    if func_info is None:
-        raise UnknownExpression(f'Unknown function {func_name}', loc, string)
-    expected_sort = func_info['type'][:-1]
-    if tuple(subterm_sort) != expected_sort:
-        raise UnknownExpression(f'Cannot apply {func_name} of type {expected_sort} '
-                                f'to argument of type {subterm_sort}', loc, string)
-    interp = func_info['value'](subterm)
-    interp_sort = func_info['type'][-1]
+    (interp, interp_sort), applications = tokens[0], tokens[1:]
+    # Build the sequence of applications
+    for func_name in applications:
+        # Check that the expression is well-typed
+        func_info = funcdict.get(func_name, None)
+        if func_info is None:
+            raise UnknownExpression(f'Unknown function {func_name}', loc, string)
+        expected_sort = func_info['type'][:-1]
+        if len(expected_sort) > 1 or interp_sort != expected_sort[0]:
+            raise UnknownExpression(f'Cannot apply {func_name} of type {expected_sort} '
+                                    f'to argument of type {interp_sort}', loc, string)
+        interp = func_info['value'](interp)
+        interp_sort = func_info['type'][-1]
     return interp, interp_sort
 
 
@@ -299,3 +307,4 @@ Statements = Statement[...]
 # TODO
 
 
+Program = Decls + Annotation + Statements + Annotation

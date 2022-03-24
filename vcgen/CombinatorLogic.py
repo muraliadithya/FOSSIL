@@ -23,6 +23,7 @@ class CombinatorLogic:
     This class defines a combinatory logic on top of a term grammar given as input. The incoming term grammar is
     usually one defining a language of applications (variables and functions applied to variables).
     """
+
     def __init__(self, application_grammar):
         self.Application = application_grammar
 
@@ -112,8 +113,11 @@ class CombinatorLogic:
                 well_typed = arg2sort == sort_to_setsort[arg1sort]
             else:
                 # Comparisons other than equality/disequality cannot be made on Loc or Bool sort terms
-                well_typed = False if (
-                            binop not in {'==', '!='} and arg1sort in {fgsort, boolsort}) else arg1sort == arg2sort
+                if binop not in {'==', '!='} and arg1sort in {fgsort, boolsort}:
+                    well_typed = False
+                else:
+                    # Check that the arguments have the same sort
+                    well_typed = arg1sort == arg2sort
             if not well_typed:
                 raise BadType(
                     f'Cannot interpret {arg1} {binop} {arg2} between arguments of sorts {arg1sort} and {arg2sort}',

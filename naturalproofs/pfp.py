@@ -56,3 +56,37 @@ def make_pfp_formula(formula, is_strong_induction=True, annctx=default_annctx):
     # pfp property is induction_step of claim is smaller than claim
     induction_claim = lessequals_operator(induction_step, right_side)
     return induction_claim
+
+
+def make_induction_obligation(formula, ind_var, annctx=default_annctx):
+    """
+    Construct the obligation expressing the induction proof of the given formula. The induction template is the one
+    corresponding to the sort of the induction variable 'ind_var' when it is an ADT sort.
+    The only induction obligation currently supported is the standard one with one level of destructor.
+    :param formula: z3.BoolRef
+    :param ind_var: z3.ExprRef
+    :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext
+    :return: z3.BoolRef
+    """
+    if not isinstance(formula, z3.BoolRef):
+        raise TypeError('BoolRef expected. Given expression is not a formula.')
+    sort = type(ind_var)
+    if not isinstance(sort, z3.DatatypeSortRef):
+        raise TypeError(f'Expected an Algebraic Datatype to induct on, but was given {type(ind_var)}.')
+    induction_steps = []
+    for i in range(sort.num_constructors()):
+        ctor = sort.constructor(i)
+        arity = ctor.arity()
+        check = sort.recognizer(i)
+        if arity == 0:
+            ind_step = z3.Implies(check(ind_var), formula)
+        else:
+            inductive_hypotheses = [z3.substitute(formula, [(ind_var, sort.accessor(i, j)(ind_var))])
+                                    for j in range(arity) if ctor.domain(j) == sort]
+            num_hyp = len(inductive_hypotheses)
+            if num_hyp == 0:
+                raise ValueError(f'Cannot handle constructors with no arguments from sort {sort.name()}.')
+            inductive_hypothesis = z3.And(inductive_hypotheses) if num_hyp != 1 else inductive_hypotheses[0]
+            ind_step = z3.Implies(check(ind_var), z3.Implies(inductive_hypothesis, formula))
+        induction_steps.append(ind_step)
+    return z3.And(induction_steps)

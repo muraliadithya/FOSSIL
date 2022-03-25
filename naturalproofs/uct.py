@@ -156,7 +156,7 @@ def override_fgsort(z3sort, annctx=default_annctx):
     fgsetsort.lattice_top = z3.FullSet(z3sort)
     fgsetsort.lattice_bottom = z3.EmptySet(z3sort)
     # If the sort is a z3.DatatypeSortRef track constructors in the new annotated context.
-    if type(fgsort) == z3.DatatypeSortRef:
+    if type(fgsort.z3sort) == z3.DatatypeSortRef:
         for i in range(fgsort.z3sort.num_constructors()):
             ctor = fgsort.z3sort.constructor(i)
             arity = ctor.arity()

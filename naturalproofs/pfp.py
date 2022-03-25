@@ -77,10 +77,12 @@ def make_induction_obligation(formula, ind_var, annctx=default_annctx):
     for i in range(z3sort.num_constructors()):
         ctor = z3sort.constructor(i)
         arity = ctor.arity()
-        check = z3sort.recognizer(i)
         if arity == 0:
-            ind_step = z3.Implies(check(ind_var), formula)
+            # If the constructor is of 0 arity, make sure it appears as is so it can be treated as a constant
+            # during instantiation
+            ind_step = z3.Implies(ind_var == ctor(), formula)
         else:
+            check = z3sort.recognizer(i)
             inductive_hypotheses = [z3.substitute(formula, [(ind_var, z3sort.accessor(i, j)(ind_var))])
                                     for j in range(arity) if ctor.domain(j) == z3sort]
             num_hyp = len(inductive_hypotheses)

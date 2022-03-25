@@ -5,7 +5,7 @@ import z3
 
 # Hack to get a FuncDeclRef corresponding to Implies and IsSubset
 Implies_as_FuncDeclRef = z3.Implies(True, True).decl()
-IsSubset_Int_as_FuncDeclRef = z3.IsSubset(z3.EmptySet(z3.IntSort()), z3.EmptySet(z3.IntSort())).decl()
+IsSubset_as_FuncDeclRef = lambda z3sort: z3.IsSubset(z3.EmptySet(z3sort), z3.EmptySet(z3sort)).decl()
 
 
 def apply_bound_formula(bound_formula, args):

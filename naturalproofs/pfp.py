@@ -4,7 +4,7 @@
 import z3
 
 from naturalproofs.AnnotatedContext import default_annctx
-from naturalproofs.uct import get_uct_sort
+from naturalproofs.uct import is_expr_fg_sort
 from naturalproofs.decl_api import get_recursive_definition
 from naturalproofs.utils import transform_expression
 
@@ -70,22 +70,22 @@ def make_induction_obligation(formula, ind_var, annctx=default_annctx):
     """
     if not isinstance(formula, z3.BoolRef):
         raise TypeError('BoolRef expected. Given expression is not a formula.')
-    sort = type(ind_var)
-    if not isinstance(sort, z3.DatatypeSortRef):
-        raise TypeError(f'Expected an Algebraic Datatype to induct on, but was given {type(ind_var)}.')
+    z3sort = ind_var.sort()
+    if not isinstance(z3sort, z3.DatatypeSortRef):
+        raise TypeError(f'Expected an Algebraic Datatype to induct on, but was given {z3sort}.')
     induction_steps = []
-    for i in range(sort.num_constructors()):
-        ctor = sort.constructor(i)
+    for i in range(z3sort.num_constructors()):
+        ctor = z3sort.constructor(i)
         arity = ctor.arity()
-        check = sort.recognizer(i)
+        check = z3sort.recognizer(i)
         if arity == 0:
             ind_step = z3.Implies(check(ind_var), formula)
         else:
-            inductive_hypotheses = [z3.substitute(formula, [(ind_var, sort.accessor(i, j)(ind_var))])
-                                    for j in range(arity) if ctor.domain(j) == sort]
+            inductive_hypotheses = [z3.substitute(formula, [(ind_var, z3sort.accessor(i, j)(ind_var))])
+                                    for j in range(arity) if ctor.domain(j) == z3sort]
             num_hyp = len(inductive_hypotheses)
             if num_hyp == 0:
-                raise ValueError(f'Cannot handle constructors with no arguments from sort {sort.name()}.')
+                raise ValueError(f'Cannot handle constructors with no arguments from sort {z3sort.name()}.')
             inductive_hypothesis = z3.And(inductive_hypotheses) if num_hyp != 1 else inductive_hypotheses[0]
             ind_step = z3.Implies(check(ind_var), z3.Implies(inductive_hypothesis, formula))
         induction_steps.append(ind_step)

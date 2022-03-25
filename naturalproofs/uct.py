@@ -23,8 +23,8 @@ class UCTSort:
         self.name = name
         self.z3sort = z3sort
         self.is_foreground = is_foreground
-        if is_foreground and z3sort != z3.IntSort():
-            raise ValueError('Currently foreground sort can only be represented using integers.')
+        # Temporarily disabling foreground sort restriction
+        #     raise ValueError('Currently foreground sort can only be represented using integers.')
         # Additional parameters
         # Lattice structure
         self.lattice_lessequals_operator = None
@@ -47,14 +47,14 @@ class UCTSort:
 fgsort = UCTSort('Fg', z3.IntSort(), True)
 # Set of foreground sort
 fgsetsort = UCTSort('FgSet', z3.SetSort(z3.IntSort()))
-fgsetsort.lattice_lessequals_operator = utils.IsSubset_Int_as_FuncDeclRef
+fgsetsort.lattice_lessequals_operator = utils.IsSubset_as_FuncDeclRef(z3.IntSort())
 fgsetsort.lattice_top = z3.FullSet(z3.IntSort())
 fgsetsort.lattice_bottom = z3.EmptySet(z3.IntSort())
 # Generic integer sort
 intsort = UCTSort('Int', z3.IntSort())
 # Set of integer sort
 intsetsort = UCTSort('IntSet', z3.SetSort(z3.IntSort()))
-intsetsort.lattice_lessequals_operator = utils.IsSubset_Int_as_FuncDeclRef
+intsetsort.lattice_lessequals_operator = utils.IsSubset_as_FuncDeclRef(z3.IntSort())
 intsetsort.lattice_top = z3.FullSet(z3.IntSort())
 intsetsort.lattice_bottom = z3.EmptySet(z3.IntSort())
 # Boolean sort
@@ -135,11 +135,11 @@ def max_intsort(*args, annctx=default_annctx):
 
 
 # Function to replace default fg sort with another one
-def override_fgsort(sort, annctx=default_annctx):
+def override_fgsort(z3sort, annctx=default_annctx):
     """
     Replacing the default foreground sort with the given z3.SortRef object, and returning a new
     annotated context.
-    :param sort: z3.SortRef
+    :param z3sort: z3.SortRef
     :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext
     :return: naturalproofs.AnnotatedContext.AnnotatedContext
     """
@@ -148,11 +148,17 @@ def override_fgsort(sort, annctx=default_annctx):
                   'once more. There are no guarantees that the solver will work as expected.')
     annctx = AnnotatedContext()
     global fgsort
-    fgsort = sort
+    global fgsetsort
+    fgsort = UCTSort('Fg', z3sort, True)
+    # Set of foreground sort
+    fgsetsort = UCTSort('FgSet', z3.SetSort(z3sort))
+    fgsetsort.lattice_lessequals_operator = utils.IsSubset_as_FuncDeclRef(z3sort)
+    fgsetsort.lattice_top = z3.FullSet(z3sort)
+    fgsetsort.lattice_bottom = z3.EmptySet(z3sort)
     # If the sort is a z3.DatatypeSortRef track constructors in the new annotated context.
     if type(fgsort) == z3.DatatypeSortRef:
-        for i in range(fgsort.num_constructors()):
-            ctor = fgsort.constructor(i)
+        for i in range(fgsort.z3sort.num_constructors()):
+            ctor = fgsort.z3sort.constructor(i)
             arity = ctor.arity()
             signature = tuple([ctor.domain(j) for j in range(arity)] + [fgsort])
             annctx.add_alias_annotation(ctor, signature)

@@ -30,6 +30,9 @@
                    (and (= (nxt k1) k2) (not (= k1 nil)) (lseg (cons k2 x) k1)))
 ))
 
+;; axioms
+(assert (= (nxt nil) nil))
+
 (declare-fun hx () ListOfLoc)
 (declare-fun x () Int)
 (declare-fun xs () ListOfLoc)

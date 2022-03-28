@@ -35,6 +35,10 @@
                     (and (black k1) (not (red k1)) (red k2) (not (black k2))))))
 ))
 
+;; axioms
+(assert (= (nxt nil) nil))
+(assert (red nil))
+
 (declare-fun hx () ListOfLoc)
 (declare-fun x () Int)
 (declare-fun xs () ListOfLoc)

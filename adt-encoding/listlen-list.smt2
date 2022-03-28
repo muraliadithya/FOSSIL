@@ -33,6 +33,9 @@
            (and (= (nxt k1) k2) (not (= k1 nil)) (lstlen_bool (cons k2 x))))
 ))
 
+;; axioms
+(assert (= (nxt nil) nil))
+
 (declare-fun hx () ListOfLoc)
 (declare-fun x () Int)
 (declare-fun xs () ListOfLoc)

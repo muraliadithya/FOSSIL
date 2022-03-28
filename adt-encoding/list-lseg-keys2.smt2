@@ -43,6 +43,9 @@
             (= (keys (cons k1 (cons k2 x))) (insert (key k1) (keys (cons k2 x)))))
 ))
 
+;; axioms
+(assert (= (nxt nil) nil))
+
 (declare-fun hx () ListOfLoc)
 (declare-fun x () Int)
 (declare-fun xs () ListOfLoc)

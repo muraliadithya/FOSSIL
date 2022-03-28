@@ -32,6 +32,9 @@
             (= (hlst (cons k1 (cons k2 x))) (insert k1 (hlst (cons k2 x)))))
 ))
 
+;; axioms
+(assert (= (nxt nil) nil))
+
 (declare-fun hx () ListOfLoc)
 (declare-fun x () Int)
 (declare-fun xs () ListOfLoc)

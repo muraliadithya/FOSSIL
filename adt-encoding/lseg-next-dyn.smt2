@@ -60,6 +60,9 @@
            (and (= (nxt_p k1) k2) (not (= k1 nil)) (lsegz_p (cons k2 x))))
 ))
 
+;; axioms
+(assert (= (nxt nil) nil))
+
 (declare-fun hx () ListOfLoc)
 (declare-fun x () Int)
 (declare-fun xs () ListOfLoc)
@@ -67,16 +70,17 @@
 
 ;; uncommenting lemma goes through using cvc4+ig
 
-;; ;; lemma
-;; (assert (forall ((hx ListOfLoc))
-;;         (=> (lsegy hx) (lsegz_p hx)) 
-;; ))
-
-;; goal
-(assert (not
-        (=> (and (lsegy hx) (= hx (cons x xs)))
-	    (=> (not (= (key x) k))
-                (lsegz_p hx)))
+;; lemma
+(assert (forall ((hx ListOfLoc))
+        (=> (lsegy hx) (lsegz_p hx)) 
 ))
+
+;; ;; goal
+;; (assert (not
+;;         (=> (and (lsegy hx) (= hx (cons x xs)))
+;; 	    (=> (not (= (key x) k))
+;;                 (exists ((hret ListOfLoc) (hrets ListOfLoc))
+;;                         (and (lsegz_p hret) (= hret (cons x hrets))))))
+;; ))
 
 (check-sat)

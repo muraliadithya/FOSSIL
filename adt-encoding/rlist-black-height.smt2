@@ -73,6 +73,11 @@
             (= (black_height (cons k1 (cons k2 x))) (black_height (cons k2 x))))
 ))
 
+;; axioms
+(assert (= (nxt nil) nil))
+(assert (red nil))
+(assert (not (black nil)))
+
 (declare-fun hx () ListOfLoc)
 (declare-fun x () Int)
 (declare-fun xs () ListOfLoc)

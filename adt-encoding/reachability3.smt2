@@ -1,14 +1,11 @@
-;; preamble
-(define-fun iff ((b1 Bool) (b2 Bool)) Bool
-  (and (=> b1 b2) (=> b2 b1)))
+(set-logic ALL_SUPPORTED)
 
 ;; heap
 (declare-datatypes () ((Execution (cons (head Int) (tail Execution)) (start))))
 
-;; vars and unint functions
+;; unint functions
 (declare-fun nil () Int)
 (declare-fun c () Int)
-
 (declare-fun prv_cfg (Int) Int)
 (declare-fun nxt (Int) Int)
 (declare-fun v1 (Int) Int)
@@ -32,22 +29,36 @@
   (and (cond x) (assign x))
 )
 
-(assert (forall ((x Execution))
-                (iff (reach_pgm x)
-                     (ite (= x start)
-                          true
-                          (and (= (prv_cfg (head x)) (head (tail x)))
-                               (reach_pgm (tail x))
-                               (body (head x)))))))
+(assert (reach_pgm start))
+(assert (forall ((k Int))
+        (= (reach_pgm (cons k start))
+           (and (not (= k nil)) (= (prv_cfg k) nil) (body k)))
+))
+(assert (forall ((k1 Int) (k2 Int) (x Execution))
+        (= (reach_pgm (cons k1 (cons k2 x)))
+           (and (not (= k1 nil)) (= (prv_cfg k1) k2) (body k1) (reach_pgm (cons k2 x))))
+))
 
-;; axioms
+;; precondition
 (assert (= (v1 (head start)) (v2 (head start))))
 
+(declare-fun hx () Execution)
+(declare-fun x () Int)
+(declare-fun xs () Execution)
+
+;; uncommenting lemma goes through using cvc4+ig
+
+;; ;; lemma
+;; (assert (forall ((hx Execution) (x Int) (xs Execution))
+;;         (=> (and (reach_pgm hx) (= hx (cons x xs)))
+;;             (= (v1 x) (v2 x)))
+;; ))
+
 ;; goal
-(assert (not 
-(forall ((x Execution))
-        (=> (reach_pgm x)
-            (=> (= (v1 (head x)) nil)
-                (or (= (v2 (head x)) nil) (= (v2 (head x)) c)))))
+(assert (not
+        (=> (and (reach_pgm hx) (= hx (cons x xs)))
+	    (=> (= (v1 x) nil)
+                (or (= (v2 x) nil) (= (v2 x) c))))
 ))
+
 (check-sat)

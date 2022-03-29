@@ -13,6 +13,7 @@
 (declare-fun minr (TreeOfLoc) Int)
 (declare-fun maxr (TreeOfLoc) Int)
 (declare-fun hbst (TreeOfLoc) (Set Int))
+(declare-fun keys (TreeOfLoc) (Set Int))
 (declare-fun tree (TreeOfLoc) Bool)
 (declare-fun bst (TreeOfLoc) Bool)
 
@@ -38,6 +39,13 @@
 (assert (= (hbst empty) (as emptyset (Set Int))))
 (assert (forall ((k Int) (lt TreeOfLoc) (rt TreeOfLoc))
         (= (hbst (cons k lt rt)) (insert k (union (hbst lt) (hbst rt))))
+))
+
+;; keys definition
+
+(assert (= (keys empty) (as emptyset (Set Int))))
+(assert (forall ((k Int) (lt TreeOfLoc) (rt TreeOfLoc))
+        (= (keys (cons k lt rt)) (insert (key k) (union (keys lt) (keys rt))))
 ))
 
 ;; bst definition
@@ -82,29 +90,29 @@
 (declare-fun hx () TreeOfLoc)
 (declare-fun x () Int)
 (declare-fun y () Int)
-(declare-fun z () Int)
+(declare-fun k () Int)
 (declare-fun lx () TreeOfLoc)
 (declare-fun rx () TreeOfLoc)
 
 ;; uncommenting both lemmas goes through using cvc4+ig
 
 ;; ;; lemma 1
-;; (assert (forall ((hx TreeOfLoc) (y Int)) 
-;;         (=> (and (bst hx) (member y (hbst hx)))
-;;             (<= (key y) (maxr hx)))
+;; (assert (forall ((hx TreeOfLoc) (x Int) (lx TreeOfLoc) (rx TreeOfLoc) (k Int))
+;;         (=> (and (bst hx) (= hx (cons x lx rx)) (member k (keys hx)) (not (= x nil)))
+;;             (<= k (maxr hx)))
 ;; ))
 
 ;; ;; lemma 2
-;; (assert (forall ((hx TreeOfLoc) (y Int)) 
-;;         (=> (and (bst hx) (member y (hbst hx)))
-;;             (<= (minr hx) (key y)))
+;; (assert (forall ((hx TreeOfLoc) (x Int) (lx TreeOfLoc) (rx TreeOfLoc) (k Int))
+;;         (=> (and (bst hx) (= hx (cons x lx rx)) (member k (keys hx)) (not (= x nil)))
+;;             (<= (minr hx) k))
 ;; ))
 
 ;; goal
 (assert (not
         (=> (and (bst hx) (= hx (cons x lx rx)) (not (= x nil))
-                 (member y (hbst lx)) (member z (hbst rx)))
-	    (<= (key y) (key z)))
+                 (member k (keys hx)) (< k (key x)))
+	    (member k (keys lx)))
 ))
 
 (check-sat)

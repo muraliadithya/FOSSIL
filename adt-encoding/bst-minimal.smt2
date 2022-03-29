@@ -13,6 +13,7 @@
 (declare-fun minr (TreeOfLoc) Int)
 (declare-fun maxr (TreeOfLoc) Int)
 (declare-fun hbst (TreeOfLoc) (Set Int))
+(declare-fun keys (TreeOfLoc) (Set Int))
 (declare-fun tree (TreeOfLoc) Bool)
 (declare-fun bst (TreeOfLoc) Bool)
 
@@ -38,6 +39,13 @@
 (assert (= (hbst empty) (as emptyset (Set Int))))
 (assert (forall ((k Int) (lt TreeOfLoc) (rt TreeOfLoc))
         (= (hbst (cons k lt rt)) (insert k (union (hbst lt) (hbst rt))))
+))
+
+;; keys definition
+
+(assert (= (keys empty) (as emptyset (Set Int))))
+(assert (forall ((k Int) (lt TreeOfLoc) (rt TreeOfLoc))
+        (= (keys (cons k lt rt)) (insert (key k) (union (keys lt) (keys rt))))
 ))
 
 ;; bst definition
@@ -80,31 +88,39 @@
 (assert (= (rightptr nil) nil))
 
 (declare-fun hx () TreeOfLoc)
-(declare-fun x () Int)
+(declare-fun x1 () Int)
+(declare-fun lx1 () TreeOfLoc)
+(declare-fun rx1 () TreeOfLoc)
+(declare-fun x2 () Int)
+(declare-fun lx2 () TreeOfLoc)
+(declare-fun rx2 () TreeOfLoc)
+(declare-fun hy () TreeOfLoc)
 (declare-fun y () Int)
-(declare-fun z () Int)
-(declare-fun lx () TreeOfLoc)
-(declare-fun rx () TreeOfLoc)
+(declare-fun ly () TreeOfLoc)
+(declare-fun ry () TreeOfLoc)
+(declare-fun k () Int)
+(declare-fun lrets () TreeOfLoc)
+(declare-fun rrets () TreeOfLoc)
 
-;; uncommenting both lemmas goes through using cvc4+ig
+;; uncommenting lemma goes through using cvc4+ig
 
-;; ;; lemma 1
-;; (assert (forall ((hx TreeOfLoc) (y Int)) 
-;;         (=> (and (bst hx) (member y (hbst hx)))
-;;             (<= (key y) (maxr hx)))
-;; ))
-
-;; ;; lemma 2
-;; (assert (forall ((hx TreeOfLoc) (y Int)) 
-;;         (=> (and (bst hx) (member y (hbst hx)))
-;;             (<= (minr hx) (key y)))
+;; ;; lemma
+;; (assert (forall ((hx TreeOfLoc) (hy TreeOfLoc) (y Int) (ly TreeOfLoc) (ry TreeOfLoc))
+;;         (=> (and (bst hx) (= hy (cons y ly ry)) (member y (hbst hx)))
+;;             (bst hy))
 ;; ))
 
 ;; goal
 (assert (not
-        (=> (and (bst hx) (= hx (cons x lx rx)) (not (= x nil))
-                 (member y (hbst lx)) (member z (hbst rx)))
-	    (<= (key y) (key z)))
+        (=> (and (bst hx) (= hx (cons x1 lx1 rx1)) (not (= x1 nil))
+                 (= lx1 (cons x2 lx2 rx2)) (not (= x2 nil))
+                 (= hy (cons y ly ry))
+                 (not (= y nil))
+                 (member y (hbst hx))
+                 (= k (minr hx))
+                 (= k (minr hy)))
+             (exists ((hret TreeOfLoc))
+                     (and (= (minr hret) k) (= hret (cons x2 lrets rrets)))))
 ))
 
 (check-sat)

@@ -12,7 +12,7 @@
 ;; recdefs
 (declare-fun minr (TreeOfLoc) Int)
 (declare-fun maxr (TreeOfLoc) Int)
-(declare-fun hbst (TreeOfLoc) (Set Int))
+(declare-fun htree (TreeOfLoc) (Set Int))
 (declare-fun tree (TreeOfLoc) Bool)
 (declare-fun bst (TreeOfLoc) Bool)
 
@@ -33,11 +33,41 @@
         (= (maxr (cons k lt rt)) (max3 (key k) (minr lt) (minr rt)))
 ))
 
-;; hbst definition
+;; htree definition
 
-(assert (= (hbst empty) (as emptyset (Set Int))))
+(assert (= (htree empty) (as emptyset (Set Int))))
 (assert (forall ((k Int) (lt TreeOfLoc) (rt TreeOfLoc))
-        (= (hbst (cons k lt rt)) (insert k (union (hbst lt) (hbst rt))))
+        (= (htree (cons k lt rt)) (insert k (union (htree lt) (htree rt))))
+))
+
+;; binary tree definition
+
+(assert (tree empty))
+(assert (forall ((k Int))
+        (= (tree (cons k empty empty))
+           (and (not (= k nil)) (= (leftptr k) nil) (= (rightptr k) nil)))
+))
+(assert (forall ((k Int) (kl Int) (xl TreeOfLoc) (yl TreeOfLoc))
+        (= (tree (cons k (cons kl xl yl) empty))
+           (and (= (leftptr k) kl) (= (rightptr k) nil) (not (= k nil))
+                (not (member k (htree (cons kl xl yl))))
+                (tree (cons kl xl yl))))
+))
+(assert (forall ((k Int) (kr Int) (xr TreeOfLoc) (yr TreeOfLoc))
+        (= (tree (cons k empty (cons kr xr yr)))
+           (and (= (leftptr k) nil) (= (rightptr k) kr) (not (= k nil))
+                (not (member k (htree (cons kr xr yr))))
+                (tree (cons kr xr yr))))
+))
+(assert (forall ((k Int) (kl Int) (kr Int) 
+                 (xl TreeOfLoc) (yl TreeOfLoc) (xr TreeOfLoc) (yr TreeOfLoc))
+        (= (tree (cons k (cons kl xl yl) (cons kr xr yr)))
+           (and (= (leftptr k) kl) (= (rightptr k) kr) (not (= k nil))
+                (not (member k (htree (cons kl xl yl))))
+                (not (member k (htree (cons kr xr yr))))
+                (= (intersection (htree (cons kl xl yl)) (htree (cons kr xr yr)))
+                   (as emptyset (Set Int)))
+                (tree (cons kl xl yl)) (tree (cons kr xr yr))))
 ))
 
 ;; bst definition
@@ -52,14 +82,14 @@
         (= (bst (cons k (cons kl xl yl) empty))
            (and (= (leftptr k) kl) (= (rightptr k) nil) (not (= k nil))
                 (< 0 (key k)) (< (key k) 100) (<= (maxr (cons kl xl yl)) (key k))
-                (not (member k (hbst (cons kl xl yl))))
+                (not (member k (htree (cons kl xl yl))))
                 (bst (cons kl xl yl))))
 ))
 (assert (forall ((k Int) (kr Int) (xr TreeOfLoc) (yr TreeOfLoc))
         (= (bst (cons k empty (cons kr xr yr)))
            (and (= (leftptr k) nil) (= (rightptr k) kr) (not (= k nil))
                 (< 0 (key k)) (< (key k) 100) (<= (key k) (minr (cons kr xr yr)))
-                (not (member k (hbst (cons kr xr yr))))
+                (not (member k (htree (cons kr xr yr))))
                 (bst (cons kr xr yr))))
 ))
 (assert (forall ((k Int) (kl Int) (kr Int) 
@@ -68,9 +98,9 @@
            (and (= (leftptr k) kl) (= (rightptr k) kr) (not (= k nil))
                 (< 0 (key k)) (< (key k) 100)
                 (<= (maxr (cons kl xl yl)) (key k)) (<= (key k) (minr (cons kr xr yr)))
-                (not (member k (hbst (cons kl xl yl))))
-                (not (member k (hbst (cons kr xr yr))))
-                (= (intersection (hbst (cons kl xl yl)) (hbst (cons kr xr yr)))
+                (not (member k (htree (cons kl xl yl))))
+                (not (member k (htree (cons kr xr yr))))
+                (= (intersection (htree (cons kl xl yl)) (htree (cons kr xr yr)))
                    (as emptyset (Set Int)))
                 (bst (cons kl xl yl)) (bst (cons kr xr yr))))
 ))
@@ -81,30 +111,33 @@
 
 (declare-fun hx () TreeOfLoc)
 (declare-fun x () Int)
-(declare-fun y () Int)
-(declare-fun z () Int)
 (declare-fun lx () TreeOfLoc)
 (declare-fun rx () TreeOfLoc)
+(declare-fun ret () Int)
+(declare-fun lrets () TreeOfLoc)
+(declare-fun rrets () TreeOfLoc)
 
-;; uncommenting both lemmas goes through using cvc4+ig
-
-;; ;; lemma 1
-;; (assert (forall ((hx TreeOfLoc) (y Int)) 
-;;         (=> (and (bst hx) (member y (hbst hx)))
-;;             (<= (key y) (maxr hx)))
-;; ))
-
-;; ;; lemma 2
-;; (assert (forall ((hx TreeOfLoc) (y Int)) 
-;;         (=> (and (bst hx) (member y (hbst hx)))
-;;             (<= (minr hx) (key y)))
-;; ))
+;; faithful encoding
 
 ;; goal
 (assert (not
-        (=> (and (bst hx) (= hx (cons x lx rx)) (not (= x nil))
-                 (member y (hbst lx)) (member z (hbst rx)))
-	    (<= (key y) (key z)))
+        (=> (and (bst hx) (= hx (cons x lx rx)))
+	    (=> (ite (= x nil) (= ret nil) (= ret (leftptr x)))
+                (exists ((hret TreeOfLoc))
+                        (and (tree hret) (= hret (cons ret lrets rrets))))))
 ))
+
+;; uncommenting below goes through using cvc4+ig (need lemma assumed)
+
+;; ;; lemma
+;; (assert (forall ((hx TreeOfLoc)) (=> (bst hx) (tree hx))))
+
+;; ;; goal with explicit heaplets
+;; (assert (not
+;;         (=> (and (bst hx) (= hx (cons x lx rx)))
+;; 	    (=> (ite (= x nil) (= ret nil) (= ret (leftptr x)))
+;;                 (ite (= ret nil) (tree empty)
+;;                      (and (tree lx) (= (head lx) ret)))))
+;; ))
 
 (check-sat)

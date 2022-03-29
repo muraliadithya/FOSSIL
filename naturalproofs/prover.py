@@ -94,6 +94,7 @@ class NPSolver:
         # Keep track of terms in the quantifier-free problem given to the solver
         initial_terms = get_foreground_terms(neg_goal, annctx=self.annctx)
         extraction_terms = initial_terms
+        recdef_application_terms = get_recdef_applications(neg_goal, annctx=self.annctx)
         instantiation_terms = set()
         # Instantiate and check for provability according to options
         # Handle manual instantiation mode first
@@ -109,7 +110,7 @@ class NPSolver:
             return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms, 
                               instantiation_terms=instantiation_terms, options=options)
         # Automatic instantiation modes
-        # Untracked lemma instantiation strategy
+        # stratified instantiation strategy
         if options.instantiation_mode == proveroptions.depth_one_stratified_instantiation:
             conservative_fo_abstractions = axioms | recdef_unfoldings
             tracked_instantiations = instantiate(conservative_fo_abstractions, initial_terms)

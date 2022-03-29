@@ -55,7 +55,7 @@ def _get_foreground_terms_aux(expr, annctx):
     return fg_set
 
 
-def get_foreground_terms(exprs, annctx=default_annctx):
+def get_foreground_terms(exprs, annctx):
     """
     Return the subterm-closed set of terms in any expression in exprs that are of the foreground sort.  
     :param exprs: z3.ExprRef or set of z3.ExprRef  

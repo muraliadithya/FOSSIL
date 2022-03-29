@@ -65,7 +65,7 @@ class FiniteModel:
         #  cases where uninterpreted functions have arguments in other domains, primarily integers.
         # Subterm-close the given terms assuming one-way functions
         # get_foreground_terms already performs subterm closure
-        subterm_closure = get_foreground_terms(terms)
+        subterm_closure = get_foreground_terms(terms, annctx=annctx)
         elems = elems | {smtmodel.eval(term, model_completion=True) for term in subterm_closure}
         if vocabulary is None:
             vocabulary = get_vocabulary(annctx)

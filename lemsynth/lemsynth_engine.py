@@ -35,10 +35,11 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     goal_instantiation_mode = config_params.get('goal_instantiation_mode', None)
     supported_goal_instantiation_modes = {proveroptions.manual_instantiation,
                                           proveroptions.depth_one_stratified_instantiation,
-                                          proveroptions.fixed_depth}
+                                          proveroptions.fixed_depth,
+                                          proveroptions.lean_instantiation}
     if goal_instantiation_mode is None:
-        # depth one stratified instantiation by default
-        goal_instantiation_mode = proveroptions.depth_one_stratified_instantiation
+        # lean instantiation by default
+        goal_instantiation_mode = proveroptions.lean_instantiation
     elif goal_instantiation_mode not in supported_goal_instantiation_modes:
         # The set of instantiation terms must stay constant
         # TODO: check for unsoundness of algorithm if instantiation mode has automatic adaptive depth.

@@ -6,7 +6,7 @@ import z3
 from naturalproofs.AnnotatedContext import default_annctx
 from naturalproofs.decl_api import get_recursive_definition, get_all_axioms, is_expr_fg_sort
 import naturalproofs.proveroptions as proveroptions
-from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate
+from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate, get_recdef_applications
 
 
 class NPSolution:
@@ -26,7 +26,7 @@ class NPSolution:
         to the solver at the end of all instantiations.  
         - instantiation_terms: the set of terms that were used for instantiating all axioms and recursive 
         definitions. Only applicable when the instantiation is uniform for all axioms. Not applicable when 
-        instantiation mode is depth_one_untracked_lemma_instantiation.  
+        instantiation mode is depth_one_stratified_instantiation or lean_instantiation.
         - depth (int): depth at which the solution object was created. Applicable when instantiation mode is 
         bounded depth.  
         - options (proveroptions.Options): logging attribute. Options used to configure the solver.  
@@ -74,12 +74,18 @@ class NPSolver:
         if lemmas is None:
             lemmas = set()
         else:
-            # Check that each bound parameter in all of the lemmas are of the foreground sort
+            # Check that each bound parameter in all the lemmas are of the foreground sort
             for lemma in lemmas:
                 bound_vars, lemma_body = lemma
                 if not all(is_expr_fg_sort(bound_var, annctx=self.annctx) for bound_var in bound_vars):
                     raise TypeError('Bound variables of lemma: {} must be of the foreground sort'.format(lemma_body))
-        fo_abstractions = axioms | recdef_unfoldings | lemmas
+        if options.instantiation_mode == proveroptions.lean_instantiation:
+            # Recdefs need to be treated separately using 'lean' instantiation
+            fo_abstractions = axioms | lemmas
+        else:
+            # If the instantiation isn't the 'lean' kind then all defs are going to be instantiated with all terms
+            untagged_unfoldings = set(recdef_unfoldings.values())
+            fo_abstractions = axioms | untagged_unfoldings | lemmas
         # Negate the goal
         neg_goal = z3.Not(goal)
         # Create a solver object and add the goal negation to it
@@ -147,6 +153,13 @@ class NPSolver:
                 if instantiations == set():
                     instantiation_terms = set()
                     break
+                if options.instantiation_mode == proveroptions.lean_instantiation:
+                    # Add recursive definition instantiations to the set of all instantiations
+                    for recdef, application_terms in recdef_application_terms.items():
+                        lean_instantiations = instantiate(recdef_unfoldings[recdef], application_terms)
+                        instantiations.update(lean_instantiations)
+                    # Update the set of application terms
+                    recdef_application_terms = get_recdef_applications(instantiations, annctx=self.annctx)
                 depth_counter = depth_counter + 1
                 new_terms = get_foreground_terms(instantiations, annctx=self.annctx)
                 extraction_terms = extraction_terms.union(new_terms)

@@ -91,6 +91,7 @@
 (declare-fun hx () TreeOfLoc)
 (declare-fun x () Int)
 (declare-fun y () Int)
+(declare-fun z () Int)
 (declare-fun k () Int)
 (declare-fun lx () TreeOfLoc)
 (declare-fun rx () TreeOfLoc)
@@ -101,14 +102,14 @@
 
 ;; ;; lemma
 ;; (assert (forall ((hx TreeOfLoc) (y Int) (ly TreeOfLoc) (ry TreeOfLoc) (hy TreeOfLoc))
-;;         (=> (and (reach hx y) (= hy (cons y ly ry))) (=> (tree hx) (tree hy)))
+;;         (=> (and (reach hx y) (= hy (cons y ly ry)) (not (= y nil))) (member y (htree hx)))
 ;; ))
 
 ;; goal
 (assert (not
-        (=> (and (reach hx y) (= hx (cons x lx rx)) (not (= (key x) k)) (tree hx))
-            (exists ((hret TreeOfLoc))
-                    (and (tree hret) (= hret (cons y lrets rrets)))))
+        (=> (and (tree hx) (= hx (cons x lx rx)) (not (= x nil)) (not (= y nil))
+                 (reach lx y) (reach rx z))
+            (not (= y z)))
 ))
 
 (check-sat)

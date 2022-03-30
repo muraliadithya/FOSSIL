@@ -105,7 +105,7 @@
 ;; (assert (not
 ;;         (=> (and (tree hx) (= hx (cons x lx rx)))
 ;; 	    (=> (ite (= x nil) (= ret nil) (= ret (leftptr x)))
-;;                 (ite (= ret nil) (tree empty)
+;;                 (ite (= ret nil) (dag empty)
 ;;                      (and (dag lx) (= (head lx) ret)))))
 ;; ))
 

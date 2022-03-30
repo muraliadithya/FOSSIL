@@ -1,15 +1,10 @@
-;; preamble
-(define-fun iff ((b1 Bool) (b2 Bool)) Bool
-  (and (=> b1 b2) (=> b2 b1)))
+(set-logic ALL_SUPPORTED)
 
 ;; heap
 (declare-datatypes () ((DagOfLoc (cons (head Int) (left DagOfLoc) (right DagOfLoc)) (empty))))
 
-;; vars and unint functions
+;; unint functions
 (declare-fun nil () Int)
-(declare-fun ret () DagOfLoc)
-(declare-fun k () Int)
-
 (declare-fun leftptr (Int) Int)
 (declare-fun rightptr (Int) Int)
 (declare-fun key (Int) Int)
@@ -19,83 +14,103 @@
 (declare-fun htree (DagOfLoc) (Set Int))
 (declare-fun maxheap (DagOfLoc) Bool)
 
-(assert (forall ((x DagOfLoc))
-                (iff (dag x)
-                     (ite (= x empty)
-                          true
-                          (ite (and (= (leftptr (head x)) nil) (= (rightptr (head x)) nil))
-                               (and (= (left x) empty) (= (right x) empty))
-                          (ite (and (= (leftptr (head x)) nil) (not (= (rightptr (head x)) nil)))
-                               (and (= (left x) empty)
-                                    (not (= (right x) empty))
-                                    (= (rightptr (head x)) (head (right x)))
-                                    (dag (right x)))
-                          (ite (and (not (= (leftptr (head x)) nil)) (= (rightptr (head x)) nil))
-                               (and (= (right x) empty)
-                                    (not (= (left x) empty))
-                                    (= (leftptr (head x)) (head (left x)))
-                                    (dag (left x)))
-                               (and (not (= (right x) empty))
-                                    (= (rightptr (head x)) (head (right x)))
-                                    (dag (right x))
-                                    (not (= (left x) empty))
-                                    (= (leftptr (head x)) (head (left x)))
-                                    (dag (left x))))))))))
+;; dag definition
 
-(assert (forall ((x DagOfLoc))
-                (ite (= x empty)
-                     (= (htree x) (as emptyset (Set Int)))
-                     (ite (and (= (leftptr (head x)) nil) (= (rightptr (head x)) nil))
-                          (and (= (left x) empty) (= (right x) empty)
-                               (= (htree x) (singleton (head x))))
-                     (ite (and (= (leftptr (head x)) nil) (not (= (rightptr (head x)) nil)))
-                          (and (= (left x) empty)
-                               (not (= (right x) empty))
-                               (= (rightptr (head x)) (head (right x)))
-                               (= (htree x) (insert (head x) (htree (right x)))))
-                     (ite (and (not (= (leftptr (head x)) nil)) (= (rightptr (head x)) nil))
-                          (and (= (right x) empty)
-                               (not (= (left x) empty))
-                               (= (leftptr (head x)) (head (left x)))
-                               (= (htree x) (insert (head x) (htree (left x)))))
-                          (and (not (= (right x) empty))
-                               (= (rightptr (head x)) (head (right x)))
-                               (not (= (left x) empty))
-                               (= (leftptr (head x)) (head (left x)))
-                               (= (htree x) (insert (head x) (union (htree (left x)) (htree (right x))))))))))))
+(assert (dag empty))
+(assert (forall ((k Int))
+        (= (dag (cons k empty empty))
+           (and (not (= k nil)) (= (leftptr k) nil) (= (rightptr k) nil)))
+))
+(assert (forall ((k Int) (kl Int) (xl DagOfLoc) (yl DagOfLoc))
+        (= (dag (cons k (cons kl xl yl) empty))
+           (and (= (leftptr k) kl) (= (rightptr k) nil) (not (= k nil))
+                (dag (cons kl xl yl))))
+))
+(assert (forall ((k Int) (kr Int) (xr DagOfLoc) (yr DagOfLoc))
+        (= (dag (cons k empty (cons kr xr yr)))
+           (and (= (leftptr k) nil) (= (rightptr k) kr) (not (= k nil))
+                (dag (cons kr xr yr))))
+))
+(assert (forall ((k Int) (kl Int) (kr Int) 
+                 (xl DagOfLoc) (yl DagOfLoc) (xr DagOfLoc) (yr DagOfLoc))
+        (= (dag (cons k (cons kl xl yl) (cons kr xr yr)))
+           (and (= (leftptr k) kl) (= (rightptr k) kr) (not (= k nil))
+                (dag (cons kl xl yl)) (dag (cons kr xr yr))))
+))
 
-(assert (forall ((x DagOfLoc))
-                (iff (maxheap x)
-                     (ite (= x empty)
-                          true
-                          (and (= (intersection (htree (left x)) (htree (right x))) (as emptyset (Set Int)))
-                               (ite (= (leftptr (head x)) nil) true
-                                    (<= (key (leftptr (head x))) (key (head x))))
-                               (ite (= (rightptr (head x)) nil) true
-                                    (<= (key (rightptr (head x))) (key (head x))))
-                          (ite (and (= (leftptr (head x)) nil) (= (rightptr (head x)) nil))
-                               (and (= (left x) empty) (= (right x) empty))
-                          (ite (and (= (leftptr (head x)) nil) (not (= (rightptr (head x)) nil)))
-                               (and (= (left x) empty)
-                                    (not (= (right x) empty))
-                                    (= (rightptr (head x)) (head (right x)))                                    
-                                    (maxheap (right x)))
-                          (ite (and (not (= (leftptr (head x)) nil)) (= (rightptr (head x)) nil))
-                               (and (= (right x) empty)
-                                    (not (= (left x) empty))
-                                    (= (leftptr (head x)) (head (left x)))
-                                    (maxheap (left x)))
-                               (and (not (= (right x) empty))
-                                    (= (rightptr (head x)) (head (right x)))
-                                    (maxheap (right x))
-                                    (not (= (left x) empty))
-                                    (= (leftptr (head x)) (head (left x)))
-                                    (maxheap (left x)))))))))))
+;; htree definition
+
+(assert (= (htree empty) (as emptyset (Set Int))))
+(assert (forall ((k Int) (lt DagOfLoc) (rt DagOfLoc))
+        (= (htree (cons k lt rt)) (insert k (union (htree lt) (htree rt))))
+))
+
+;; max heap definition
+
+(assert (maxheap empty))
+(assert (forall ((k Int))
+        (= (maxheap (cons k empty empty))
+           (and (not (= k nil)) (= (leftptr k) nil) (= (rightptr k) nil)))
+))
+(assert (forall ((k Int) (kl Int) (xl DagOfLoc) (yl DagOfLoc))
+        (= (maxheap (cons k (cons kl xl yl) empty))
+           (and (= (leftptr k) kl) (= (rightptr k) nil) (not (= k nil))
+                (<= (key kl) (key k))
+                (not (member k (htree (cons kl xl yl))))
+                (maxheap (cons kl xl yl))))
+))
+(assert (forall ((k Int) (kr Int) (xr DagOfLoc) (yr DagOfLoc))
+        (= (maxheap (cons k empty (cons kr xr yr)))
+           (and (= (leftptr k) nil) (= (rightptr k) kr) (not (= k nil))
+                (<= (key k) (key kr))
+                (not (member k (htree (cons kr xr yr))))
+                (maxheap (cons kr xr yr))))
+))
+(assert (forall ((k Int) (kl Int) (kr Int) 
+                 (xl DagOfLoc) (yl DagOfLoc) (xr DagOfLoc) (yr DagOfLoc))
+        (= (maxheap (cons k (cons kl xl yl) (cons kr xr yr)))
+           (and (= (leftptr k) kl) (= (rightptr k) kr) (not (= k nil))
+                (<= (key kl) (key k)) (<= (key k) (key kr))
+                (not (member k (htree (cons kl xl yl))))
+                (not (member k (htree (cons kr xr yr))))
+                (= (intersection (htree (cons kl xl yl)) (htree (cons kr xr yr)))
+                   (as emptyset (Set Int)))
+                (maxheap (cons kl xl yl)) (maxheap (cons kr xr yr))))
+))
+
+;; axioms
+(assert (= (leftptr nil) nil))
+(assert (= (rightptr nil) nil))
+
+(declare-fun hx () DagOfLoc)
+(declare-fun x () Int)
+(declare-fun lx () DagOfLoc)
+(declare-fun rx () DagOfLoc)
+(declare-fun ret () Int)
+(declare-fun lrets () DagOfLoc)
+(declare-fun rrets () DagOfLoc)
+
+;; faithful encoding
 
 ;; goal
-(assert (not 
-(forall ((x DagOfLoc)) (=> (maxheap x)
-                           (=> (ite (= x empty) (= ret empty) (= ret (left x)))
-                               (dag ret))))
+(assert (not
+        (=> (and (maxheap hx) (= hx (cons x lx rx)))
+	    (=> (ite (= x nil) (= ret nil) (= ret (leftptr x)))
+                (exists ((hret DagOfLoc))
+                        (and (dag hret) (= hret (cons ret lrets rrets))))))
 ))
+
+;; uncommenting below goes through using cvc4+ig (need lemma assumed)
+
+;; ;; lemma
+;; (assert (forall ((hx DagOfLoc)) (=> (maxheap hx) (dag hx))))
+
+;; ;; goal with explicit heaplets
+;; (assert (not
+;;         (=> (and (maxheap hx) (= hx (cons x lx rx)))
+;; 	    (=> (ite (= x nil) (= ret nil) (= ret (leftptr x)))
+;;                 (ite (= ret nil) (dag empty)
+;;                      (and (dag lx) (= (head lx) ret)))))
+;; ))
+
 (check-sat)

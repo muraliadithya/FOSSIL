@@ -69,6 +69,7 @@ class NPSolver:
         # Make recursive definition unfoldings
         recdefs = get_recursive_definition(None, alldefs=True, annctx=self.annctx)
         recdef_unfoldings = make_recdef_unfoldings(recdefs)
+        untagged_unfoldings = set(recdef_unfoldings.values())
         # Add them to the set of axioms and lemmas to instantiate
         axioms = get_all_axioms(self.annctx)
         if lemmas is None:
@@ -84,7 +85,6 @@ class NPSolver:
             fo_abstractions = axioms | lemmas
         else:
             # If the instantiation isn't the 'lean' kind then all defs are going to be instantiated with all terms
-            untagged_unfoldings = set(recdef_unfoldings.values())
             fo_abstractions = axioms | untagged_unfoldings | lemmas
         # Negate the goal
         neg_goal = z3.Not(goal)
@@ -112,7 +112,7 @@ class NPSolver:
         # Automatic instantiation modes
         # stratified instantiation strategy
         if options.instantiation_mode == proveroptions.depth_one_stratified_instantiation:
-            conservative_fo_abstractions = axioms | recdef_unfoldings
+            conservative_fo_abstractions = axioms | untagged_unfoldings
             tracked_instantiations = instantiate(conservative_fo_abstractions, initial_terms)
             if tracked_instantiations != set():
                 instantiation_terms = initial_terms
@@ -151,9 +151,6 @@ class NPSolver:
                 #  are done in every round. But optimisation is difficult in the presence of multiple arities.
                 instantiation_terms = extraction_terms
                 instantiations = instantiate(fo_abstractions, instantiation_terms)
-                if instantiations == set():
-                    instantiation_terms = set()
-                    break
                 if options.instantiation_mode == proveroptions.lean_instantiation:
                     # Add recursive definition instantiations to the set of all instantiations
                     for recdef, application_terms in recdef_application_terms.items():
@@ -161,6 +158,9 @@ class NPSolver:
                         instantiations.update(lean_instantiations)
                     # Update the set of application terms
                     recdef_application_terms = get_recdef_applications(instantiations, annctx=self.annctx)
+                if instantiations == set():
+                    instantiation_terms = set()
+                    break
                 depth_counter = depth_counter + 1
                 new_terms = get_foreground_terms(instantiations, annctx=self.annctx)
                 extraction_terms = extraction_terms.union(new_terms)

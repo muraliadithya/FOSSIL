@@ -6,7 +6,7 @@ import z3
 from naturalproofs.AnnotatedContext import default_annctx
 from naturalproofs.decl_api import get_recursive_definition, get_all_axioms, is_expr_fg_sort
 import naturalproofs.proveroptions as proveroptions
-from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate
+from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate, get_recdef_applications
 
 
 class NPSolution:
@@ -26,7 +26,7 @@ class NPSolution:
         to the solver at the end of all instantiations.  
         - instantiation_terms: the set of terms that were used for instantiating all axioms and recursive 
         definitions. Only applicable when the instantiation is uniform for all axioms. Not applicable when 
-        instantiation mode is depth_one_untracked_lemma_instantiation.  
+        instantiation mode is depth_one_stratified_instantiation or lean_instantiation.
         - depth (int): depth at which the solution object was created. Applicable when instantiation mode is 
         bounded depth.  
         - options (proveroptions.Options): logging attribute. Options used to configure the solver.  
@@ -69,17 +69,23 @@ class NPSolver:
         # Make recursive definition unfoldings
         recdefs = get_recursive_definition(None, alldefs=True, annctx=self.annctx)
         recdef_unfoldings = make_recdef_unfoldings(recdefs)
+        untagged_unfoldings = set(recdef_unfoldings.values())
         # Add them to the set of axioms and lemmas to instantiate
         axioms = get_all_axioms(self.annctx)
         if lemmas is None:
             lemmas = set()
         else:
-            # Check that each bound parameter in all of the lemmas are of the foreground sort
+            # Check that each bound parameter in all the lemmas are of the foreground sort
             for lemma in lemmas:
                 bound_vars, lemma_body = lemma
                 if not all(is_expr_fg_sort(bound_var, annctx=self.annctx) for bound_var in bound_vars):
                     raise TypeError('Bound variables of lemma: {} must be of the foreground sort'.format(lemma_body))
-        fo_abstractions = axioms | recdef_unfoldings | lemmas
+        if options.instantiation_mode == proveroptions.lean_instantiation:
+            # Recdefs need to be treated separately using 'lean' instantiation
+            fo_abstractions = axioms | lemmas
+        else:
+            # If the instantiation isn't the 'lean' kind then all defs are going to be instantiated with all terms
+            fo_abstractions = axioms | untagged_unfoldings | lemmas
         # Negate the goal
         neg_goal = z3.Not(goal)
         # Create a solver object and add the goal negation to it
@@ -88,6 +94,7 @@ class NPSolver:
         # Keep track of terms in the quantifier-free problem given to the solver
         initial_terms = get_foreground_terms(neg_goal, annctx=self.annctx)
         extraction_terms = initial_terms
+        recdef_application_terms = get_recdef_applications(neg_goal, annctx=self.annctx)
         instantiation_terms = set()
         # Instantiate and check for provability according to options
         # Handle manual instantiation mode first
@@ -103,9 +110,9 @@ class NPSolver:
             return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms, 
                               instantiation_terms=instantiation_terms, options=options)
         # Automatic instantiation modes
-        # Untracked lemma instantiation strategy
+        # stratified instantiation strategy
         if options.instantiation_mode == proveroptions.depth_one_stratified_instantiation:
-            conservative_fo_abstractions = axioms | recdef_unfoldings
+            conservative_fo_abstractions = axioms | untagged_unfoldings
             tracked_instantiations = instantiate(conservative_fo_abstractions, initial_terms)
             if tracked_instantiations != set():
                 instantiation_terms = initial_terms
@@ -144,6 +151,13 @@ class NPSolver:
                 #  are done in every round. But optimisation is difficult in the presence of multiple arities.
                 instantiation_terms = extraction_terms
                 instantiations = instantiate(fo_abstractions, instantiation_terms)
+                if options.instantiation_mode == proveroptions.lean_instantiation:
+                    # Add recursive definition instantiations to the set of all instantiations
+                    for recdef, application_terms in recdef_application_terms.items():
+                        lean_instantiations = instantiate(recdef_unfoldings[recdef], application_terms)
+                        instantiations.update(lean_instantiations)
+                    # Update the set of application terms
+                    recdef_application_terms = get_recdef_applications(instantiations, annctx=self.annctx)
                 if instantiations == set():
                     instantiation_terms = set()
                     break

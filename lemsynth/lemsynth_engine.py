@@ -35,9 +35,10 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     goal_instantiation_mode = config_params.get('goal_instantiation_mode', None)
     supported_goal_instantiation_modes = {proveroptions.manual_instantiation,
                                           proveroptions.depth_one_stratified_instantiation,
-                                          proveroptions.fixed_depth}
+                                          proveroptions.fixed_depth,
+                                          proveroptions.lean_instantiation}
     if goal_instantiation_mode is None:
-        # depth one stratified instantiation by default
+        # stratified instantiation by default
         goal_instantiation_mode = proveroptions.depth_one_stratified_instantiation
     elif goal_instantiation_mode not in supported_goal_instantiation_modes:
         # The set of instantiation terms must stay constant
@@ -189,7 +190,7 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                     # Check that the terms needed from the pfp of the proposed
                     # lemma do not exceed lemma_grammar_terms.
                     # Otherwise finite model extraction will not work.
-                    needed_instantiation_terms = get_foreground_terms(pfp_lemma, annctx)
+                    needed_instantiation_terms = get_foreground_terms(pfp_lemma, annctx=annctx)
                     remaining_terms = needed_instantiation_terms - lemma_instantiation_terms
                     if remaining_terms != set():
                         raise ValueError('lemma_terms is too small.\n'

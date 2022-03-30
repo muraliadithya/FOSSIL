@@ -31,3 +31,4 @@ bounded_depth = 1
 infinite_depth = 2
 manual_instantiation = 3
 depth_one_stratified_instantiation = 4
+lean_instantiation = 5

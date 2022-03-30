@@ -348,6 +348,7 @@ def gen_lfp_model(size, annctx, invalid_formula=None):
     # Recursive definitions and ranks
     recdefs = get_recursive_definition(None, alldefs=True, annctx=annctx)
     recdef_unfoldings = make_recdef_unfoldings(recdefs)
+    untagged_unfoldings = set(recdef_unfoldings.values())
     rank_formulas = {recdef.name(): rank_defs_dict.get(recdef.name(), None) for recdef, _, _ in recdefs}
     if all(value is None for value in rank_formulas.values()):
         raise Exception('Rank definitions must be given at least for the underlying datastructure definition. '
@@ -355,7 +356,7 @@ def gen_lfp_model(size, annctx, invalid_formula=None):
                         .format(', '.join(key for key, value in rank_formulas.items() if value is None)))
     # Axioms
     axioms = get_all_axioms(annctx=annctx)
-    structural_constraints = recdef_unfoldings | set(
+    structural_constraints = untagged_unfoldings | set(
         rankdef for rankdef in rank_formulas.values() if rankdef is not None) | axioms
     constraints.extend(instantiate(structural_constraints, universe))
 

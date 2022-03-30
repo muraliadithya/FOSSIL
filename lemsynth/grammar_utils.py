@@ -36,7 +36,7 @@ def representative_lemmas(lemma_args, lemma_grammar_terms, annctx, future=False)
 def lemma_instantiation_terms(lemma_args, lemma_grammar_terms, annctx):
     example_lemmas = representative_lemmas(lemma_args, lemma_grammar_terms, annctx=annctx)
     pfp_formulas = {make_pfp_formula(lemma, annctx=annctx) for lemma in example_lemmas}
-    instantiation_terms = get_foreground_terms(pfp_formulas)
+    instantiation_terms = get_foreground_terms(pfp_formulas, annctx=annctx)
     # get_foreground_terms already performs subterm closure
     return instantiation_terms
 
@@ -51,6 +51,6 @@ def goal_extraction_terms(goal_instantiation_terms, lemma_args, lemma_grammar_te
     bound_example_lemmas = {(lemma_params, example_lemma) for example_lemma in example_lemmas}
     # Instantiate example lemmas with all possible terms from the instantiation the goal and axioms
     example_instantiations = instantiate(bound_example_lemmas, goal_instantiation_terms)
-    example_extraction_terms = get_foreground_terms(example_instantiations, annctx)
+    example_extraction_terms = get_foreground_terms(example_instantiations, annctx=annctx)
     # Model extraction already performs subterm closure so there is no need to do it here.
     return example_extraction_terms

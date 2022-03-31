@@ -22,7 +22,7 @@ for file in `ls adt-encoding/*.smt2`
   do
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)
-    timeout 600 ./cvc4 --quant-ind --quant-cf --conjecture-gen --conjecture-gen-per-round=3 --full-saturate-quant $file
+    timeout 600 ../cvc4 --quant-ind --quant-cf --conjecture-gen --conjecture-gen-per-round=3 --full-saturate-quant $file
     exit_code=$?
     END=$(date +%s)
     DIFF=$(( $END - $START ))

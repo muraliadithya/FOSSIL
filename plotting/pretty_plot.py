@@ -8,7 +8,8 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
                 measurement='runtime', unit='s', mark='o', bands=True, bands_curve=True, offset_band_label=False,
                 tm_val=None, x_leg='lower right', y_leg='center right', z_leg='upper left', plotdir='./plots/'):
     """
-    Display plot for batch of FOSSIL experiments.
+    Display plot for batch of FOSSIL experiments. This is prepared to handle results which have been processed
+    using the process_done function below, then normalized according to the adjust function below.
     Data for each axis is given in x and y, respectively. String names may be specified for axis/symbol labels.
     Logarithmic axis scale and diagonal reference line are toggles.
     Timeout legend placement is specified via *_leg strings for Matplotlib legends.
@@ -156,6 +157,31 @@ def process_done(filename, timeout=900, name_terminate=True):
     :param name_terminate: bool
     :return names: list
     :return results: dict
+    """
+    """
+    Example of input file contents:
+        Running benchmark-suite/bst-left-right.py:
+        ---------------------------------------------------
+        goal (no lemmas) is invalid
+        lemma 1 is valid
+        lemma 2 is valid
+        goal (with lemmas) is valid
+        goal is not first-order provable.
+        Goal has been proven. Lemmas used to prove goal:
+        Implies(bst(v1),
+                Implies(hbst(v1)[v2], minr(v1) <= minr(v2)))
+        Implies(bst(v1), Implies(hbst(v1)[v2], bst(v2)))
+        Implies(bst(v1), Implies(hbst(v1)[v2], Not(v2 == nil)))
+        Implies(bst(v1),
+                Implies(hbst(v1)[v2], maxr(v2) <= maxr(v1)))
+        Implies(bst(v1),
+                Implies(minr(v1) <= maxr(v2), hbst(v2)[v2]))
+        Implies(bst(v1),
+                Implies(minr(v2) <= maxr(v1),
+                        Implies(bst(v2), hbst(v2)[v2])))
+        Total lemmas proposed: 28
+        Total lemmas proved: 6
+        1 | benchmark-suite/bst-left-right.py  SUCCESS: 180s
     """
     results = dict()
     names = []

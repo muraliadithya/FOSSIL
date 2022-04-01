@@ -69,6 +69,7 @@ class NPSolver:
         # Make recursive definition unfoldings
         recdefs = get_recursive_definition(None, alldefs=True, annctx=self.annctx)
         recdef_unfoldings = make_recdef_unfoldings(recdefs)
+        # Sometimes we don't need the unfoldings indexed by recdefs
         untagged_unfoldings = set(recdef_unfoldings.values())
         # Add them to the set of axioms and lemmas to instantiate
         axioms = get_all_axioms(self.annctx)
@@ -86,6 +87,8 @@ class NPSolver:
         else:
             # If the instantiation isn't the 'lean' kind then all defs are going to be instantiated with all terms
             fo_abstractions = axioms | untagged_unfoldings | lemmas
+
+        # All parameters have been set appropriately. Begin constructing instantiations
         # Negate the goal
         neg_goal = z3.Not(goal)
         # Create a solver object and add the goal negation to it
@@ -135,35 +138,40 @@ class NPSolver:
         depth_counter = 0
         # Keep track of formulae produced by instantiation
         instantiations = set()
-        target_depth = -1 if options.instantiation_mode == proveroptions.infinite_depth else options.depth
+        # When the instantiation mode is infinite we realistically can't exceed 10^3 instantiations anyway
+        target_depth = 1000 if options.instantiation_mode == proveroptions.infinite_depth else options.depth
         while depth_counter < target_depth:
             # Try to prove with available instantiations
             z3solver.add(instantiations)
-            if_continue = _solver_check(z3solver) if options.instantiation_mode == proveroptions.bounded_depth else True
-            if not if_continue:
-                # bounded_depth mode and Unsat achieved at this depth
-                return NPSolution(if_sat=if_continue, extraction_terms=extraction_terms, 
+            # If the instantiation mode is fixed depth we can continue instantiating until we get to that depth
+            if options.instantiation_mode != proveroptions.fixed_depth:
+                # Otherwise check satisfiability with current state of instantiations
+                if_sat = _solver_check(z3solver)
+                model = z3solver.model() if if_sat else None
+                return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
                                   instantiation_terms=instantiation_terms, depth=depth_counter, options=options)
-            else:
-                # bounded_depth mode with sat or fixed_depth mode with target depth not reached.
-                # Do another round of instantiations.
-                # TODO: optimise instantiations so repeated instantiation is not done. Currently all instantiations 
-                #  are done in every round. But optimisation is difficult in the presence of multiple arities.
-                instantiation_terms = extraction_terms
-                instantiations = instantiate(fo_abstractions, instantiation_terms)
-                if options.instantiation_mode == proveroptions.lean_instantiation:
-                    # Add recursive definition instantiations to the set of all instantiations
-                    for recdef, application_terms in recdef_application_terms.items():
-                        lean_instantiations = instantiate(recdef_unfoldings[recdef], application_terms)
-                        instantiations.update(lean_instantiations)
-                    # Update the set of application terms
-                    recdef_application_terms = get_recdef_applications(instantiations, annctx=self.annctx)
-                if instantiations == set():
-                    instantiation_terms = set()
-                    break
-                depth_counter = depth_counter + 1
-                new_terms = get_foreground_terms(instantiations, annctx=self.annctx)
-                extraction_terms = extraction_terms.union(new_terms)
+            # target depth not reached or unsat not reached
+            # Do another round of instantiations.
+            # TODO: optimise instantiations so repeated instantiation is not done. Currently all instantiations
+            #  are done in every round. But optimisation is difficult in the presence of multiple arities.
+            instantiation_terms = extraction_terms
+            # Instantiate all basic abstractions
+            instantiations = instantiate(fo_abstractions, instantiation_terms)
+            # Instantiate other abstractions depending on instantiation mode. Typically recdefs and lemmas
+            if options.instantiation_mode == proveroptions.lean_instantiation:
+                # Add recursive definition instantiations to the set of all instantiations
+                for recdef, application_terms in recdef_application_terms.items():
+                    lean_instantiations = instantiate(recdef_unfoldings[recdef], application_terms)
+                    instantiations.update(lean_instantiations)
+            # If the set of instantiations is empty exit the loop
+            if instantiations == set():
+                instantiation_terms = set()
+                break
+            # Update the variables for the next round
+            depth_counter = depth_counter + 1
+            new_terms = get_foreground_terms(instantiations, annctx=self.annctx)
+            recdef_application_terms = get_recdef_applications(instantiations, annctx=self.annctx)
+            extraction_terms = extraction_terms.union(new_terms)
         # Reach this case when depth_counter = target depth, either in fixed_depth or bounded_depth mode.
         # Final attempt at proving goal
         z3solver.add(instantiations)

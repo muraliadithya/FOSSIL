@@ -32,3 +32,4 @@ infinite_depth = 2
 manual_instantiation = 3
 depth_one_stratified_instantiation = 4
 lean_instantiation = 5
+lean_instantiation_with_lemmas = 6

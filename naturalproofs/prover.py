@@ -1,10 +1,12 @@
 # This module is the main module of the naturalproofs package. It defines a natural proofs solver and various
 # configuration options, as well as the structure that the solver returns.
+import warnings
 
 import z3
 
 from naturalproofs.AnnotatedContext import default_annctx
 from naturalproofs.decl_api import get_recursive_definition, get_all_axioms, is_expr_fg_sort
+from naturalproofs.utils import Implies_as_FuncDeclRef
 import naturalproofs.proveroptions as proveroptions
 from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate, get_recdef_applications
 
@@ -81,6 +83,11 @@ class NPSolver:
                 bound_vars, lemma_body = lemma
                 if not all(is_expr_fg_sort(bound_var, annctx=self.annctx) for bound_var in bound_vars):
                     raise TypeError('Bound variables of lemma: {} must be of the foreground sort'.format(lemma_body))
+        recdef_indexed_lemmas = _sort_by_trigger(lemmas, list(recdef_unfoldings.keys()))
+
+        if options.instantiation_mode == proveroptions.lean_instantiation_with_lemmas:
+            # Recdefs and lemmas need to be treated separately using 'lean' instantiation
+            fo_abstractions = axioms
         if options.instantiation_mode == proveroptions.lean_instantiation:
             # Recdefs need to be treated separately using 'lean' instantiation
             fo_abstractions = axioms | lemmas
@@ -147,9 +154,10 @@ class NPSolver:
             if options.instantiation_mode != proveroptions.fixed_depth:
                 # Otherwise check satisfiability with current state of instantiations
                 if_sat = _solver_check(z3solver)
-                model = z3solver.model() if if_sat else None
-                return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
-                                  instantiation_terms=instantiation_terms, depth=depth_counter, options=options)
+                # If unsat, stop and return NPSolution instance
+                if not if_sat:
+                    return NPSolution(if_sat=if_sat, model=None, extraction_terms=extraction_terms,
+                                      instantiation_terms=instantiation_terms, depth=depth_counter, options=options)
             # target depth not reached or unsat not reached
             # Do another round of instantiations.
             # TODO: optimise instantiations so repeated instantiation is not done. Currently all instantiations
@@ -158,11 +166,17 @@ class NPSolver:
             # Instantiate all basic abstractions
             instantiations = instantiate(fo_abstractions, instantiation_terms)
             # Instantiate other abstractions depending on instantiation mode. Typically recdefs and lemmas
-            if options.instantiation_mode == proveroptions.lean_instantiation:
+            if options.instantiation_mode in {proveroptions.lean_instantiation, proveroptions.lean_instantiation_with_lemmas}:
                 # Add recursive definition instantiations to the set of all instantiations
                 for recdef, application_terms in recdef_application_terms.items():
                     lean_instantiations = instantiate(recdef_unfoldings[recdef], application_terms)
                     instantiations.update(lean_instantiations)
+            if options.instantiation_mode == proveroptions.lean_instantiation_with_lemmas:
+                # Add lemma instantiations to the set of all instantiations
+                for recdef, application_terms in recdef_application_terms.items():
+                    triggered_lemmas = recdef_indexed_lemmas.get(recdef, [])
+                    triggered_instantiations = instantiate(triggered_lemmas, application_terms)
+                    instantiations.update(triggered_instantiations)
             # If the set of instantiations is empty exit the loop
             if instantiations == set():
                 instantiation_terms = set()
@@ -190,3 +204,25 @@ def _solver_check(z3solver):
         return False
     elif z3solution == z3.unknown:
         raise ValueError('Solver returned unknown. Something is wrong. Exiting.')
+
+
+# Helper function to index lemmas by the recursive definitions they are triggered by
+# WARNING: very limited in functionality
+def _sort_by_trigger(bound_exprs, trigger_decls):
+    result = dict()
+    result[None] = []
+    for bound_expr in bound_exprs:
+        params, expr = bound_expr
+        # The expression has to be an implication
+        if expr.decl() != Implies_as_FuncDeclRef:
+            result[None].append(bound_expr)
+        lhs, rhs = expr.children()
+        # antecedent must be an expression made from one of the triggers (like recdefs)
+        lhs_decl = lhs.decl()
+        if lhs_decl not in trigger_decls:
+            result[None].append(bound_expr)
+        # Otherwise, store the expression under the appropriate trigger
+        if lhs_decl not in result:
+            result[lhs_decl] = []
+        result[lhs_decl].append(bound_expr)
+    return result

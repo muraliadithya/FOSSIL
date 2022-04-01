@@ -36,7 +36,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
     supported_goal_instantiation_modes = {proveroptions.manual_instantiation,
                                           proveroptions.depth_one_stratified_instantiation,
                                           proveroptions.fixed_depth,
-                                          proveroptions.lean_instantiation}
+                                          proveroptions.lean_instantiation,
+                                          proveroptions.lean_instantiation_with_lemmas}
     if goal_instantiation_mode is None:
         # stratified instantiation by default
         goal_instantiation_mode = proveroptions.depth_one_stratified_instantiation

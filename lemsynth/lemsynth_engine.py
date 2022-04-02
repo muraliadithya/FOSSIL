@@ -1,5 +1,6 @@
 from z3 import *
-import itertools
+import os
+import argparse
 import time
 import warnings
 import itertools
@@ -22,6 +23,14 @@ from naturalproofs.extensions.lfpmodels import gen_lfp_model
 
 def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_string, config_params=None,
                  annctx=default_annctx):
+
+    # Temporary hack to allow overriding the grammar file
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument('--grammar', default=None)
+    args = argparser.parse_args()
+    if args.grammar is not None:
+        grammar_string = open(os.path.abspath(args.grammar), 'r').read()
+
     # Extract relevant parameters for running the verification-synthesis engine from config_params
     if config_params is None:
         config_params = {}

@@ -18,11 +18,15 @@ function final_report () {
   fi
 }
 
-for file in `ls benchmark-suite/*.py`
+cat notes/lvl1.txt | while read line
   do
+    IFS=','
+    read -a strarr <<< "$line"
+    file=${strarr[0]}
+    grammar=${strarr[1]}
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)
-    timeout 20 python3 -u $file
+    timeout 20 python3 -u $file --grammar $grammar
     exit_code=$?
     END=$(date +%s)
     DIFF=$(( $END - $START ))

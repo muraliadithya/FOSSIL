@@ -22,7 +22,7 @@ for file in `ls benchmark-suite/*.py`
   do
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)
-    timeout 20 python3 -u $file
+    timeout 120 python3 -u $file
     exit_code=$?
     END=$(date +%s)
     DIFF=$(( $END - $START ))

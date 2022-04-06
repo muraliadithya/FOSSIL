@@ -23,15 +23,14 @@ def parseLines(out_dict, lines):
         if 'Running' in line:
             idx = line.index('Running')
             curr = line[idx + len('Running '):][:-2]
-        if 'proposed' in line:
-            idx = line.index('proposed')
-            lemmas = int(line[idx + len('proposed: '):][:-1])
+        if 'so far' in line:
+            idx = line.index('so far')
+            lemmas = int(line[idx + len('so far: '):][:-1])
         if '|' in line:
             if 'FAILURE' in line:
                 result = 'failure'
                 idx = line.index('FAILURE')
                 time = int(line[idx + len('FAILURE: '):][:-2])
-                lemmas = -1
             else:
                 result = 'success'
                 idx = line.index('SUCCESS')
@@ -50,10 +49,10 @@ for benchmark in out_lvl0:
         if benchmark in out_lvl1:
             lvl1_result, lvl1_time, lvl1_lemmas = out_lvl1[benchmark]
             new_time = time + lvl1_time
-            new_lemmas = lvl1_lemmas
+            new_lemmas = lemmas + lvl1_lemmas
             if lvl1_result == 'success':
                 print(benchmark + ': success -- ' + str(new_time) + 's, ' + str(new_lemmas) + ' lemmas proposed')
             else:
-                print(benchmark + ': failure -- ' + str(new_time) + 's')
+                print(benchmark + ': failure -- ' + str(new_time) + 's, ' + str(new_lemmas) + ' lemmas proposed')
         else:
-            print(benchmark + ': failure -- ' + str(time) + 's')
+            print(benchmark + ': failure -- ' + str(time) + 's, ' + str(lemmas) + ' lemmas proposed')

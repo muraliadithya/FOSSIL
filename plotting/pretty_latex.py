@@ -19,6 +19,43 @@ LATEX_PRO = {
     'And': '$\\wedge$',
 }
 
+def results_table(results, names, timeout=240):
+    """
+    Print LaTeX for table of FOSSIL experiment results.
+    :param results: dictionary a triple of lemmas synthesized count, valid lemmas synthesized
+        count, and runtime (value) for each benchmark (key)
+    :param names: list of benchmark names
+    :param timeout: float for special timeout symbol
+    """
+    for i,name in enumerate(names):
+        if name not in results:
+            print('ERROR',name)
+            break
+            
+        # Organize and specialize data
+        result = (
+            replace(results[name][0], -1, '---'),
+            replace(results[name][1], -1, '---'),
+            replace(results[name][2], timeout, '\\bot'),
+        )
+        
+        # Print data
+        spacing = '\t'*(1 + int(len(name) < 16))
+        print('\t\t' + '\t& '.join([name+spacing, *result]),'\\\\')
+        
+        # Split table
+        if i == 2*len(names)//3 - 1:
+            print('\t\t~ & ~ & ~ & ~ \\\\\n\n')
+        elif i == len(names)//3:
+            print('\n\n')
+    return
+
+def replace(s, value, replacement):
+    if int(s) == value:
+        return replacement
+    else:
+        return str(s)
+
 def process_done(filename, timeout=900, name_terminate=True):
     """
     Process the text printed to terminal from FOSSIL experiments, such as in benchmark-suite/done.txt.

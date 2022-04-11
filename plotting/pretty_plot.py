@@ -9,7 +9,7 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
                 tm_val=None, x_leg='lower right', y_leg='center right', z_leg='upper left', plotdir='./plots/'):
     """
     Display plot for batch of FOSSIL experiments. This is prepared to handle results which have been processed
-    using the process_done function below, then normalized according to the adjust function below.
+    using the process_log or process_done function below, then normalized according to the adjust function below.
     Data for each axis is given in x and y, respectively. String names may be specified for axis/symbol labels.
     Logarithmic axis scale and diagonal reference line are toggles.
     Timeout legend placement is specified via *_leg strings for Matplotlib legends.
@@ -119,20 +119,19 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
         ax_scatter.plot(dd, dd_below, '-', alpha=0.3, color='yellowgreen')
 
     # Manually set legends
-    if np.any(tm_x[0]):
-        print('printing X legend')
+    if len(tm_x[0]) > 0:
         legend_elements_x = [Line2D([0],[0], color='w', marker='>', 
                                    label='{}\ntimeout'.format(x_name),
                                    markerfacecolor='green', markersize=10)]
         legend_x = ax_scatter.legend(handles=legend_elements_x, loc=x_leg, prop={"size":12})
         ax_scatter.add_artist(legend_x)
-    if np.any(tm_y[0]):
+    if len(tm_y[0]) > 0:
         legend_elements_y = [Line2D([0],[0], color='w', marker='^', 
                                    label='{}\ntimeout'.format(y_name),
                                    markerfacecolor='maroon', markersize=10)]
         legend_y = ax_scatter.legend(handles=legend_elements_y, loc=y_leg)
         ax_scatter.add_artist(legend_y)
-    if np.any(tm_z[0]):
+    if len(tm_z[0]) > 0:
         legend_elements_z = [Line2D([0],[0], color='w', marker='D', 
                                    label='both timeout',
                                    markerfacecolor='orange', markersize=8)]
@@ -147,11 +146,148 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     # Save and display plot
     savename = plotdir + '{}-{}_{}.png'.format(x_name, y_name, measurement).replace(' ','_').replace('[','_').replace(']','_')
     plt.savefig(savename, bbox_inches = 'tight', pad_inches = 0.2, dpi=100)
-    plt.show()       
+    plt.show()
+    
+def pretty_bar(x, y, x_name='FOSSIL[no Type-2]', y_name='FOSSIL', plotdir='./plots/'):
+    """
+    Display plot for batch of FOSSIL experiments. This is prepared to handle results which have been processed
+    using the process_log or process_done function below, then normalized according to the adjust function below.
+    Data for each axis is given in x and y, respectively.
+    :param x: array-like
+    :param y: array-like
+    :param x_name: str
+    :param y_name: str
+    :param plotdir: str
+    """
+    fig = plt.figure()
+    left, width = 0.1, 0.65
+    bottom, height = 0.1, 0.65
+    rect_bar = [left, bottom, width, height]
+    plt.figure(figsize=(12, 6.32))
+    ax = plt.axes(rect_bar)
+    
+    # Order data according to count on x axis in decreasing order
+    y = [yi for _, yi in sorted(zip(x, y), reverse=True)]
+    x = sorted(x, reverse=True)
+
+    N = len(x)
+    ind = np.arange(N)
+    width = 0.35
+    rects1 = ax.bar(ind, x, width, color='sandybrown')
+    rects2 = ax.bar(ind+width, y, width, color='yellowgreen')
+
+    ax.set_ylabel('Number of lemmas proposed')
+    ax.set_xlabel('Benchmarks')
+    ax.set_xticklabels([])
+    ax.set_title('')
+    ax.legend((rects1[0], rects2[0]), (x_name, y_name))
+    fig.tight_layout()
+    plt.savefig(plotdir + 'bar_FOSSIL_lemmas-proposed.png',
+                bbox_inches='tight', pad_inches=0.2, dpi=100)
+    plt.show()
+    
+
+def process_log(filename, timeout=240, old_format=False):
+    """
+    Process output logs from FOSSIL experiments with runtimes and lemma proposal counts.
+    Example of format:
+        >benchmark-suite/bst-left-right.py: failure -- 240s, 21 lemmas proposed
+        >benchmark-suite/bst-left.py: success -- 57s, 9 lemmas proposed
+    :param filename: str, name of file with experiment results
+    :param timeout: float, timeout parameter used in run
+    :param old_format: bool; if true, assume old format, as in process_done (lemmas not supported)
+    :return names: list, names of detected tests
+    :return results: dict, organized results containing tuple of runtime and
+        lemma proposal count (value) for each test (key)
+    """
+    names = []
+    results = dict()
+    
+    # Determine processing style for results line in format
+    def process_old_line(line):
+        if '|' not in line:
+            return '', (-1, -1)
+        # Assume each test result line has format:
+        # >{n} | {filename} {SUCCESS/FAILURE}: {runtime}s
+        line = line.split(' ')
+        # Assume each filename has format "../test.py" with a single "/"
+        name = line[2][line[2].find('/')+1:-3]
+        runtime = int(line[4][:-2])
+        if runtime > timeout:
+            runtime = timeout
+        proposals = -1
+        return name, (runtime, proposals)
+    def process_new_line(line):
+        if not line:
+            return '', (-1, -1)
+        # Assume each line contains a test result, with format:
+        # >{filename}: {success/failure} -- {runtime}s, {proposals} lemmas proposed
+        line = line.split(' ')
+        # Assume each filename has format "../test.py" with a single "/"
+        name = line[0][line[0].find('/')+1:-4]
+        runtime = int(line[3][:-2])
+        if runtime > timeout:
+            runtime = timeout
+        proposals = int(line[4])
+        return name, (runtime, proposals)
+    if old_format:
+        process_line = process_old_line
+    else:
+        process_line = process_new_line
+         
+    with open(filename, 'r') as f:
+        # Iterate through log
+        for line in f:
+            name, (runtime, proposals) = process_line(line)
+            if name:
+                names.append(name)
+                results[name] = (runtime, proposals)
+    
+    return names, results
+
+
+def check_benchmark(first, second, first_name='true countermodels turned off',
+                    second_name='true countermodels turned on', bench=10):
+    X = 0
+    Y = 0
+    for i in range(len(first)):
+        if first[i] > bench:
+            X += 1
+            if second[i] < first[i]:
+                Y += 1
+    if bench <= 0:
+        print('Of the {} tests which ran with {},'.format(X, first_name))
+    else:
+        print('Of the {} tests which took more than {} seconds to run with {},'.format(X, bench, first_name))
+    print('{} were faster with {}.'.format(Y, second_name))
+
+    
+def adjust(arr, mx=None, mn=1., log=True):
+    """
+    Normalize input data. This is intended to convert timeout data (set to -1) to above the current maximum
+    (possibly across other datasets) for prettier plotting.
+    :param arr: array-like
+    :param mx: float
+    :param mn: float
+    :return: array
+    """
+    if mx is None or mx <= mn:
+        if log:
+            mx = np.exp(1.05*np.log(np.max(arr)))
+        else:
+            mx = 1.05*np.max(arr)
+    return np.array([
+        mx+1 if elt > mx else
+        elt if 1 <= elt else
+        mn if elt != -1 else
+        mx+1 for elt in arr
+    ])
+
 
 def process_done(filename, timeout=900, name_terminate=True):
     """
     Process the text printed to terminal from FOSSIL experiments, such as in benchmark-suite/done.txt.
+    These contain the particular lemmas proven as well as runtimes.
     :param filename: string
     :param timeout: float
     :param name_terminate: bool
@@ -260,7 +396,7 @@ def process_done(filename, timeout=900, name_terminate=True):
                     lemmas[-1] += line
     return names, results
 
-def process_old(filename):
+def process_VC(filename):
     """
     Process old VC table data.
     :param filename: string
@@ -292,24 +428,3 @@ def process_old(filename):
                            'r10': rounds_10,
                            't10': time_10}
     return results
-
-def adjust(arr, mx=None, mn=1., log=True):
-    """
-    Normalize input data. This is intended to convert timeout data (set to -1) to above the current maximum
-    (possibly across other datasets) for prettier plotting.
-    :param arr: array-like
-    :param mx: float
-    :param mn: float
-    :return: array
-    """
-    if mx is None or mx <= mn:
-        if log:
-            mx = np.exp(1.05*np.log(np.max(arr)))
-        else:
-            mx = 1.05*np.max(arr)
-    return np.array([
-        mx+1 if elt > mx else
-        elt if 1 <= elt else
-        mn if elt != -1 else
-        mx+1 for elt in arr
-    ])

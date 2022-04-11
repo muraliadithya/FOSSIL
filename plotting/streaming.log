@@ -1,0 +1,662 @@
+Running benchmark-suite/bst-left-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+CVC4 interrupted by SIGTERM.
+1 | benchmark-suite/bst-left-right.py FAILURE: 1000s
+
+Running benchmark-suite/bst-left.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+CVC4 interrupted by SIGTERM.
+2 | benchmark-suite/bst-left.py FAILURE: 1001s
+
+Running benchmark-suite/bst-leftmost.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+3 | benchmark-suite/bst-leftmost.py FAILURE: 908s
+
+Running benchmark-suite/bst-maximal.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+4 | benchmark-suite/bst-maximal.py FAILURE: 904s
+
+Running benchmark-suite/bst-minimal.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+5 | benchmark-suite/bst-minimal.py FAILURE: 904s
+
+Running benchmark-suite/bst-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+CVC4 interrupted by SIGTERM.
+6 | benchmark-suite/bst-right.py FAILURE: 1000s
+
+Running benchmark-suite/bst-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(bst(v), tree(v))
+Total lemmas proposed: 5
+Total time charged: 6.8564066886901855s
+7 | benchmark-suite/bst-tree.py SUCCESS: 7s
+
+Running benchmark-suite/cyclic-next.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+8 | benchmark-suite/cyclic-next.py FAILURE: 901s
+
+Running benchmark-suite/dag-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+9 | benchmark-suite/dag-reach.py FAILURE: 901s
+
+Running benchmark-suite/dag-reach2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+10 | benchmark-suite/dag-reach2.py FAILURE: 903s
+
+Running benchmark-suite/dlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(dlst(v), lst(v))
+Total lemmas proposed: 5
+Total time charged: 2.338060140609741s
+11 | benchmark-suite/dlist-list.py SUCCESS: 3s
+
+Running benchmark-suite/even-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(even_lst(v), lst(v))
+Total lemmas proposed: 5
+Total time charged: 2.442993402481079s
+12 | benchmark-suite/even-list.py SUCCESS: 3s
+
+Running benchmark-suite/list-even-or-odd.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+13 | benchmark-suite/list-even-or-odd.py FAILURE: 903s
+
+Running benchmark-suite/list-hlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+14 | benchmark-suite/list-hlist-list.py FAILURE: 901s
+
+Running benchmark-suite/list-hlist-lseg.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+15 | benchmark-suite/list-hlist-lseg.py FAILURE: 902s
+
+Running benchmark-suite/list-lseg-keys.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(keys(v2)[k], keys(v1)[k]))
+Total lemmas proposed: 12
+Total time charged: 4.5521321296691895s
+16 | benchmark-suite/list-lseg-keys.py SUCCESS: 5s
+
+Running benchmark-suite/list-lseg-keys2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(keys(v2)[k], keys(v1)[k]))
+Total lemmas proposed: 13
+Total time charged: 4.675121784210205s
+17 | benchmark-suite/list-lseg-keys2.py SUCCESS: 4s
+
+Running benchmark-suite/listlen-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+18 | benchmark-suite/listlen-list.py FAILURE: 901s
+
+Running benchmark-suite/lseg-ext.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+19 | benchmark-suite/lseg-ext.py FAILURE: 902s
+
+Running benchmark-suite/lseg-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(lst(v2), lst(v1)))
+Total lemmas proposed: 27
+Total time charged: 16.992957592010498s
+20 | benchmark-suite/lseg-list.py SUCCESS: 12s
+
+Running benchmark-suite/lseg-next-dyn.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+21 | benchmark-suite/lseg-next-dyn.py FAILURE: 902s
+
+Running benchmark-suite/lseg-next.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(lseg(v2, z), lseg(v1, z)))
+Total lemmas proposed: 12
+Total time charged: 10.845756769180298s
+22 | benchmark-suite/lseg-next.py SUCCESS: 8s
+
+Running benchmark-suite/lseg-nil-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+23 | benchmark-suite/lseg-nil-list.py FAILURE: 902s
+
+Running benchmark-suite/lseg-trans.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(lseg(v2, z), lseg(v1, z)))
+Total lemmas proposed: 30
+Total time charged: 29.135184288024902s
+24 | benchmark-suite/lseg-trans.py SUCCESS: 19s
+
+Running benchmark-suite/lseg-trans2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(lseg(v1, v2), Implies(lseg(v2, z), lseg(v1, z)))
+Total lemmas proposed: 25
+Total time charged: 21.260713577270508s
+25 | benchmark-suite/lseg-trans2.py SUCCESS: 14s
+
+Running benchmark-suite/maxheap-dag.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(maxheap(v), dag(v))
+Total lemmas proposed: 5
+Total time charged: 2.8429040908813477s
+26 | benchmark-suite/maxheap-dag.py SUCCESS: 4s
+
+Running benchmark-suite/maxheap-htree-key.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+27 | benchmark-suite/maxheap-htree-key.py FAILURE: 903s
+
+Running benchmark-suite/maxheap-keys.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+28 | benchmark-suite/maxheap-keys.py FAILURE: 971s
+
+Running benchmark-suite/maxheap-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(maxheap(v), tree(v))
+Total lemmas proposed: 5
+Total time charged: 2.9162590503692627s
+29 | benchmark-suite/maxheap-tree.py SUCCESS: 5s
+
+Running benchmark-suite/odd-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(odd_lst(v), lst(v))
+Total lemmas proposed: 7
+Total time charged: 2.6643927097320557s
+30 | benchmark-suite/odd-list.py SUCCESS: 3s
+
+Running benchmark-suite/reach-left-right.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(reach_lr(v1, v2),
+        Implies(htree(v2)[v2], htree(v1)[v2]))
+Total lemmas proposed: 20
+Total time charged: 6.80697226524353s
+31 | benchmark-suite/reach-left-right.py SUCCESS: 11s
+
+Running benchmark-suite/reachability.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+32 | benchmark-suite/reachability.py FAILURE: 902s
+
+Running benchmark-suite/reachability2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+33 | benchmark-suite/reachability2.py FAILURE: 902s
+
+Running benchmark-suite/reachability3.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+34 | benchmark-suite/reachability3.py FAILURE: 902s
+
+Running benchmark-suite/reachability4.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+35 | benchmark-suite/reachability4.py FAILURE: 903s
+
+Running benchmark-suite/reachability5.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+36 | benchmark-suite/reachability5.py FAILURE: 902s
+
+Running benchmark-suite/reachability6.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+37 | benchmark-suite/reachability6.py FAILURE: 903s
+
+Running benchmark-suite/rlist-black-height.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+38 | benchmark-suite/rlist-black-height.py FAILURE: 901s
+
+Running benchmark-suite/rlist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(rlst(v), lst(v))
+Total lemmas proposed: 5
+Total time charged: 2.270096778869629s
+39 | benchmark-suite/rlist-list.py SUCCESS: 3s
+
+Running benchmark-suite/rlist-red-height.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+40 | benchmark-suite/rlist-red-height.py FAILURE: 902s
+
+Running benchmark-suite/sdlist-dlist-slist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+41 | benchmark-suite/sdlist-dlist-slist.py FAILURE: 902s
+
+Running benchmark-suite/sdlist-dlist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(sdlst(v), dlst(v))
+Total lemmas proposed: 5
+Total time charged: 4.370585918426514s
+42 | benchmark-suite/sdlist-dlist.py SUCCESS: 5s
+
+Running benchmark-suite/slist-list.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(slst(v), lst(v))
+Total lemmas proposed: 5
+Total time charged: 2.2235660552978516s
+43 | benchmark-suite/slist-list.py SUCCESS: 3s
+
+Running benchmark-suite/slseg-nil-slist.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+44 | benchmark-suite/slseg-nil-slist.py FAILURE: 901s
+
+Running benchmark-suite/tree-dag.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(tree(v1), dag(v1))
+Total lemmas proposed: 7
+Total time charged: 2.580976963043213s
+45 | benchmark-suite/tree-dag.py SUCCESS: 5s
+
+Running benchmark-suite/tree-p-reach-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma 1 is valid
+lemma 2 is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+46 | benchmark-suite/tree-p-reach-tree.py FAILURE: 904s
+
+Running benchmark-suite/tree-p-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+47 | benchmark-suite/tree-p-reach.py FAILURE: 901s
+
+Running benchmark-suite/tree-p-tree.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Goal has been proven. Lemmas used to prove goal:
+Implies(tree_p(v1), tree(v1))
+Total lemmas proposed: 5
+Total time charged: 2.682844877243042s
+48 | benchmark-suite/tree-p-tree.py SUCCESS: 5s
+
+Running benchmark-suite/tree-reach.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+49 | benchmark-suite/tree-reach.py FAILURE: 902s
+
+Running benchmark-suite/tree-reach2.py:
+---------------------------------------------------
+goal (no lemmas) is invalid
+lemma is valid
+goal (with lemmas) is valid
+goal is not first-order provable.
+goal cannot be proved using induction.
+/Users/lucaspena/madhu/FOSSIL/lemsynth/ProcessStreamer.py:57: UserWarning: Lazy streaming with timeout is not a usual option setting. Consider setting the option that reflects your purpose best.
+  warnings.warn('Lazy streaming with timeout is not a usual option setting. '
+Timeout reached. Exiting
+50 | benchmark-suite/tree-reach2.py FAILURE: 903s
+
+---------------------------------------------------
+    32 out of 50 programs did not successfully run.

@@ -11,10 +11,10 @@ cvc4sy = 'cvc4sy'
 
 ###############################################################################
 # Setting lemma synthesis options here. DO NOT MODIFY.
-streaming_synthesis_swtich = False
+streaming_synthesis_swtich = True
 use_cex_models = False
-use_cex_true_models = True
-synthesis_solver = minisy
+use_cex_true_models = False
+synthesis_solver = cvc4sy
 # Verbosity as a positive number. 0 is completely silent.
 verbose = 0
 # Option to instrument code and time several parts of the pipeline

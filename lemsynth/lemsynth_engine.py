@@ -154,6 +154,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
             if options.verbose > 0:
                 print('proposed lemma: {}'.format(str(z3py_lemma_body)))
             if options.verbose >= 0 and options.analytics:
+            ## use the below line for streaming instead of the above
+            # if options.verbose >= 1 and options.analytics:
                 print('total lemmas so far: ' + str(config_params['analytics']['total_lemmas']))
 
             if z3py_lemma in invalid_lemmas or z3py_lemma in valid_lemmas:

@@ -22,12 +22,7 @@ for file in `ls benchmark-suite/*.py`
   do
     printf "Running $file:\n---------------------------------------------------\n";
     START=$(date +%s)
-    if [ $file = benchmark-suite/reachability.py ]
-    then
-        timeout 240 python3 -u $file
-    else
-        timeout 120 python3 -u $file
-    fi
+    timeout 1000 /usr/local/opt/python@3.7/bin/python3 -u $file
     exit_code=$?
     END=$(date +%s)
     DIFF=$(( $END - $START ))

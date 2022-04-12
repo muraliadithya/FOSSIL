@@ -243,6 +243,8 @@ def solveProblem(lemma_grammar_args, lemma_grammar_terms, goal, name, grammar_st
                 if options.verbose >= 3:
                     print('proposed lemma was proven.')
                 valid_lemmas.add(z3py_lemma)
+                if options.verbose >= 0:
+                    print('total valid lemmas proposed up until now: ' + str(len(valid_lemmas)))
                 if options.streaming_synthesis_swtich:
                     # Check if lemma helps prove goal using originally configured goal solver object
                     # TODO: introduce warning or extend streaming algorithm to multiple lemma case

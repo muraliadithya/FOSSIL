@@ -1,50 +1,50 @@
-benchmark-suite/bst-left-right.py: success -- 59s, 19 lemmas proposed
-benchmark-suite/bst-left.py: success -- 50s, 10 lemmas proposed
-benchmark-suite/bst-leftmost.py: success -- 160s, 33 lemmas proposed
-benchmark-suite/bst-maximal.py: success -- 6s, 6 lemmas proposed
-benchmark-suite/bst-minimal.py: success -- 7s, 7 lemmas proposed
-benchmark-suite/bst-right.py: success -- 104s, 8 lemmas proposed
-benchmark-suite/bst-tree.py: success -- 4s, 2 lemmas proposed
-benchmark-suite/cyclic-next.py: success -- 126s, 18 lemmas proposed
-benchmark-suite/dag-reach.py: success -- 6s, 8 lemmas proposed
-benchmark-suite/dag-reach2.py: success -- 7s, 8 lemmas proposed
-benchmark-suite/dlist-list.py: success -- 1s, 1 lemmas proposed
-benchmark-suite/even-list.py: success -- 1s, 3 lemmas proposed
-benchmark-suite/list-even-or-odd.py: success -- 126s, 12 lemmas proposed
-benchmark-suite/list-hlist-list.py: success -- 2s, 6 lemmas proposed
-benchmark-suite/list-hlist-lseg.py: success -- 2s, 4 lemmas proposed
-benchmark-suite/list-lseg-keys.py: success -- 6s, 10 lemmas proposed
-benchmark-suite/list-lseg-keys2.py: success -- 6s, 11 lemmas proposed
-benchmark-suite/listlen-list.py: success -- 0s, 1 lemmas proposed
-benchmark-suite/lseg-ext.py: success -- 7s, 7 lemmas proposed
-benchmark-suite/lseg-list.py: success -- 6s, 8 lemmas proposed
-benchmark-suite/lseg-next-dyn.py: success -- 1s, 1 lemmas proposed
-benchmark-suite/lseg-next.py: success -- 5s, 6 lemmas proposed
-benchmark-suite/lseg-nil-list.py: success -- 5s, 6 lemmas proposed
-benchmark-suite/lseg-trans.py: success -- 8s, 9 lemmas proposed
-benchmark-suite/lseg-trans2.py: success -- 8s, 8 lemmas proposed
-benchmark-suite/maxheap-dag.py: success -- 3s, 2 lemmas proposed
-benchmark-suite/maxheap-htree-key.py: success -- 184s, 30 lemmas proposed
-benchmark-suite/maxheap-keys.py: success -- 138s, 9 lemmas proposed
-benchmark-suite/maxheap-tree.py: success -- 2s, 2 lemmas proposed
-benchmark-suite/odd-list.py: success -- 2s, 5 lemmas proposed
-benchmark-suite/reach-left-right.py: success -- 25s, 14 lemmas proposed
-benchmark-suite/reachability.py: success -- 7s, 8 lemmas proposed
-benchmark-suite/reachability2.py: success -- 1s, 2 lemmas proposed
-benchmark-suite/reachability3.py: success -- 3s, 3 lemmas proposed
-benchmark-suite/reachability4.py: success -- 1s, 2 lemmas proposed
-benchmark-suite/reachability5.py: success -- 5s, 5 lemmas proposed
-benchmark-suite/reachability6.py: success -- 2s, 4 lemmas proposed
-benchmark-suite/rlist-black-height.py: success -- 123s, 17 lemmas proposed
-benchmark-suite/rlist-list.py: success -- 2s, 2 lemmas proposed
-benchmark-suite/rlist-red-height.py: success -- 124s, 20 lemmas proposed
-benchmark-suite/sdlist-dlist-slist.py: success -- 2s, 4 lemmas proposed
-benchmark-suite/sdlist-dlist.py: success -- 2s, 2 lemmas proposed
-benchmark-suite/slist-list.py: success -- 1s, 2 lemmas proposed
-benchmark-suite/slseg-nil-slist.py: success -- 5s, 5 lemmas proposed
-benchmark-suite/tree-dag.py: success -- 2s, 3 lemmas proposed
-benchmark-suite/tree-p-reach-tree.py: success -- 12s, 9 lemmas proposed
-benchmark-suite/tree-p-reach.py: success -- 12s, 10 lemmas proposed
-benchmark-suite/tree-p-tree.py: success -- 2s, 2 lemmas proposed
-benchmark-suite/tree-reach.py: success -- 36s, 12 lemmas proposed
-benchmark-suite/tree-reach2.py: success -- 7s, 4 lemmas proposed
+benchmark-suite/bst-left-right.py: success -- 104s, 27 lemmas proposed, 6 valid lemmas proved
+benchmark-suite/bst-left.py: success -- 57s, 10 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/bst-leftmost.py: success -- 167s, 39 lemmas proposed, 10 valid lemmas proved
+benchmark-suite/bst-maximal.py: success -- 5s, 5 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/bst-minimal.py: success -- 7s, 7 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/bst-right.py: success -- 104s, 8 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/bst-tree.py: success -- 4s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/cyclic-next.py: success -- 126s, 20 lemmas proposed, 2 valid lemmas proved
+benchmark-suite/dag-reach.py: success -- 20s, 5 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/dag-reach2.py: success -- 4s, 6 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/dlist-list.py: success -- 1s, 1 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/even-list.py: success -- 1s, 3 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/list-even-or-odd.py: success -- 124s, 11 lemmas proposed, 4 valid lemmas proved
+benchmark-suite/list-hlist-list.py: success -- 2s, 6 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/list-hlist-lseg.py: success -- 2s, 4 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/list-lseg-keys.py: success -- 4s, 7 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/list-lseg-keys2.py: success -- 4s, 7 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/listlen-list.py: success -- 0s, 1 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/lseg-ext.py: success -- 12s, 12 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/lseg-list.py: success -- 5s, 7 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/lseg-next-dyn.py: success -- 1s, 1 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/lseg-next.py: success -- 6s, 6 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/lseg-nil-list.py: success -- 4s, 6 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/lseg-trans.py: success -- 5s, 5 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/lseg-trans2.py: success -- 7s, 7 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/maxheap-dag.py: success -- 3s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/maxheap-htree-key.py: success -- 155s, 29 lemmas proposed, 3 valid lemmas proved
+benchmark-suite/maxheap-keys.py: success -- 140s, 9 lemmas proposed, 2 valid lemmas proved
+benchmark-suite/maxheap-tree.py: success -- 3s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/odd-list.py: success -- 3s, 5 lemmas proposed, 2 valid lemmas proved
+benchmark-suite/reach-left-right.py: success -- 40s, 12 lemmas proposed, 3 valid lemmas proved
+benchmark-suite/reachability.py: success -- 4s, 4 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/reachability2.py: success -- 2s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/reachability3.py: success -- 3s, 3 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/reachability4.py: success -- 2s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/reachability5.py: success -- 4s, 4 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/reachability6.py: success -- 3s, 4 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/rlist-black-height.py: success -- 125s, 21 lemmas proposed, 7 valid lemmas proved
+benchmark-suite/rlist-list.py: success -- 2s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/rlist-red-height.py: success -- 124s, 20 lemmas proposed, 7 valid lemmas proved
+benchmark-suite/sdlist-dlist-slist.py: success -- 3s, 4 lemmas proposed, 2 valid lemmas proved
+benchmark-suite/sdlist-dlist.py: success -- 2s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/slist-list.py: success -- 1s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/slseg-nil-slist.py: success -- 4s, 5 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/tree-dag.py: success -- 3s, 3 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/tree-p-reach-tree.py: success -- 18s, 12 lemmas proposed, 3 valid lemmas proved
+benchmark-suite/tree-p-reach.py: success -- 17s, 14 lemmas proposed, 2 valid lemmas proved
+benchmark-suite/tree-p-tree.py: success -- 3s, 2 lemmas proposed, 1 valid lemmas proved
+benchmark-suite/tree-reach.py: success -- 25s, 9 lemmas proposed, 2 valid lemmas proved
+benchmark-suite/tree-reach2.py: success -- 7s, 4 lemmas proposed, 1 valid lemmas proved

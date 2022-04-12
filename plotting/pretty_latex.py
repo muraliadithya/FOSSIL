@@ -33,10 +33,11 @@ def results_table(results, names, timeout=240):
             break
             
         # Organize and specialize data
+        # Order is: Syn, Val, Time
         result = (
-            replace(results[name][0], -1, '---'),
             replace(results[name][1], -1, '---'),
-            replace(results[name][2], timeout, '\\bot'),
+            replace(results[name][2], -1, '---'),
+            replace(results[name][0], timeout, '\\bot'),
         )
         
         # Print data
@@ -44,9 +45,11 @@ def results_table(results, names, timeout=240):
         print('\t\t' + '\t& '.join([name+spacing, *result]),'\\\\')
         
         # Split table
-        if i == 2*len(names)//3 - 1:
-            print('\t\t~ & ~ & ~ & ~ \\\\\n\n')
-        elif i == len(names)//3:
+        #if i == 2*len(names)//3 - 1:
+        #    print('\t\t~ & ~ & ~ & ~ \\\\\n\n')
+        #elif i == len(names)//3:
+        #    print('\n\n')
+        if i == len(names)//2 - 1:
             print('\n\n')
     return
 

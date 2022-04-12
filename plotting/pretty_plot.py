@@ -1,12 +1,14 @@
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 plt.rcParams.update({'font.size': 14})
 from matplotlib.lines import Line2D
 
-def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagonal=True, square=True,
+def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagonal=True, square=True, color=None,
                 measurement='runtime', unit='s', mark='o', bands=True, bands_curve=True, offset_band_label=False,
-                tm_val=None, x_leg='lower right', y_leg='center right', z_leg='upper left', plotdir='./plots/'):
+                tm_val=None, x_leg='lower right', y_leg='center right', z_leg='upper left',
+                save=True, plotdir='./plots/'):
     """
     Display plot for batch of FOSSIL experiments. This is prepared to handle results which have been processed
     using the process_log or process_done function below, then normalized according to the adjust function below.
@@ -18,10 +20,12 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     :param y: array-like
     :param x_name: string
     :param y_name: string
-    :param log: bool
-    :param diagonal: bool
-    :param x_leg: string
-    :param y_leg: string
+    :param log: bool, whether to employ logarithmic scale for axes
+    :param diagonal: bool, whether to plot main diagonal
+    :param color: str, optional color override for plot
+    :param x_leg: string, placement of legend for X timeouts
+    :param y_leg: string, placement of legend for Y timeouts
+    :param save: bool, whether to save plot
     :param plotdir: string
     """
     # Build figure/axes
@@ -48,12 +52,13 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     no_timeout = data[:,no_timeout_ind]
     
     # Derive the color data (distance from diagonal)
-    colors = no_timeout[0] - no_timeout[1]
-    c_max = np.max(colors)
-    c_min = np.min(colors)
-    colors = np.array([c/c_max + 0.3 if c > 0.
-                       else -c/c_min - 0.2 if c < 0.
-                       else 0 for c in colors])
+    if not color:
+        colors = no_timeout[0] - no_timeout[1]
+        c_max = np.max(colors)
+        c_min = np.min(colors)
+        colors = np.array([c/c_max + 0.3 if c > 0.
+                           else -c/c_min - 0.2 if c < 0.
+                           else 0 for c in colors])
     cmap = 'RdYlGn'
 
     # Plot the timeouts
@@ -61,20 +66,20 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     tm_x = np.where(timeout_x & ~timeout_y)
     x_t = np.exp(tm_factor*np.log(np.max(data[0])))*np.ones_like(tm_x[0])
     ax_scatter.scatter(x_t, data[1, tm_x],
-                       color='green', marker='>', s=60)
+                       color=color if color else 'green', marker='>', s=60)
     tm_y = np.where(timeout_y & ~timeout_x)
     y_t = np.exp(tm_factor*np.log(np.max(data[1])))*np.ones_like(tm_y[0])
     ax_scatter.scatter(data[0, tm_y], y_t,
-                       color='maroon', marker='^', s=60)
+                       color=color if color else 'maroon', marker='^', s=60)
     # Plot tests on which both tools timed out
     tm_z = np.where(timeout_x & timeout_y)
     z_t = np.exp(tm_factor*np.log(np.max(data)))*np.ones_like(tm_z[0])
     ax_scatter.scatter(z_t, z_t,
-                       color='orange', marker='D', s=45)
+                       color=color if color else 'orange', marker='D', s=45)
     
     # Plot the data
     ax_scatter.scatter(no_timeout[0], no_timeout[1], marker=mark, s=(50 if mark=='o' else 30),
-                       c=colors, cmap=cmap)
+                       c=color if color else colors, cmap=cmap)
     
     # Fine-tune plot
     if log:
@@ -100,7 +105,7 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     
     dd = np.linspace(min(np.min(data),0.9), np.max(data)+400, 10**3)
     if diagonal:
-        ax_scatter.plot(dd, dd, '-', alpha=0.3, color='orange')
+        ax_scatter.plot(dd, dd, '-', alpha=0.3, color=color if color else 'orange')
     if bands:
         if bands_curve:
             diff = 10
@@ -115,26 +120,26 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
             dd_below = dd / 2
             ax_scatter.text(1.2, fact + 1, '{}x'.format(fact), size=12)
             ax_scatter.text(fact + 1, 1.3, '{:.1f}x'.format(1/fact), size=12)
-        ax_scatter.plot(dd, dd_above, '-', alpha=0.3, color='orangered')
-        ax_scatter.plot(dd, dd_below, '-', alpha=0.3, color='yellowgreen')
+        ax_scatter.plot(dd, dd_above, '-', alpha=0.3, color=color if color else 'orangered')
+        ax_scatter.plot(dd, dd_below, '-', alpha=0.3, color=color if color else 'yellowgreen')
 
     # Manually set legends
     if len(tm_x[0]) > 0:
         legend_elements_x = [Line2D([0],[0], color='w', marker='>', 
                                    label='{}\ntimeout'.format(x_name),
-                                   markerfacecolor='green', markersize=10)]
+                                   markerfacecolor=color if color else 'green', markersize=10)]
         legend_x = ax_scatter.legend(handles=legend_elements_x, loc=x_leg, prop={"size":12})
         ax_scatter.add_artist(legend_x)
     if len(tm_y[0]) > 0:
         legend_elements_y = [Line2D([0],[0], color='w', marker='^', 
                                    label='{}\ntimeout'.format(y_name),
-                                   markerfacecolor='maroon', markersize=10)]
+                                   markerfacecolor=color if color else 'maroon', markersize=10)]
         legend_y = ax_scatter.legend(handles=legend_elements_y, loc=y_leg)
         ax_scatter.add_artist(legend_y)
     if len(tm_z[0]) > 0:
         legend_elements_z = [Line2D([0],[0], color='w', marker='D', 
                                    label='both timeout',
-                                   markerfacecolor='orange', markersize=8)]
+                                   markerfacecolor=color if color else 'orange', markersize=8)]
         legend_z = ax_scatter.legend(handles=legend_elements_z, loc=z_leg, fontsize=12)
         ax_scatter.add_artist(legend_z)
 
@@ -144,11 +149,15 @@ def pretty_plot(x, y, x_name='FOSSIL[option]', y_name='FOSSIL', log=True, diagon
     fig.tight_layout()
 
     # Save and display plot
-    savename = plotdir + '{}-{}_{}.png'.format(x_name, y_name, measurement).replace(' ','_').replace('[','_').replace(']','_')
-    plt.savefig(savename, bbox_inches = 'tight', pad_inches = 0.2, dpi=100)
+    if save:
+        savename = plotdir + '{}-{}_{}.png'.format(
+            x_name, y_name, measurement
+        ).replace(' ','_').replace('[','_').replace(']','')
+        plt.savefig(savename, bbox_inches='tight', pad_inches=0.1, dpi=100)
     plt.show()
     
-def pretty_bar(x, y, x_name='FOSSIL[no Type-2]', y_name='FOSSIL', plotdir='./plots/'):
+def pretty_bar(x, y, x_name='FOSSIL[no Type-2]', y_name='FOSSIL', x_title='Benchmarks',
+               y_leg=None, save=True, plotdir='./plots/', savename=None):
     """
     Display plot for batch of FOSSIL experiments. This is prepared to handle results which have been processed
     using the process_log or process_done function below, then normalized according to the adjust function below.
@@ -157,6 +166,7 @@ def pretty_bar(x, y, x_name='FOSSIL[no Type-2]', y_name='FOSSIL', plotdir='./plo
     :param y: array-like
     :param x_name: str
     :param y_name: str
+    :param save: bool
     :param plotdir: str
     """
     fig = plt.figure()
@@ -173,29 +183,40 @@ def pretty_bar(x, y, x_name='FOSSIL[no Type-2]', y_name='FOSSIL', plotdir='./plo
     N = len(x)
     ind = np.arange(N)
     width = 0.35
-    rects1 = ax.bar(ind, x, width, color='sandybrown')
-    rects2 = ax.bar(ind+width, y, width, color='yellowgreen')
+    rects1 = ax.bar(ind, x, width, color='#eda247')
+    rects2 = ax.bar(ind+width, y, width, color='darkblue')
 
     ax.set_ylabel('Number of lemmas proposed')
-    ax.set_xlabel('Benchmarks')
+    if y_leg:
+        ax.set_yticks(y_leg)
+        ax.set_yticklabels(y_leg)
+    else:
+        ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax.set_xlabel(x_title)
     ax.set_xticklabels([])
     ax.set_title('')
     ax.legend((rects1[0], rects2[0]), (x_name, y_name))
     fig.tight_layout()
-    plt.savefig(plotdir + 'bar_FOSSIL_lemmas-proposed.png',
-                bbox_inches='tight', pad_inches=0.2, dpi=100)
+    if save:
+        if not savename:
+            savename = 'bar_FOSSIL_lemmas-proposed.png'
+        plt.savefig(plotdir + savename,
+                    bbox_inches='tight', pad_inches=0.2, dpi=100)
     plt.show()
     
 
-def process_log(filename, timeout=240, old_format=False):
+def process_log(filename, timeout=240, valid=False, old_format=False):
     """
     Process output logs from FOSSIL experiments with runtimes and lemma proposal counts.
-    Example of format:
+    Example of format if valid is False:
         >benchmark-suite/bst-left-right.py: failure -- 240s, 21 lemmas proposed
-        >benchmark-suite/bst-left.py: success -- 57s, 9 lemmas proposed
+    Example of format if valid is True:
+        >benchmark-suite/bst-left.py: success -- 57s, 10 lemmas proposed, 1 valid lemmas proved
+    Example of format if old_format is True:
+        see process_done function below
     :param filename: str, name of file with experiment results
     :param timeout: float, timeout parameter used in run
-    :param old_format: bool; if true, assume old format, as in process_done (lemmas not supported)
+    :param old_format: bool; if true, assume format from process_done (actual lemmas not supported)
     :return names: list, names of detected tests
     :return results: dict, organized results containing tuple of runtime and
         lemma proposal count (value) for each test (key)
@@ -230,18 +251,39 @@ def process_log(filename, timeout=240, old_format=False):
             runtime = timeout
         proposals = int(line[4])
         return name, (runtime, proposals)
+    def process_new_line_valid(line):
+        if not line:
+            return '', (-1, -1)
+        # Assume each line contains a test result, with format:
+        # >{filename}: {success/failure} -- {runtime}s, {proposals} lemmas proposed,
+        # {valid} valid lemmas proved
+        line = line.split(' ')
+        # Assume each filename has format "../test.py" with a single "/"
+        name = line[0][line[0].find('/')+1:-4]
+        runtime = int(line[3][:-2])
+        if runtime > timeout:
+            runtime = timeout
+        proposals = int(line[4])
+        valid = int(line[7])
+        return name, (runtime, proposals, valid)
+    
     if old_format:
         process_line = process_old_line
+        if valid:
+            print('Invalid settings. Use the process_done function instead.')
+            return names, results
+    elif valid:
+        process_line = process_new_line_valid
     else:
         process_line = process_new_line
          
     with open(filename, 'r') as f:
         # Iterate through log
         for line in f:
-            name, (runtime, proposals) = process_line(line)
+            name, result = process_line(line)
             if name:
                 names.append(name)
-                results[name] = (runtime, proposals)
+                results[name] = result
     
     return names, results
 

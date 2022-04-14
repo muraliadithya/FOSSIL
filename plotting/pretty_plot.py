@@ -287,6 +287,13 @@ def process_log(filename, timeout=240, valid=False, old_format=False):
     
     return names, results
 
+def process_autobench(filename):
+    """
+    Process output log from benchmark suite text file.
+    Example of format is:
+        >[94m1[0m | [1midx+1||exp+1||>0__dag__nocondition__normal__cycle=d2,d1__2/2[0m [32m SUCCESS: {time}s[0m
+    """
+    return np.array([int(line.split(' ')[5][:-6]) for line in open(filename, 'r')])
 
 def check_benchmark(first, second, first_name='true countermodels turned off',
                     second_name='true countermodels turned on', bench=10):

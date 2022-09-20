@@ -1,0 +1,20 @@
+(synth-fun lemma ((x Int) (yc Int) (zc Int) (k Int) (nil Int)) Bool
+           ((Start Bool) (I Int) (Loc Int))
+
+           ((Start Bool (false
+                  (=> Start Start)
+                  (= I I)
+                  (<= I I)
+                  (not (= Loc nil))
+                  (lsegy Loc)
+                  (lsegz Loc)
+                  (lsegy_p Loc)
+                  (lsegz_p Loc)))
+           (I Int (k))
+           (Loc Int (x yc zc)))
+)
+
+(synth-fun rswitch () Int
+           ((Start Int))
+           ((Start Int (0 1 2 3)))
+)

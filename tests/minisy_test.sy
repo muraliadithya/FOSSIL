@@ -1,0 +1,24 @@
+; Synthesis problem with multiple solutions
+(set-logic ALL)
+
+
+(define-fun op ((x Int) (y Int)) Int
+(- x y)
+)
+
+
+(synth-fun sub ((x Int) (y Int)) Int
+    ((Start Int) (I Int))
+    ((Start Int
+                ((op I I)))
+     (I Int
+           (x
+            y)))
+)
+
+(constraint (= (sub 1 0) 1))
+(constraint (= (sub 0 0) 0))
+(constraint (= (sub 4 3) 1))
+
+(check-synth)
+

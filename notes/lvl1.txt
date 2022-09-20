@@ -1,0 +1,12 @@
+benchmark-suite/bst-left-right.py,grammars/grammar_bst-left-right-lvl1.sy
+benchmark-suite/bst-left.py,grammars/grammar_bst-left-lvl1.sy
+benchmark-suite/bst-right.py,grammars/grammar_bst-right-lvl1.sy
+benchmark-suite/bst-leftmost.py,grammars/grammar_bst-leftmost-lvl1.sy
+benchmark-suite/cyclic-next.py,grammars/grammar_cyclic-next-lvl1.sy
+benchmark-suite/list-even-or-odd.py,grammars/grammar_list-even-or-odd-lvl1.sy
+benchmark-suite/lseg-ext.py,grammars/grammar_lseg-ext-lvl1.sy
+benchmark-suite/lseg-trans.py,grammars/grammar_lseg-trans-lvl1.sy
+benchmark-suite/maxheap-htree-key.py,grammars/grammar_maxheap-htree-key-lvl1.sy
+benchmark-suite/maxheap-keys.py,grammars/grammar_maxheap-keys-lvl1.sy
+benchmark-suite/rlist-black-height.py,grammars/grammar_rlist-height-lvl1.sy
+benchmark-suite/rlist-red-height.py,grammars/grammar_rlist-height-lvl1.sy

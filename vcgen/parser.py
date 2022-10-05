@@ -33,11 +33,12 @@ def listify(input_string):
     counter = 0
     foundp = 0
     nextlinekey = -1
-    for i in range(len(input_string)-1):
-        if input_string[i:i+2]=="\n":
-            nextlinekey = i
-    if nextlinekey!= -1:
-        input_string = input_string[:nextlinekey]
+    #handled in remove_comments fn
+    # for i in range(len(input_string)-1):
+    #     if input_string[i:i+2]=="\n":
+    #         nextlinekey = i
+    # if nextlinekey!= -1:
+    #     input_string = input_string[:nextlinekey]
 
     for i in range(len(input_string)):
         if input_string[i]=='(' :
@@ -673,12 +674,39 @@ def support_support(iplist):
             raise Exception('Support is a unary operator. Invalid support %s' %operands)
 #----------------------------------------------------------------------------------
 #Below we club together everything so far to get a vc function.
-#We assume input is given in the righ format. Need to handle issues better. Will do later.
+#We assume input is given in the right format.
 init_recdef = dict()
+
+def remove_comments(user_input):
+    #also remove newlines
+    for i in range(len(user_input)):
+        user_input[i] = user_input[i].rstrip('\n')
+    
+    is_comment = 0
+    upip = []
+    for i in user_input:
+        ipoc = 0
+        if len(i)>1:
+            for j in range(len(i)-1):
+                if i[j:j+2]== '/*':
+                    is_comment = is_comment + 1
+                    ipoc = 1
+                elif i[j:j+2] == '*/':
+                    is_comment = is_comment - 1
+                    ipoc = 1
+        if (len(i)==0) or (i[0]=='#'):              #single line comments
+            pass
+        elif (is_comment == 0) and (ipoc == 0):
+            upip.append(i)
+
+    if is_comment != 0:
+        raise Exception('Unenclosed Comment (*/ not followed up by */ to denote end of comment)')
+    return upip
 
 def vc(user_input):
     transform = []
-    code_line = [create_input(i) for i in user_input]
+    nc_uip = remove_comments(user_input)
+    code_line = [create_input(i) for i in nc_uip]
     #printf(code_line)
     printf('done creating input list')
     for i in code_line:

@@ -1,14 +1,17 @@
+/*This is a
+multiline comment*/
 (Const nil Loc)
 (Var x Loc)
 (Var y Loc)
 (Var var1 Loc)
 (Function next Loc Loc)
+/* This is a /* nested */
+comment */
 (RecFunction list Loc Bool)
 (RecDef (list var1) (ite (= var1 nil) True (and (not (IsMember (var1)  (Sp (list (next var1))))) (list (next var1)))) ) 
 (Pre (list x))
 (assume (not (= x nil)))
-(assign y (next x))/*fafdafdsf
-/*/*fdafdsfadsfdsf*/*/*/
+(assign y (next x))/*This is a comment on the same line as code*/
 (assume (not (= y nil)))
 (assign (next x) (next (y)))
 (assign (next y) x)

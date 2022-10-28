@@ -327,9 +327,9 @@ def interpret_basics(iplist):
         return True
     elif x == 'False':
         return False
-    elif x == 'EmptyLocSet':
+    elif x == 'EmptySetLoc':
         return fgsetsort.lattice_bottom
-    elif x == 'EmptyIntSet':
+    elif x == 'EmptySetInt':
         return intsetsort.lattice_bottom
     elif x in vardict.keys():
         return vardict[x]['z3name']
@@ -593,8 +593,8 @@ def support_basics(iplist):   #Support of var/const is the empty set
         x = iplist                      
     else:
         x = iplist[0]
-    if x == 'True' or 'False' or 'EmptyLocSet' or 'EmptyIntSet'  or (x in vardict.keys()):
-        return fgsetsort.lattice_bottom
+    if x == 'True' or x == 'False' or x == 'EmptySetLoc' or x == 'EmptySetInt'  or (x in vardict.keys()):
+        return EmptySet(IntSort())
     else:
         raise Exception('support basics failure')
 

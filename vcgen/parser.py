@@ -640,7 +640,7 @@ def remove_comments(user_input):
     is_comment = 0
     upip = []
     for i in user_input:
-        if len(i) == 0:
+        if len(i) <= 1:
             pass
         elif is_comment == 0:
             q = 0
@@ -677,7 +677,6 @@ def remove_comments(user_input):
                         j = j+2
                     else:
                         j = j+1
-    print(upip)
     return upip
 
 

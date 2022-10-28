@@ -1,3 +1,6 @@
+import logging
+
+
 from ast import operator
 import importlib_resources
 from configparser import SafeConfigParser
@@ -21,6 +24,13 @@ from vcgen.utils import ProgramState
 
 from vcgen.CombinatorLogic import CombinatorLogic
 
+
+#some logging stuff
+
+logging.basicConfig(filename='vcgen.txt', level=logging.INFO)
+with open('vcgen.txt', 'w'):
+    pass
+############################
 
 #Fixing the input format:
 #'(Var x type)'
@@ -296,7 +306,7 @@ def interpret_ops(list):
         return interpret_assume(list)
     elif operator == '.':
         return interpret_dot(list)
-    elif operator == ':=':
+    elif operator == ':=' or operator == 'Assign' or operator == 'assign':
         return interpret_assign(list)
     elif operator == 'RecDef':
         return interpret_recdef(list)
@@ -433,45 +443,7 @@ def interpret_assign(list):
                     y = If(free_var==vardict[var][0],interpret_ops(op2), funcdict[func][0](free_var))
                     func_update(func)
                     x = funcdict[func][0](free_var)
-
-                    # def fp(recs_to_update):
-                    #     check =[]
-                    #     for i in recs_to_update:
-                    #         check.append(i)
-                    #     funcs_in_funcs = []
-                    #     for name in recdefdict.keys():      #recdefdict[name] = (fn, type, description, sub_functions, counter)
-                    #         for i in recs_to_update:
-                    #             if i in recdefdict[name][3]: #If func is a subfuction, then need to update defn of this rec function.
-                    #                 recs_to_update.append(name)
-                    #     recs_to_update1 = recs_to_update+funcs_in_funcs
-                    #     recs_to_update = [*set(recs_to_update1)]
-                    #     s=0
-                    #     for i in check:
-                    #         for j in recs_to_update:
-                    #             if i==j:
-                    #                 pass
-                    #             else:
-                    #                 s=1
-                    #                 break
-                    #         if s==1:
-                    #             break
-                    #     if s==0:
-                    #         return recs_to_update
-                    #     else:
-                    #         return fp(recs_to_update)
-                    # p = []
-                    # for name in recdefdict.keys():
-                    #     if func in recdefdict[name][3]:
-                    #         p.append(name)
-                    # #p stores all the recursive functions that are directly affected by the mutation
-                    # #The fp function: For each recdef function, it looks at the subfunctions and sees if 
-                    # # one of the directly affected recdefs are in another rec def. 
-                    # #If we reach a fix point, we stop. Other wise, call the function again.
-                    # print('pfdafd',p)
-                    # rec_functions_to_update = fp(p)
-                   
-
-                    #print('AddAxiom-->',(free_var,),x == y)
+                    logging.info('Mutation: %s = %s' %(x,y))
                     AddAxiom((free_var,),x == y)
                     for i in recdefdict.keys():
                         func_update(i)
@@ -496,7 +468,11 @@ def interpret_recdef(list):
 
         func, vars = op1[0], op1[1:]
         #print('AddRecDefn~~>',recdefdict[func][0],*[interpret_ops(v) for v in vars],interpret_ops(op2))
-        AddRecDefinition(recdefdict[func][0],*[interpret_ops(v) for v in vars],interpret_ops(op2))
+        a1 =recdefdict[func][0]
+        a2 = [interpret_ops(v) for v in vars]
+        a3 = interpret_ops(op2)
+        logging.info('Adding recdef: (%s, %s, ,%s )' %(a1,a2,a3))
+        AddRecDefinition(a1,*a2,a3)
         #This creates an initial definition of func, and  also adds a description of it into 
         # the recdefdict. When this is called in the program. We can get this description and 
         # update the definition if needed.
@@ -612,6 +588,8 @@ def vc(list):
         elif tag == ':=' and len(i[1])==3: #i.e add axiom
             interpret_ops(i)
         else:
+            intops = interpret_ops(i)
+            logging.info('Line of code: %s' %intops)
             transform.append(interpret_ops(i))
     print('done preprocessing')
     #frame condition:#assume just 1 var for now
@@ -623,19 +601,28 @@ def vc(list):
         if i[:2]=='SP':
             pass
         else:
+            logging.info('Frame assumptions:')
             #print('..................',((free_var,), Implies(And(init_recdef[i][0](free_var),IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)),fgsetsort.lattice_bottom)),recdefdict[i][0](free_var))))
-            AddAxiom((free_var,), Implies(IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef[i][0](free_var) == recdefdict[i][0](free_var)))
-            AddAxiom((free_var,), Implies(IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef['SP'+i][0](free_var) == recdefdict['SP'+i][0](free_var)))
+            a = Implies(IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef[i][0](free_var) == recdefdict[i][0](free_var))
+            logging.info(a)
+            AddAxiom((free_var,), a)
+            b = Implies(IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef['SP'+i][0](free_var) == recdefdict['SP'+i][0](free_var))
+            logging.info(b)
+            AddAxiom((free_var,), b)
 
     goal =  Implies(And(precond,*[t for t in transform]),postcond)
-    #cprint(goal)
+    
+    logging.info('Pre: %s' % precond)
+    logging.info('Tranform: %s' % transform)
+    logging.info('Post: %s' % postcond)
     np_solver = NPSolver()
     np_solver.options.depth = 2
     solution = np_solver.solve(goal)
     if not solution.if_sat:
-        print('goal (no lemmas) is valid')
+        logging.info('goal is valid')
+        print('goal is valid')
     else:
-        print('goal (no lemmas) is invalid')
+        print('goal is invalid')
     return goal
 
 
@@ -643,15 +630,15 @@ def vc(list):
 
 #####################################################################################
 
-# t1 = ['(Const nil Loc)', '(Var x Loc)','(Var y Loc)','(Var var1 Loc)']
-# t2 = ['(Function next Loc Loc)']
-# t3 = ['(RecFunction list Loc Bool)', '(RecFunction SPlist Loc SetLoc)']
-# t4 = ['(RecDef (SPlist var1) (ite (= var1 nil) EmptySet (SetAdd (SPlist (next var1)) var1)))']
-# t5 = ['(RecDef (list var1) (ite (= var1 nil) True (and (not (IsSubset (SetAdd EmptySet var1) (SPlist (next var1)))) (list (next var1)))) )'] 
-# t6 = ['(Pre (list x))']
-# t7 = ['(assume (!= x nil))','(:= y (. x next))','(assume (!= y nil))']
-# t8 = ['(:= (. x next) (. y next))', '(:= (. y next) x)']
-# t9 = ['(:= x y)']
-# t10 = ['(Post (list x))']
-# t = t1+t2+t3+t4+t5+t6+t7+t8+t9+t10
-# vc(t)
+t1 = ['(Const nil Loc)', '(Var x Loc)','(Var y Loc)','(Var var1 Loc)']
+t2 = ['(Function next Loc Loc)']
+t3 = ['(RecFunction list Loc Bool)', '(RecFunction SPlist Loc SetLoc)']
+t4 = ['(RecDef (SPlist var1) (ite (= var1 nil) EmptySet (SetAdd (SPlist (next var1)) var1)))']
+t5 = ['(RecDef (list var1) (ite (= var1 nil) True (and (not (IsSubset (SetAdd EmptySet var1) (SPlist (next var1)))) (list (next var1)))) )'] 
+t6 = ['(Pre (list x))']
+t7 = ['(assume (!= x nil))','(:= y (. x next))','(assume (!= y nil))']
+t8 = ['(:= (. x next) (. y next))', '(:= (. y next) x)']
+t9 = ['(:= x y)']
+t10 = ['(Post (list x))']
+t = t1+t2+t3+t4+t5+t6+t7+t8+t9+t10
+vc(t)

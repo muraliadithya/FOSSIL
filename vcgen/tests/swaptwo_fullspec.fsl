@@ -31,7 +31,7 @@ swaptwo(x)
 (Pre (and
  (List x)
  (not (= x nil))
- (not (= y nil))
+ (not (= (next x) nil))
  (= k (key x))
  (= kp (key (next x)))
 ))
@@ -43,10 +43,10 @@ swaptwo(x)
 (assign x y)
 
 /* instantiated lemma for keys of the second element being the same */
-(assume (= (Keys (next (next x))) (Old (Keys (next (next head))))))
+(assume (= (Keys (next (next x))) (Old (Keys (next (next x))))))
 
 (Post (and
- (List x)
+ /*(List x)*/
  (= (key x) kp)
  (= (key (next x)) k)
  (= (Keys x) (Old (Keys head)))

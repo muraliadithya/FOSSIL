@@ -187,6 +187,7 @@ def var_parser(varinfo):
 
 
 def func_parser(funcinfo):
+    print('what->',funcinfo)
     '''Adding to func_dict'''
     if len(funcinfo)<4:
         raise Exception(f'Function input error: insufficient no. of arguments: {funcinfo}')
@@ -194,54 +195,32 @@ def func_parser(funcinfo):
 
     # The following looks at a function's input types and creates free variables if necessary.
     # If the max no. of Loc in a fn is k, there will be k free_Loc variables created.
-    nloc, nsetloc, nint, nsetint, nbool = 0, 0, 0, 0, 0
-    fvdloc = len(freevardict['Loc'])
-    fvdsetloc = len(freevardict['SetLoc'])
-    fvdint = len(freevardict['Int'])
-    fvdsetint = len(freevardict['SetInt'])
-    fvdbool = len(freevardict['Bool'])
-    for i in iptype[:-1]:
-        if i == 'Loc':
-            nloc = nloc + 1
-        elif i == 'SetLoc':
-            nsetloc = nsetloc + 1
-        elif i == 'Int':
-            nint = nint + 1
-        elif i == 'SetInt':
-            nsetint = nsetint + 1
-        elif i == 'Bool':
-            nbool = nbool + 1
-    if nloc > fvdloc:
-        for i in range(fvdloc,nloc):
-            freevardict['Loc'].append(Var('free_Loc'+str(i), fgsort))
-    if nsetloc > fvdsetloc:
-        for i in range(fvdsetloc,nsetloc):
-            freevardict['SetLoc'].append(Var('free_SetLoc'+str(i), fgsetsort))
-    if nint > fvdint:
-        for i in range(fvdint,nint):
-            freevardict['Int'].append(Var('free_Int'+str(i), intsort))
-    if nsetint > fvdsetint:
-        for i in range(fvdsetint,nsetint):
-            freevardict['SetInt'].append(Var('free_SetInt'+str(i), intsetsort))
-    if nbool > fvdbool:
-        for i in range(fvdbool, nbool):
-            freevardict['Bool'].append(Var('free_Bool'+str(i), boolsort))
+    type_of_inputs = iptype[0]
+    no_of_inputs = len(iptype) - 1
+    no_of_freevars_sofar = len(freevardict[type_of_inputs])
+    if no_of_inputs > no_of_freevars_sofar:
+        for i in range(no_of_freevars_sofar,no_of_inputs):
+            freevardict[type_of_inputs].append(Var('free_'+type_of_inputs+str(i), type_parser(type_of_inputs)))
 
 
     z3_type = [type_parser(x) for x in iptype]
+    print('iptype->',iptype)
     if tag == 'Function':
         z3_func = Function(name+'0', *z3_type)
-        funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0}
+        funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0,'input_type': type_of_inputs, 'no_inputs': no_of_inputs}
     elif tag == 'RecFunction':
         z3_func = Function(name+'0', *z3_type)
         recdefdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'description': [],
-                                'subfunctions': [], 'counter': 0, 'init': z3_func}
+                                'subfunctions': [], 'counter': 0, 'init': z3_func, 'input_type': type_of_inputs,'no_inputs': no_of_inputs}
         #...............
         if name[:2]!= 'SP':
-            z3_sptype = [type_parser(funcinfo[2]),type_parser('Set'+funcinfo[2])]       #Only really makes sense in (F name type1 type2)
+            print('fdfadsfdaf:', funcinfo[2:-1],'ffffffffffffffffffffff---','Set'+funcinfo[2])
+            typelist = [type_parser(i) for i in funcinfo[2:-1]]
+            z3_sptype = [*typelist,type_parser('Set'+funcinfo[2])]       #Only really makes sense in (F name type1 type2)
+            
             z3_spfunc = Function('SP'+name+'0',*z3_sptype)
             recdefdict['SP'+name] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
-                                         'subfunctions': [], 'counter': 0, 'init': z3_spfunc}
+                                         'subfunctions': [], 'counter': 0, 'init': z3_spfunc,'input_type': type_of_inputs,'no_inputs': no_of_inputs}
         #..............
     else:
         raise Exception(f'Tag error. Given: {tag} in {funcinfo}')
@@ -430,6 +409,7 @@ def interpret_assign(iplist):
         x:= Y will update x (increment counter to make an updated variable) to be Y
         (func x) := Y will update the function func' to say -> 
                         if arg is x then Y else (func arg) '''
+    global modified_vars
     operands = iplist[1:]
     if len(operands)==2:
         op1, op2 = operands
@@ -439,33 +419,35 @@ def interpret_assign(iplist):
             lhs = interpret_ops(op1)
             return lhs==rhs
         if op1[0] in funcdict:  #if mutation
-            func, args = op1
-            if isinstance(args,str):
-                pass
-            elif len(args)==1:
-                args = args[0]
-            else:
-                raise Exception(f'Bad variable declaration {args}')
-            if func in funcdict:
-                if args in vardict:           #generalize
-                    modified_vars.append(vardict[args]['z3name'])
-                    # x.func = Y -> func'(var) = if var==x then Y else func(var)
-                    y = If(free_var==vardict[args]['z3name'],interpret_ops(op2), funcdict[func]['z3name'](free_var))
-                    func_update(func)
-                    x = funcdict[func]['z3name'](free_var)
-                    logging.info('Mutation: %s = %s' %(x,y))
-                    AddAxiom((free_var,),x == y)
-                    global has_mutated
-                    has_mutated = 1
-                    return None
+            func = op1[0]
+            arg_list = []
+            for i in range(1,len(op1)):
+                if isinstance(op1[i],str):  #type check here?
+                    arg_list.append(op1[i])
+                elif len(op1[i]) == 1:
+                    arg_list.append(op1[i][0])
                 else:
-                    raise Exception(f'Invalid Variable {args} ')
-            raise Exception(f'invalid mutation on {func} in  {iplist}')
+                    raise Exception(f'Bad variable declaration {op1[i]}')
+            to_check = []
+            fv_used = []
+            for i,arg in enumerate(arg_list):
+                if arg in vardict:
+                    modified_vars.append(vardict[arg]['z3name'])
+                    to_check.append(freevardict[funcdict[func]['input_type']][i] == vardict[arg]['z3name'])
+                    fv_used.append(freevardict[funcdict[func]['input_type']][i])
 
-
-
-    else:
+                else:
+                    raise Exception(f'Invalid Variable {arg} ')
+            y = If(And(*to_check),interpret_ops(op2), funcdict[func]['z3name'](*fv_used))
+            func_update(func)
+            x = funcdict[func]['z3name'](*fv_used)
+            logging.info('Mutation: %s = %s' %(x,y))
+            AddAxiom((*fv_used,), x == y)
+            global has_mutated
+            has_mutated = 1
+            return None
         raise Exception(f'Invalid assignment/mutation {iplist}')
+    raise Exception(f'Invalid number of arguments to assign operator {iplist}')
 
 #-------------------------(12)-------------------------------------------
 def interpret_recdef(iplist):
@@ -653,15 +635,28 @@ def function_call(iplist):
 
         for i,elt in funcdict.items():
             new_unint_fn = Function(elt['z3name']+'_unint_'+str(no_fc),*elt['z3type'])
-            y = If(IsMember(free_var,old_alloc_rem),elt['z3name'](free_var),new_unint_fn(free_var))
+            input_type = elt['input_type']
+            no_inputs = elt['no_inputs']
+            fv_used = freevardict[input_type][:no_inputs]
+            fv_set = EmptySet(IntSort())
+            for i in fv_used:
+                fv_set = SetAdd(fv_set,i)
+            y = If(IsSubset(fv_set,old_alloc_rem),elt['z3name'](*fv_used),new_unint_fn(*fv_used))
             func_update(i)
-            x = elt['z3name'](free_var)
+            x = elt['z3name'](*fv_used)
             logging.info(f'Function Call: {x} = {y}')
-            AddAxiom((free_var,), x == y)
-            global has_mutated
-            
-        has_mutated = 1
+            AddAxiom((*fv_used,), x == y)
+        global has_mutated
         alloc_set = SetUnion(old_alloc_rem,sp_post)
+        has_mutated = 0
+        for i in recdefdict:
+            func_update(i)
+        for i in recdefdict:
+            if i[:2] != 'SP':
+                interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
+
+
+
         return to_assume
     
 def interpret_alloc(iplist):
@@ -943,18 +938,23 @@ def vc(user_input):
             pass
         else:
             logging.info('Frame assumptions:')
-            a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](free_var)), fgsetsort.lattice_bottom),recdefdict[i]['init'](free_var) == recdefdict[i]['z3name'](free_var))
+
+            fv_used = []
+            for j in range(recdefdict[i]['no_inputs']):
+                fv_used.append(freevardict[recdefdict[i]['input_type']][j])
+        
+            a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),recdefdict[i]['init'](*fv_used) == recdefdict[i]['z3name'](*fv_used))
             logging.info(z3.simplify(a))
-            AddAxiom((free_var,), a)
-            b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](free_var)), fgsetsort.lattice_bottom),recdefdict['SP'+i]['init'](free_var) == recdefdict['SP'+i]['z3name'](free_var))
+            AddAxiom((*fv_used,), a)
+            b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),recdefdict['SP'+i]['init'](*fv_used) == recdefdict['SP'+i]['z3name'](*fv_used))
             logging.info(z3.simplify(b))
-            AddAxiom((free_var,), b)
+            AddAxiom((*fv_used,), b)
     printf('\nvardict:',vardict,'\nFuncdict:',funcdict,'\nRecdefdict:', recdefdict)
     logging.info(f'Final Allocated Set: {z3.simplify(alloc_set)}')
     logging.info(f'Support of postcond: {z3.simplify(sp_postcond)}')
     goal =  Implies(And(precond,*[t for t in transform]), And(postcond, alloc_set == sp_postcond))
     # goal =  Implies(And(precond,*[t for t in transform]), postcond)
-    # print(goal)
+    print(goal)
     logging.info('Pre: %s' % precond)
     logging.info('Tranform: %s' % transform)
     logging.info('Post: %s' % postcond)

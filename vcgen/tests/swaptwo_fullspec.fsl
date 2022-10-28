@@ -46,7 +46,7 @@ swaptwo(x)
 (assume (= (Keys (next (next x))) (Old (Keys (next (next x))))))
 
 (Post (and
- /*(List x)*/
+ (List x)
  (= (key x) kp)
  (= (key (next x)) k)
  (= (Keys x) (Old (Keys head)))

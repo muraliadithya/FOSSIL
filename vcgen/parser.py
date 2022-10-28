@@ -3,6 +3,8 @@ from operator import is_
 import os
 from re import sub
 
+import z3 #debug
+
 from z3 import And, Or, Not, Implies, If
 from z3 import IsSubset, IsMember, SetIntersect, SetUnion, SetAdd, EmptySet, IntSort
 
@@ -354,7 +356,7 @@ def interpret_imp(iplist):
         raise Exception('implies takes two arguments. Given: %s' %iplist)
     else:
         op1, op2 = operands
-        return Implies(interpret_ops(op1),interpret_ops(2))
+        return Implies(interpret_ops(op1),interpret_ops(op2))
 
 #---------------(4)-------------------
 def interpret_eq(iplist):
@@ -451,13 +453,15 @@ def interpret_recdef(iplist):
     op1, op2 = operands
     if op1[0] in recdefdict.keys():
         #......................................................
+        import z3
         if op1[0][:2]!= 'SP':
             func, spfunc, vars = op1[0], 'SP'+op1[0], op1[1:]
             s1 = recdefdict[spfunc]['z3name']
             s2 = [interpret_ops(v) for v in vars]
             s3 = support(op2)
+            # print('s3->',z3.simplify(s3))
             logging.info('Adding support of recdef: (%s, %s, ,%s )' %(s1,s2,s3))
-            AddRecDefinition(s1,*s2,s3)
+            AddRecDefinition(s1,tuple(s2),s3)
         #..........................................................
 
         
@@ -468,7 +472,8 @@ def interpret_recdef(iplist):
         a3 = interpret_ops(op2)
         logging.info('Adding recdef: (%s, %s, ,%s )' %(a1,a2,a3))
         #printf('recdef'-)
-        AddRecDefinition(a1,*a2,a3)
+        # print('a3->',z3.simplify(a3))
+        AddRecDefinition(a1,tuple(a2),a3)
         #This creates an initial definition of func, and  also adds a description of it into 
         # the recdefdict. When this is called in the program. We can get this description and 
         # update the definition if needed.
@@ -616,7 +621,8 @@ def support_func(iplist):     #say func dict is just mutable functions.
             return interpret_ops(iplist)
         else:
            pp = ['SP'+iplist[0]]+operands
-        return SetUnion(sp_terms, interpret_ops(pp))
+           ipp = interpret_ops(pp)
+        return SetUnion(sp_terms, ipp)
         
 
 def support_immut(iplist):
@@ -739,7 +745,7 @@ def vc(user_input):
                 recdefdict[name]['init'] = z3_name
                 recdefdict[spname]['init'] = recdefdict[spname]['z3name']
             else:
-                raise Exception('Bad RecDef')
+                raise Exception('Bad RecDef %s' %name)
             interpret_ops(i)
         elif (tag == 'assign') and not(type(i[1])==str or (len(i[1])==1)): #i.e add axiom
             interpret_ops(i)
@@ -760,12 +766,12 @@ def vc(user_input):
         else:
             logging.info('Frame assumptions:')
             a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](free_var)), fgsetsort.lattice_bottom),recdefdict[i]['init'](free_var) == recdefdict[i]['z3name'](free_var))
-            logging.info(a)
+            logging.info(z3.simplify(a))
             AddAxiom((free_var,), a)
             b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](free_var)), fgsetsort.lattice_bottom),recdefdict['SP'+i]['init'](free_var) == recdefdict['SP'+i]['z3name'](free_var))
-            logging.info(b)
+            logging.info(z3.simplify(b))
             AddAxiom((free_var,), b)
-
+    printf('\nvardict:',vardict,'\nFuncdict:',funcdict,'\nRecdefdict:', recdefdict)
     goal =  Implies(And(precond,*[t for t in transform]),postcond)
     printf(goal)
     logging.info('Pre: %s' % precond)

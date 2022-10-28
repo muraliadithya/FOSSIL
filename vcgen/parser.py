@@ -1,9 +1,10 @@
 import logging
 from operator import is_
 import os
+from re import sub
 
 from z3 import And, Or, Not, Implies, If
-from z3 import IsSubset, IsMember, SetIntersect, SetUnion, SetAdd
+from z3 import IsSubset, IsMember, SetIntersect, SetUnion, SetAdd, EmptySet, IntSort
 
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import Const, Var, Function, AddRecDefinition, AddAxiom
@@ -182,11 +183,12 @@ def var_parser(varinfo):
         z3_type = type_parser(type)
         if tag == 'Var':
             z3_var = Var(name+'0', z3_type)
-            vardict[name] = (z3_var, z3_type, 0)
+            vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'counter': 0}
         elif tag == 'Const':
             z3_var = Const(name, z3_type)
-            vardict[name] = (z3_var, z3_type,None)      #might want to make a seperate dict for constants and say things in constdict can't be derefd. Or could just 
+            #vardict[name] = (z3_var, z3_type,None)      #might want to make a seperate dict for constants and say things in constdict can't be derefd. Or could just 
                                                         #check if vardict[name][3] is None
+            vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'counter': None}
 #Adding to func_dict:
 def func_parser(funcinfo):
     if len(funcinfo)<4:
@@ -197,39 +199,40 @@ def func_parser(funcinfo):
         
         if tag == 'Function':
             z3_func = Function(name+'0', *z3_type)
-            funcdict[name] = (z3_func, z3_type, 0)
+            funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0}
         elif tag == 'RecFunction':
             z3_func = Function(name+'0', *z3_type)
-            recdefdict[name] = (z3_func, z3_type, [], [],0) #(function name, function type, description, sub-functions, counter)
+            recdefdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'description': [], 'subfunctions': [], 'counter': 0, 'init': z3_func}
             #...............
             if name[:2]!= 'SP':
                 z3_sptype = [type_parser(funcinfo[2]),type_parser('Set'+funcinfo[2])]       #Only really makes sense in (F name type1 type2)
                 z3_spfunc = Function('SP'+name+'0',*z3_sptype)
-                recdefdict['SP'+name] = (z3_spfunc,z3_sptype,[],[],0)
+                recdefdict['SP'+name] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [], 'subfunctions': [], 'counter': 0, 'init': z3_spfunc}
+
             #..............
         else:
             raise Exception('Allowed function/recfunction tags are: Function RecFunction. Given: %s in %s' %(tag, funcinfo))    #don't actually need this
 #Update variables and counters:
 def var_update(name):
     if name in vardict.keys():
-        var_name, z3_type, counter = vardict[name]
+        counter, z3_type = vardict[name]['counter'], vardict[name]['z3type']
         c_new = counter+1
         var_new = Var(name+str(c_new), z3_type)
-        vardict[name] = (var_new, z3_type, c_new)
+        vardict[name]['z3name'], vardict[name]['counter'] = var_new, c_new
     else:
         raise Exception(' %s is not a declared variable' %name )
 
 def func_update(name):
     if name in funcdict.keys():
-        func_name, z3_type, counter = funcdict[name]
+        counter, z3_type = funcdict[name]['counter'], funcdict[name]['z3type']
         c_new = counter+1
         func_new = Function(name+str(c_new), *z3_type)
-        funcdict[name] = (func_new, z3_type, c_new)
+        funcdict[name]['z3name'], funcdict[name]['counter'] = func_new, c_new
     elif name in recdefdict.keys():
-        func_name, z3_type, description, subfns, counter = recdefdict[name]
+        func_name, z3_type, counter = recdefdict[name]['z3name'], recdefdict[name]['z3type'], recdefdict[name]['counter']
         c_new = counter+1
         func_new = Function(name+str(c_new), *z3_type)
-        recdefdict[name] = (func_new, z3_type, description, subfns,c_new)
+        recdefdict[name]['z3name'], recdefdict[name]['z3type'], recdefdict[name]['counter'] = func_new, z3_type, c_new
     else:
         raise Exception('%s is not a declared function' %name)
 
@@ -310,7 +313,8 @@ def interpret_ops(iplist):
         return interpret_ismember(iplist)
     elif operator == 'Sp':
         return support(iplist)
-
+    elif operator == 'Old':
+        return interpret_old(iplist)
 
 #---------(1)--------------
 def interpret_basics(iplist):
@@ -323,10 +327,12 @@ def interpret_basics(iplist):
         return True
     elif x == 'False':
         return False
-    elif x == 'EmptySet':
+    elif x == 'EmptyLocSet':
         return fgsetsort.lattice_bottom
+    elif x == 'EmptyIntSet':
+        return intsetsort.lattice_bottom
     elif x in vardict.keys():
-        return vardict[x][0]
+        return vardict[x]['z3name']
     else:
         raise Exception('%s is not a constant/variable' %iplist)
 
@@ -389,19 +395,7 @@ def interpret_assume(iplist):
         raise Exception('Assume takes only one argument: (assume (arg)). Given: %s' %iplist)
 
 #---------------------(10)----------------------------
-def interpret_dot(iplist):
-    operator, operands = iplist[0], iplist[1:]
-    if len(operands)==2:
-        op1, op2 = operands
-        if op2 in funcdict.keys():
-            if op1 in vardict.keys():
-                return funcdict[op2][0](vardict[op1][0])
-            else:
-                raise Exception('Given %s. Variable %s not defined' %(iplist,op1))
-        else:
-            raise Exception('Given %s. Function %s not defined' %(iplist,op2))
-    else:
-        raise Exception('Application takes two arguments: (. x function). Given: %s' %iplist)
+
 
 #----------------------(11)------------------------------
 
@@ -427,18 +421,18 @@ def interpret_assign(iplist):
             
             if func in funcdict.keys():
                 if var in vardict.keys():           #generalize
-                    modified_vars.append(vardict[var][0])
+                    modified_vars.append(vardict[var]['z3name'])
                     # x.func = Y -> func'(var) = if var==x then Y else func(var)
-                    y = If(free_var==vardict[var][0],interpret_ops(op2), funcdict[func][0](free_var))
+                    y = If(free_var==vardict[var]['z3name'],interpret_ops(op2), funcdict[func]['z3name'](free_var))
                     func_update(func)
-                    x = funcdict[func][0](free_var)
+                    x = funcdict[func]['z3name'](free_var)
                     logging.info('Mutation: %s = %s' %(x,y))
                     AddAxiom((free_var,),x == y)
                     for i in recdefdict.keys():
                         func_update(i)
                     for i in recdefdict.keys():
                         if i[:2] != 'SP':
-                            interpret_recdef(recdefdict[i][2])          #interpret_recdef will make a defn for our recfunction, as well as its support
+                            interpret_recdef(recdefdict[i]['description'])          #interpret_recdef will make a defn for our recfunction, as well as its support
                 else:
                     raise Exception('Invalid Variable %s ' %var)
 
@@ -459,7 +453,7 @@ def interpret_recdef(iplist):
         #......................................................
         if op1[0][:2]!= 'SP':
             func, spfunc, vars = op1[0], 'SP'+op1[0], op1[1:]
-            s1 = recdefdict[spfunc][0]
+            s1 = recdefdict[spfunc]['z3name']
             s2 = [interpret_ops(v) for v in vars]
             s3 = support(op2)
             logging.info('Adding support of recdef: (%s, %s, ,%s )' %(s1,s2,s3))
@@ -469,7 +463,7 @@ def interpret_recdef(iplist):
         
         #func, vars = op1[0], op1[1:]
         #printf('AddRecDefn~~>',recdefdict[func][0],*[interpret_ops(v) for v in vars],interpret_ops(op2))
-        a1 =recdefdict[func][0]
+        a1 =recdefdict[func]['z3name']
         a2 = [interpret_ops(v) for v in vars]
         a3 = interpret_ops(op2)
         logging.info('Adding recdef: (%s, %s, ,%s )' %(a1,a2,a3))
@@ -482,7 +476,7 @@ def interpret_recdef(iplist):
 #-------------------------(13)----------------------------------------------
 def interpret_func(iplist):
     operator, operands = iplist[0], iplist[1:]
-    return funcdict[operator][0](*[interpret_ops(op) for op in operands]) 
+    return funcdict[operator]['z3name'](*[interpret_ops(op) for op in operands]) 
 
 #--------------------------(14)---------------------------------------------
 def interpret_recfunc(iplist):
@@ -490,7 +484,7 @@ def interpret_recfunc(iplist):
     operator, operands = iplist[0], iplist[1:]
     # #Note: At any point in the program. If we see a recursive function called, we need to define it again
     # # / make sure the version we have is the latest one.
-    return recdefdict[operator][0](*[interpret_ops(op) for op in operands])
+    return recdefdict[operator]['z3name'](*[interpret_ops(op) for op in operands])
 
 
 
@@ -526,7 +520,7 @@ def interpret_issubset(iplist):
 #---------------------------------(19)------------------------------------------
 def interpret_isempty(iplist):
     operator, operands = iplist[0], iplist[1:]
-    return IsSubset(interpret_ops(operands[0]),fgsetsort.lattice_bottom)    #?
+    return IsSubset(interpret_ops(operands[0]),EmptySet(IntSort()))    #?
 
 #---------------------------------(20)------------------------------------------
 def interpret_ismember(iplist):
@@ -535,6 +529,12 @@ def interpret_ismember(iplist):
         return IsMember(interpret_ops(operands[0]),interpret_ops(operands[1]))
     else:
         raise Exception('(IsMember x Y) checks is x is a member of set Y.')
+
+
+#---------------------------------(21)-------------------------------------------
+def interpret_old(iplist):
+    operator, operands = iplist[0], iplist[1:]
+    return recdefdict[operator]['init'](*[interpret_ops(op) for op in operands])
         
 
 #----------------------------------------------------------------------------------
@@ -586,7 +586,7 @@ def support_basics(iplist):   #Support of var/const is the empty set
         x = iplist                      
     else:
         x = iplist[0]
-    if x == 'True' or 'False' or 'EmptySet' or (x in vardict.keys()):
+    if x == 'True' or 'False' or 'EmptyLocSet' or 'EmptyIntSet'  or (x in vardict.keys()):
         return fgsetsort.lattice_bottom
     else:
         raise Exception('support basics failure')
@@ -705,10 +705,10 @@ def vc(user_input):
             name = i[1][0]
             spname = 'SP'+i[1][0]
             if name in recdefdict.keys():
-                z3_name, z3_type, des, subfunc,counter = recdefdict[name]
-                recdefdict[name] = (z3_name, z3_type, i, sub_functions(i), counter)
-                init_recdef[name] = (z3_name, z3_type, i,name)
-                init_recdef[spname] = recdefdict[spname]
+                recdefdict[name]['description'], recdefdict[name]['subfunctions']  = i, sub_functions(i)
+                z3_name = recdefdict[name]['z3name']
+                recdefdict[name]['init'] = z3_name
+                recdefdict[spname]['init'] = recdefdict[spname]['z3name']
             else:
                 raise Exception('Bad RecDef')
             interpret_ops(i)
@@ -731,10 +731,10 @@ def vc(user_input):
         else:
             logging.info('Frame assumptions:')
             #printf('..................',((free_var,), Implies(And(init_recdef[i][0](free_var),IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)),fgsetsort.lattice_bottom)),recdefdict[i][0](free_var))))
-            a = Implies(IsSubset(SetIntersect(modif_set,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef[i][0](free_var) == recdefdict[i][0](free_var))
+            a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](free_var)), fgsetsort.lattice_bottom),recdefdict[i]['init'](free_var) == recdefdict[i]['z3name'](free_var))
             logging.info(a)
             AddAxiom((free_var,), a)
-            b = Implies(IsSubset(SetIntersect(modif_set,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef['SP'+i][0](free_var) == recdefdict['SP'+i][0](free_var))
+            b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](free_var)), fgsetsort.lattice_bottom),recdefdict['SP'+i]['init'](free_var) == recdefdict['SP'+i]['z3name'](free_var))
             logging.info(b)
             AddAxiom((free_var,), b)
 

@@ -32,6 +32,13 @@ def listify(string):
     parpair= []
     counter = 0
     foundp = 0
+    nextlinekey = -1
+    for i in range(len(string)-1):
+        if string[i:i+2]=="\n":
+            nextlinekey = i
+    if nextlinekey!= -1:
+        string = string[:nextlinekey]
+
     for i in range(len(string)):
         if string[i]=='(' :
             counter = counter+1
@@ -117,6 +124,7 @@ def make_list(list): #elements can be strings or lists
         return l
 
     newlist = []
+
 
     for i in list:
         if type(i) == str:
@@ -420,6 +428,7 @@ def interpret_assign(list):
             #itetag, o1, o2, o3 = op2
             if func in funcdict.keys():
                 if var in vardict.keys():
+                    modified_vars.append(vardict[var][0])
                     # x.func = Y -> func'(var) = if var==x then Y else func(var)
                     y = If(free_var==vardict[var][0],interpret_ops(op2), funcdict[func][0](free_var))
                     func_update(func)
@@ -596,7 +605,7 @@ def vc(list):
             if name in recdefdict.keys():
                 z3_name, type, des, subfunc,counter = recdefdict[name]
                 recdefdict[name] = (z3_name, type, i, sub_functions(i), counter)
-                init_recdef[name] = (z3_name, type, i)
+                init_recdef[name] = (z3_name, type, i,name)
             else:
                 raise Exception('Bad RecDef')
             interpret_ops(i)
@@ -605,9 +614,23 @@ def vc(list):
         else:
             transform.append(interpret_ops(i))
     print('done preprocessing')
+    #frame condition:#assume just 1 var for now
+    mv = [*set(modified_vars)]
+    set1 = fgsetsort.lattice_bottom
+    for i in mv:
+        set1 = SetAdd(set1,i)
+    for i in recdefdict.keys():
+        if i[:2]=='SP':
+            pass
+        else:
+            #print('..................',((free_var,), Implies(And(init_recdef[i][0](free_var),IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)),fgsetsort.lattice_bottom)),recdefdict[i][0](free_var))))
+            AddAxiom((free_var,), Implies(IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef[i][0](free_var) == recdefdict[i][0](free_var)))
+            AddAxiom((free_var,), Implies(IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef['SP'+i][0](free_var) == recdefdict['SP'+i][0](free_var)))
+
     goal =  Implies(And(precond,*[t for t in transform]),postcond)
     #cprint(goal)
     np_solver = NPSolver()
+    np_solver.options.depth = 2
     solution = np_solver.solve(goal)
     if not solution.if_sat:
         print('goal (no lemmas) is valid')
@@ -620,37 +643,15 @@ def vc(list):
 
 #####################################################################################
 
-t1 = ['(Const nil Loc)', '(Var x Loc)','(Var y Loc)','(Var var1 Loc)']
-t2 = ['(Function next Loc Loc)']
-t3 = ['(RecFunction list Loc Bool)', '(RecFunction SPlist Loc SetLoc)']
-t4 = ['(RecDef (SPlist var1) (ite (= var1 nil) EmptySet (SetAdd (SPlist (next var1)) var1)))']
-t5 = ['(RecDef (list var1) (ite (= var1 nil) True (and (not (IsSubset (SetAdd EmptySet var1) (SPlist (next var1)))) (list (next var1)))) )'] 
-t6 = ['(Pre (list x))']
-t7 = ['(assume (!= x nil))','(:= y (. x next))','(assume (!= y nil))']
-t8 = ['(:= (. x next) (. y next))', '(:= (. y next) x)']
-t9 = ['(:= x y)']
-t10 = ['(Post (list x))']
-t = t1+t2+t3+t4+t5+t6+t7+t8+t9+t10
-vc(t)
-# print('\n recdict',recdefdict,'\n funcdict', funcdict, '\n vardict', vardict)
-# x0 = vardict['x0']
-# y1 = vardict['y1']
-# list0 = recdefdict['list0']
-# list2 = recdefdict['list2']
-# SPlist0 = recdefdict['SPlist0']
-# SPlist2 = recdefdict['SPlist2']
-# next0 = funcdict['next0']
-# next2 = funcdict['next2']
-# next1 = funcdict['next1']
-# nil = vardict['nil']
-# set1 = SetAdd(fgsetsort.lattice_bottom,x0)
-# set2 = SetAdd(fgsetsort.lattice_bottom,y1)
-# fp1 = And(list0(next0(y1)), Not(Or(IsSubset(set1,SPlist0(next0(y1))),IsSubset(set2,SPlist0(next0(y1))))))
-# AddAxiom((y1,), Implies(fp1,list2(next0(y1))))
-# np_solver = NPSolver()
-# #print(x)
-# solution = np_solver.solve(x)
-# if not solution.if_sat:
-#     print('goal (no lemmas) is valid')
-# else:
-#     print('goal (no lemmas) is invalid')
+# t1 = ['(Const nil Loc)', '(Var x Loc)','(Var y Loc)','(Var var1 Loc)']
+# t2 = ['(Function next Loc Loc)']
+# t3 = ['(RecFunction list Loc Bool)', '(RecFunction SPlist Loc SetLoc)']
+# t4 = ['(RecDef (SPlist var1) (ite (= var1 nil) EmptySet (SetAdd (SPlist (next var1)) var1)))']
+# t5 = ['(RecDef (list var1) (ite (= var1 nil) True (and (not (IsSubset (SetAdd EmptySet var1) (SPlist (next var1)))) (list (next var1)))) )'] 
+# t6 = ['(Pre (list x))']
+# t7 = ['(assume (!= x nil))','(:= y (. x next))','(assume (!= y nil))']
+# t8 = ['(:= (. x next) (. y next))', '(:= (. y next) x)']
+# t9 = ['(:= x y)']
+# t10 = ['(Post (list x))']
+# t = t1+t2+t3+t4+t5+t6+t7+t8+t9+t10
+# vc(t)

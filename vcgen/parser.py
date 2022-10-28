@@ -31,7 +31,7 @@ with open(logfile, 'w'):
     pass
 #---------------------------------------------------------------
 def listify(input_string):
-    '''#The following is to convert the user input to the input for the vc functions.'''
+    '''The following is to convert the user input to the input for the vc functions.'''
     sofar=[]
     parpair= []
     counter = 0
@@ -146,6 +146,7 @@ funcdict = {}
 recdefdict = {}
 #Adding a variable to use in mutations
 free_var = Var('free_var', fgsort) # might need to change this when extending to other sorts; multiple input mutates?
+freevardict = {'Loc':[],'SetLoc':[],'Int':[],'SetInt':[],'Bool':[]}
 #List to store the Modified variables:
 modified_vars = []
 #List of allocated locations:
@@ -188,6 +189,43 @@ def func_parser(funcinfo):
     if len(funcinfo)<4:
         raise Exception(f'Function input error: insufficient no. of arguments: {funcinfo}')
     tag, name, iptype = funcinfo[0], funcinfo[1], funcinfo[2:]
+
+    # The following looks at a function's input types and creates free variables if necessary.
+    # If the max no. of Loc in a fn is k, there will be k free_Loc variables created.
+    nloc, nsetloc, nint, nsetint, nbool = 0, 0, 0, 0, 0
+    fvdloc = len(freevardict['Loc'])
+    fvdsetloc = len(freevardict['SetLoc'])
+    fvdint = len(freevardict['Int'])
+    fvdsetint = len(freevardict['SetInt'])
+    fvdbool = len(freevardict['Bool'])
+    for i in iptype[:-1]:
+        if i == 'Loc':
+            nloc = nloc + 1
+        elif i == 'SetLoc':
+            nsetloc = nsetloc + 1
+        elif i == 'Int':
+            nint = nint + 1
+        elif i == 'SetInt':
+            nsetint = nsetint + 1
+        elif i == 'Bool':
+            nbool = nbool + 1
+    if nloc > fvdloc:
+        for i in range(fvdloc,nloc):
+            freevardict['Loc'].append(Var('free_Loc'+str(i), fgsort))
+    if nsetloc > fvdsetloc:
+        for i in range(fvdsetloc,nsetloc):
+            freevardict['SetLoc'].append(Var('free_SetLoc'+str(i), fgsetsort))
+    if nint > fvdint:
+        for i in range(fvdint,nint):
+            freevardict['Int'].append(Var('free_Int'+str(i), intsort))
+    if nsetint > fvdsetint:
+        for i in range(fvdsetint,nsetint):
+            freevardict['SetInt'].append(Var('free_SetInt'+str(i), intsetsort))
+    if nbool > fvdbool:
+        for i in range(fvdbool, nbool):
+            freevardict['Bool'].append(Var('free_Bool'+str(i), boolsort))
+
+
     z3_type = [type_parser(x) for x in iptype]
     if tag == 'Function':
         z3_func = Function(name+'0', *z3_type)
@@ -286,11 +324,12 @@ def interpret_ops(iplist):
         return interpret_leq(iplist)
     if operator == '>=':
         return interpret_geq(iplist)
-
     if operator == '+':
         return interpret_plus(iplist)
     if operator == '-':
         return interpret_minus(iplist)
+    if operator == 'IntConst':
+        return interpret_int(iplist)
 
     raise Exception(f'Invalid Tag {operator} in {iplist}')
 
@@ -389,20 +428,20 @@ def interpret_assign(iplist):
             rhs = interpret_ops(op2)
             var_update(op1)
             lhs = interpret_ops(op1)
-            return lhs==rhs                        
+            return lhs==rhs
         if op1[0] in funcdict:  #if mutation
-            func, var = op1
-            if isinstance(var,str):
+            func, args = op1
+            if isinstance(args,str):
                 pass
-            elif len(var)==1:
-                var = var[0]
+            elif len(args)==1:
+                args = args[0]
             else:
-                raise Exception(f'Bad variable declaration {var}')
+                raise Exception(f'Bad variable declaration {args}')
             if func in funcdict:
-                if var in vardict:           #generalize
-                    modified_vars.append(vardict[var]['z3name'])
+                if args in vardict:           #generalize
+                    modified_vars.append(vardict[args]['z3name'])
                     # x.func = Y -> func'(var) = if var==x then Y else func(var)
-                    y = If(free_var==vardict[var]['z3name'],interpret_ops(op2), funcdict[func]['z3name'](free_var))
+                    y = If(free_var==vardict[args]['z3name'],interpret_ops(op2), funcdict[func]['z3name'](free_var))
                     func_update(func)
                     x = funcdict[func]['z3name'](free_var)
                     logging.info('Mutation: %s = %s' %(x,y))
@@ -411,7 +450,7 @@ def interpret_assign(iplist):
                     has_mutated = 1
                     return None
                 else:
-                    raise Exception(f'Invalid Variable {var} ')
+                    raise Exception(f'Invalid Variable {args} ')
             raise Exception(f'invalid mutation on {func} in  {iplist}')
 
 
@@ -578,6 +617,17 @@ def interpret_minus(iplist):
         op1, op2 = operands
         return (interpret_ops(op1)-interpret_ops(op2))
     raise Exception(f'- takes two arguments. Given {iplist}')
+
+def interpret_int(iplist):
+    '''(IntConst x) -> integer x'''
+    operands = iplist[1:]
+    if isinstance(operands,str):
+        pass
+    else:
+        if isinstance(operands[0],str):
+            operands = operands[0]
+        raise Exception(f'Invalid integer declaration {iplist}')
+    return int(operands)
 
 #----------------------------------------------------------------------------------
 def sub_functions(recdef_list):
@@ -828,16 +878,16 @@ def vc(user_input):
             logging.info(z3.simplify(b))
             AddAxiom((free_var,), b)
     printf('\nvardict:',vardict,'\nFuncdict:',funcdict,'\nRecdefdict:', recdefdict)
-    goal =  Implies(And(precond,*[t for t in transform]),postcond)
-    print('spprecond=', z3.simplify(sp_precond))
-    print('sppostcond=', z3.simplify(sp_postcond ))
-#    goal =  Implies(And(precond,*[t for t in transform]),And(postcond,sp_precond == sp_postcond))
+    goal =  Implies(And(precond,*[t for t in transform]), postcond)
+#    print('spprecond=', z3.simplify(sp_precond))
+#    print('sppostcond=', z3.simplify(sp_postcond ))
+#    goal =  Implies(And(precond,*[t for t in transform]),And(postcond,sp_precond==sp_postcond))
     printf(goal)
     logging.info('Pre: %s' % precond)
     logging.info('Tranform: %s' % transform)
     logging.info('Post: %s' % postcond)
     np_solver = NPSolver()
-    np_solver.options.depth = 2
+    np_solver.options.depth = 1
     solution = np_solver.solve(goal)
     if not solution.if_sat:
         logging.info('goal is valid')

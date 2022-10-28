@@ -11,7 +11,7 @@ from naturalproofs.prover import NPSolver
 
 
 #-----tags -------------
-immutables = ['=', 'not', 'or', 'and', 'implies', 'IsMember', 'IsSubset', 'SetAdd', 'Intersect']
+immutables = ['=', 'not', 'or', 'and', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'Intersect']
 supportTag = 'Sp'
 
 #Set verbose to 1 in order for print statements to be executed
@@ -37,12 +37,6 @@ def listify(input_string):
     counter = 0
     foundp = 0
     nextlinekey = -1
-    #handled in remove_comments fn
-    # for i in range(len(input_string)-1):
-    #     if input_string[i:i+2]=="\n":
-    #         nextlinekey = i
-    # if nextlinekey!= -1:
-    #     input_string = input_string[:nextlinekey]
 
     for i in range(len(input_string)):
         if input_string[i]=='(' :
@@ -282,7 +276,7 @@ def interpret_ops(iplist):
     operator = iplist[0]
     if operator == 'not':
         return interpret_not(iplist)
-    elif operator == 'implies':
+    elif operator == '=>':
         return interpret_imp(iplist)
     elif operator == '=':
         return interpret_eq(iplist)

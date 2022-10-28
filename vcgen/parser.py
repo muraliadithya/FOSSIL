@@ -11,7 +11,7 @@ from naturalproofs.prover import NPSolver
 
 
 #-----tags -------------
-immutables = ['=', 'not', 'or', 'and', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'Intersect']
+immutables = ['=', 'not', 'or', 'and', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'Intersect', 'SetUnion']
 supportTag = 'Sp'
 
 #Set verbose to 1 in order for print statements to be executed

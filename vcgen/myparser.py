@@ -264,6 +264,7 @@ def func_update(name):
 # (18) (IsSubset set1 set2)              ->   Check if set1 is a subset of set2
 # (19) (IsEmpty set)                     -> Check if set is empty
 # (20) (IsMember x set)                  -> Checkk if x is in set
+# (21) (Support (X))                     -> Find Support of x       #seen as a unary operator
 #The interpret_ops function goes through strings like above and finds how to interpret it.
 #There are individual interpret functions for each kind of operator. See below.
 def interpret_ops(list):
@@ -308,6 +309,9 @@ def interpret_ops(list):
         return interpret_isempty(list)                  
     elif operator == 'IsMember':
         return interpret_ismember(list)
+    elif operator == 'Support' or 'SP':
+        return support(list)
+
 
 #---------(1)--------------
 def interpret_basics(list):
@@ -538,13 +542,13 @@ def interpret_isempty(list):
     return IsSubset(interpret_ops(operands[0]),fgsetsort.lattice_bottom)    #?
 
 #---------------------------------(20)------------------------------------------
-def interpret_ismember(list):                                                                                   #new
+def interpret_ismember(list):
     operator, operands = list[0], list[1:]
     if len(operands) == 2:
         return IsMember(interpret_ops(operands[0]),interpret_ops(operands[1]))
     else:
         raise Exception('(IsMember x Y) checks is x is a member of set Y.')
-
+        
 
 #----------------------------------------------------------------------------------
 def sub_functions(list):    #given a rec def, find all other functions this depends on
@@ -589,8 +593,12 @@ def support(list):
         return support_and(list)
     #elif operator == 'RecDef':
     #    return support_recdef(list)
-    elif operator in funcdict.keys() or operator in recdefdict.keys():
+    elif operator == 'Support' or operator == 'SP':
+        return support_support(list)
+    elif (operator in funcdict.keys()) or (operator in recdefdict.keys()):
         return support_func(list)
+    else:
+        raise Exception('Invalid support operation %s' %list)
 
 def support_basics(list):   #Support of var/const is the empty set
     if type(list) == str:             
@@ -616,7 +624,7 @@ def support_func(list):     #say func dict is just mutable functions.
         return SetUnion(terms,sp_terms)
     elif list[0] in recdefdict.keys():
         if list[0][:2] == 'SP':
-            pp = [list[0]]+operands
+            return SetUnion(sp_terms, interpret_ops(list))
         else:
            pp = ['SP'+list[0]]+operands
         return SetUnion(sp_terms, interpret_ops(pp))
@@ -651,7 +659,13 @@ def support_ite(list):
             x = If(interpret_ops(op1), SetUnion(support(op1),support(op2)), SetUnion(support(op1),support(op3)))    #...
             return x      #?!
 
-
+def support_support(list):
+    operator, operands = list[0], list[1:]
+    if operator == 'Support' or 'SP':
+        if len(operands)==1:
+            return support(operands[0])
+        else:
+            raise Exception('Support is a unary operator. Invalid support %s' %operands)
 #----------------------------------------------------------------------------------
 #Below we club together everything so far to get a vc function.
 #We assume input is given in the righ format. Need to handle issues better. Will do later.
@@ -687,23 +701,24 @@ def vc(list):
         else:
             intops = interpret_ops(i)
             logging.info('Line of code: %s' %intops)
-            transform.append(interpret_ops(i))
+            transform.append(intops)
     print('done preprocessing')
     #frame condition:#assume just 1 var for now
     mv = [*set(modified_vars)]
     mod_set = fgsetsort.lattice_bottom
     for i in mv:
         modif_set = SetAdd(mod_set,i)
+    logging.info('Modified set is %s' %modif_set)
     for i in recdefdict.keys():
         if i[:2]=='SP':
             pass
         else:
             logging.info('Frame assumptions:')
             #printf('..................',((free_var,), Implies(And(init_recdef[i][0](free_var),IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)),fgsetsort.lattice_bottom)),recdefdict[i][0](free_var))))
-            a = Implies(IsSubset(SetIntersect(mod_set,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef[i][0](free_var) == recdefdict[i][0](free_var))
+            a = Implies(IsSubset(SetIntersect(modif_set,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef[i][0](free_var) == recdefdict[i][0](free_var))
             logging.info(a)
             AddAxiom((free_var,), a)
-            b = Implies(IsSubset(SetIntersect(mod_set,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef['SP'+i][0](free_var) == recdefdict['SP'+i][0](free_var))
+            b = Implies(IsSubset(SetIntersect(modif_set,init_recdef['SP'+i][0](free_var)), fgsetsort.lattice_bottom),init_recdef['SP'+i][0](free_var) == recdefdict['SP'+i][0](free_var))
             logging.info(b)
             AddAxiom((free_var,), b)
 

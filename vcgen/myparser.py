@@ -11,7 +11,7 @@ from naturalproofs.prover import NPSolver
 
 
 #Set verbose to 1 in order for print statements to be executed
-verbose = 1 
+verbose = 0
 def printf(*a):
     if verbose != 0:
         print(*a)
@@ -147,6 +147,8 @@ recdefdict = dict()
 free_var = Var('free_var', fgsort) ##might need to change this when extending to other sorts; multiple input mutates?
 #List to store the Modified variables: 
 modified_vars = []
+#List of allocated locations:
+alloc_list = []                                     #??
 #------------------------------------------------
 
 #The use input will be converted into a list of strings.
@@ -413,7 +415,7 @@ def interpret_assign(list):
     operator, operands = list[0], list[1:]
     if len(operands)==2:
         op1, op2 = operands
-        if len(op1) == 1 or type(op1)==str: #LHS is a variable
+        if (type(op1)==str and (op1 in vardict.keys())) or (len(op1)==1 and (op1[0] in vardict.keys())): #LHS is a variable
 
             rhs = interpret_ops(op2)
             var_update(op1)
@@ -425,6 +427,13 @@ def interpret_assign(list):
                 dot , var, func = op1
             else:
                 func, var = op1
+            if type(var) == str:
+                pass
+            elif len(var)==1:
+                var = var[0]
+            else:
+                raise Exception('Bad variable declaration %s' %var)
+            
             if func in funcdict.keys():
                 if var in vardict.keys():           #generalize
                     modified_vars.append(vardict[var][0])
@@ -439,6 +448,8 @@ def interpret_assign(list):
                     for i in recdefdict.keys():
                         if i[:2] != 'SP':
                             interpret_recdef(recdefdict[i][2])          #interpret_recdef will make a defn for our recfunction, as well as its support
+                else:
+                    raise Exception('Invalid Variable %s ' %var)
 
 
 
@@ -664,14 +675,14 @@ def vc(list):
             name = i[1][0]
             spname = 'SP'+i[1][0]
             if name in recdefdict.keys():
-                z3_name, type, des, subfunc,counter = recdefdict[name]
-                recdefdict[name] = (z3_name, type, i, sub_functions(i), counter)
-                init_recdef[name] = (z3_name, type, i,name)
+                z3_name, z3_type, des, subfunc,counter = recdefdict[name]
+                recdefdict[name] = (z3_name, z3_type, i, sub_functions(i), counter)
+                init_recdef[name] = (z3_name, z3_type, i,name)
                 init_recdef[spname] = recdefdict[spname]
             else:
                 raise Exception('Bad RecDef')
             interpret_ops(i)
-        elif tag == ':=' and len(i[1])==3: #i.e add axiom
+        elif (tag == ':=' or tag == 'Assign' or tag == 'assign') and not(type(i[1])==str or (len(i[1])==1)): #i.e add axiom
             interpret_ops(i)
         else:
             intops = interpret_ops(i)

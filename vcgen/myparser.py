@@ -23,25 +23,25 @@ with open('vcgen.txt', 'w'):
 #---------------------------------------------------------------
 
 #The following is to convert the user input to the input for the vc functions. 
-def listify(string):
+def listify(input_string):
     sofar=[]
     parpair= []
     counter = 0
     foundp = 0
     nextlinekey = -1
-    for i in range(len(string)-1):
-        if string[i:i+2]=="\n":
+    for i in range(len(input_string)-1):
+        if input_string[i:i+2]=="\n":
             nextlinekey = i
     if nextlinekey!= -1:
-        string = string[:nextlinekey]
+        input_string = input_string[:nextlinekey]
 
-    for i in range(len(string)):
-        if string[i]=='(' :
+    for i in range(len(input_string)):
+        if input_string[i]=='(' :
             counter = counter+1
             if foundp == 0:
                 foundp = 1
                 x = i
-        if string[i]==')':
+        if input_string[i]==')':
             counter = counter-1
         if foundp == 1:
             if counter == 0:
@@ -50,10 +50,10 @@ def listify(string):
                 parpair.append((x,y))
                 foundp = 0 #move on
     if len(parpair) == 0:
-        sofar.append(string)
+        sofar.append(input_string)
         return sofar
-    first = string[:(parpair[0][0])]
-    last = string[(parpair[-1][1])+1:]
+    first = input_string[:(parpair[0][0])]
+    last = input_string[(parpair[-1][1])+1:]
     if len(first)==0:
         pass
     else:
@@ -68,8 +68,8 @@ def listify(string):
         x,y = parpair[i][0], parpair[i][1]
         z = parpair[i+1][0]
 
-        sofar.append(listify(string[x+1:y]))
-        now = string[y+1:z]
+        sofar.append(listify(input_string[x+1:y]))
+        now = input_string[y+1:z]
         if len(now)==0:
             pass
         else:
@@ -80,7 +80,7 @@ def listify(string):
                     break
             if em == 1:
                 sofar.append(now)
-    secondlast = string[parpair[-1][0]+1:parpair[-1][1]]
+    secondlast = input_string[parpair[-1][0]+1:parpair[-1][1]]
     sofar.append(listify(secondlast))
     if len(last)==0:
         pass
@@ -96,7 +96,7 @@ def listify(string):
     #this doesn't take stuff like 'list x' and give ['list', 'x]. It keeps it as ['list x']
     #Next we will take care of this. Assuming the input is given correctly,
     #everytime we see a space followed by something, we can safely split.
-def make_list(list): #elements can be strings or lists
+def make_list(semip_list): #elements can be strings or lists
     def string_to_list(s):
         l = []
         whitespace = 1
@@ -122,7 +122,7 @@ def make_list(list): #elements can be strings or lists
     newlist = []
 
 
-    for i in list:
+    for i in semip_list:
         if type(i) == str:
             x = string_to_list(i)
             for j in x:
@@ -132,8 +132,8 @@ def make_list(list): #elements can be strings or lists
     return newlist
 
             
-def create_input(string):
-    return make_list(listify(string))[0]
+def create_input(input_string):
+    return make_list(listify(input_string))[0]
 
 #Note about the input: Spacing is important. create_input will see =xy as a single word, but will see = x y as 3.
 #-----------------------------------------------------------------
@@ -153,19 +153,19 @@ alloc_list = []                                     #??
 
 #The use input will be converted into a list of strings.
 # Going from strings to types:
-def type_parser(string):
-    if string == 'Loc':
+def type_parser(input_type):
+    if input_type == 'Loc':
         return fgsort
-    elif string == 'SetLoc':
+    elif input_type == 'SetLoc':
         return fgsetsort
-    elif string == 'Int':
+    elif input_type == 'Int':
         return intsort
-    elif string == 'SetInt':
+    elif input_type == 'SetInt':
         return intsetsort
-    elif string == 'Bool':
+    elif input_type == 'Bool':
         return boolsort
     else:
-        raise Exception('Allowed types are: Loc SetLoc Int SetInt Bool. Given: %s' %string)
+        raise Exception('Allowed types are: Loc SetLoc Int SetInt Bool. Given: %s' %input_type)
 
 
 
@@ -267,59 +267,59 @@ def func_update(name):
 # (21) (Support (X))                     -> Find Support of x       #seen as a unary operator
 #The interpret_ops function goes through strings like above and finds how to interpret it.
 #There are individual interpret functions for each kind of operator. See below.
-def interpret_ops(list):
-    if type(list) == str or len(list)==1:
-        return interpret_basics(list)
-    operator = list[0]
+def interpret_ops(iplist):
+    if type(iplist) == str or len(iplist)==1:
+        return interpret_basics(iplist)
+    operator = iplist[0]
     if operator == 'not' or operator == 'Not':
-        return interpret_not(list)
+        return interpret_not(iplist)
     elif operator == 'imp' or operator == 'Imp' or operator == 'implies' or operator == 'Implies':
-        return interpret_imp(list)
+        return interpret_imp(iplist)
     elif operator == '=':
-        return interpret_eq(list)
+        return interpret_eq(iplist)
     elif operator == '!=':
-        return interpret_neq(list)
+        return interpret_neq(iplist)
     elif operator == 'ite':
-        return interpret_ite(list)
+        return interpret_ite(iplist)
     elif operator == 'and' or operator == 'And':
-        return interpret_and(list)
+        return interpret_and(iplist)
     elif operator == 'or' or operator == 'Or':
-        return interpret_or(list)
+        return interpret_or(iplist)
     elif operator == 'assume' or operator == 'Assume':
-        return interpret_assume(list)
+        return interpret_assume(iplist)
     elif operator == '.':
-        return interpret_dot(list)
+        return interpret_dot(iplist)
     elif operator == ':=' or operator == 'Assign' or operator == 'assign':
-        return interpret_assign(list)
+        return interpret_assign(iplist)
     elif operator == 'RecDef':
-        return interpret_recdef(list)
+        return interpret_recdef(iplist)
     elif operator in funcdict.keys():
-        return interpret_func(list)
+        return interpret_func(iplist)
     elif operator in recdefdict.keys():
-        return interpret_recfunc(list)
+        return interpret_recfunc(iplist)
     elif operator == 'SetAdd':
-        return interpret_setadd(list)
+        return interpret_setadd(iplist)
     elif operator == 'Union' or operator == 'SetUnion':
-        return interpret_setunion(list)
+        return interpret_setunion(iplist)
     elif operator == 'Intersect' or operator == 'SetIntersect':
-        return interpret_setintersect(list)
+        return interpret_setintersect(iplist)
     elif operator == 'IsSubset':
-        return interpret_issubset(list)
+        return interpret_issubset(iplist)
     elif operator == 'IsEmpty':
-        return interpret_isempty(list)                  
+        return interpret_isempty(iplist)                  
     elif operator == 'IsMember':
-        return interpret_ismember(list)
+        return interpret_ismember(iplist)
     elif operator == 'Support' or 'SP':
-        return support(list)
+        return support(iplist)
 
 
 #---------(1)--------------
-def interpret_basics(list):
+def interpret_basics(iplist):
                                          #the two cases are when the input variable is given without brackets
-    if type(list) == str:             #and if it is. for example (func x (y))-> ['fun', 'x', ['y']] 
-        x = list                      #This then does func( interpret_ops('x'), interpret_ops(['y']))
+    if type(iplist) == str:             #and if it is. for example (func x (y))-> ['fun', 'x', ['y']] 
+        x = iplist                      #This then does func( interpret_ops('x'), interpret_ops(['y']))
     else:
-        x = list[0]
+        x = iplist[0]
     if x == 'True':
         return True
     elif x == 'False':
@@ -329,94 +329,94 @@ def interpret_basics(list):
     elif x in vardict.keys():
         return vardict[x][0]
     else:
-        raise Exception('%s is not a constant/variable' %list)
+        raise Exception('%s is not a constant/variable' %iplist)
 
 
 
 #---------(2)---------------
-def interpret_not(list):
+def interpret_not(iplist):
 
-    operator, operands = list[0], list[1:]
+    operator, operands = iplist[0], iplist[1:]
     if len(operands) != 1:
-        raise Exception('not operator is unary. Either no argument or more than one argument was given: %s' %list)
+        raise Exception('not operator is unary. Either no argument or more than one argument was given: %s' %iplist)
     else:
         return Not(interpret_ops(operands[0]))
 
 #----------(3)-----------------
-def interpret_imp(list):
-    operator, operands = list[0], list[1:]
+def interpret_imp(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands) != 2:
-        raise Exception('implies takes two arguments. Given: %s' %list)
+        raise Exception('implies takes two arguments. Given: %s' %iplist)
     else:
         op1, op2 = operands
         return Implies(interpret_ops(op1),interpret_ops(2))
 
 #---------------(4)-------------------
-def interpret_eq(list):
-    operator, operands = list[0], list[1:]
+def interpret_eq(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands) == 2:
         op1, op2 = operands
         return (interpret_ops(op1)==interpret_ops(op2))
     else:
-        raise Exception('Equality check(=) takes two arguments. Given %s' %list)
+        raise Exception('Equality check(=) takes two arguments. Given %s' %iplist)
 
 
 #----------------(5)------------------------
-def interpret_neq(list):
+def interpret_neq(iplist):
     #shorthand for Not(x==y)
-    operator, operands = list[0], list[1:]
+    operator, operands = iplist[0], iplist[1:]
     if len(operands) == 2:
         op1, op2 = operands
         return Not((interpret_ops(op1)==interpret_ops(op2)))
     else:
-        raise Exception ('!= takes two arguments. Given %s' %list)
+        raise Exception ('!= takes two arguments. Given %s' %iplist)
 
 #-------------------(6)-------------------------
-def interpret_ite(list):
-    operator, operands = list[0], list[1:]
+def interpret_ite(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands) == 3:
         op1, op2, op3 = operands
         return If(interpret_ops(op1),interpret_ops(op2),interpret_ops(op3))
     else:
-        raise Exception ('If-Then-Else takes 3 arguments. Given: %s' %list)
+        raise Exception ('If-Then-Else takes 3 arguments. Given: %s' %iplist)
 
 #--------------------(7)-------------------------
-def interpret_and(list):
-    operator, operands = list[0], list[1:]
+def interpret_and(iplist):
+    operator, operands = iplist[0], iplist[1:]
     return And(*[interpret_ops(op) for op in operands])
 
 #--------------------(8)--------------------------
-def interpret_or(list):
-    operator, operands = list[0], list[1:]
+def interpret_or(iplist):
+    operator, operands = iplist[0], iplist[1:]
     return Or(*[interpret_ops(op) for op in operands])
 
 #--------------------(9)----------------------------
-def interpret_assume(list):
-    operator, operands = list[0], list[1:]
+def interpret_assume(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands)==1:
         return interpret_ops(operands[0])
     else:
-        raise Exception('Assume takes only one argument: (assume (arg)). Given: %s' %list)
+        raise Exception('Assume takes only one argument: (assume (arg)). Given: %s' %iplist)
 
 #---------------------(10)----------------------------
-def interpret_dot(list):
-    operator, operands = list[0], list[1:]
+def interpret_dot(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands)==2:
         op1, op2 = operands
         if op2 in funcdict.keys():
             if op1 in vardict.keys():
                 return funcdict[op2][0](vardict[op1][0])
             else:
-                raise Exception('Given %s. Variable %s not defined' %(list,op1))
+                raise Exception('Given %s. Variable %s not defined' %(iplist,op1))
         else:
-            raise Exception('Given %s. Function %s not defined' %(list,op2))
+            raise Exception('Given %s. Function %s not defined' %(iplist,op2))
     else:
-        raise Exception('Application takes two arguments: (. x function). Given: %s' %list)
+        raise Exception('Application takes two arguments: (. x function). Given: %s' %iplist)
 
 #----------------------(11)------------------------------
 
-def interpret_assign(list):
-    operator, operands = list[0], list[1:]
+def interpret_assign(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands)==2:
         op1, op2 = operands
         if (type(op1)==str and (op1 in vardict.keys())) or (len(op1)==1 and (op1[0] in vardict.keys())): #LHS is a variable
@@ -458,14 +458,14 @@ def interpret_assign(list):
 
 
     else:
-        raise Exception('Assignment/mutation takes two arguments: (:= x y). Given: %s' %list)
+        raise Exception('Assignment/mutation takes two arguments: (:= x y). Given: %s' %iplist)
 
 
 #-------------------------(12)-------------------------------------------
-def interpret_recdef(list):
+def interpret_recdef(iplist):
     #Specifically for RecDef, not calls to recursive functions (see interpret_recfunc (14) for this).
     #In a program, for each RecFunction, there should only be one of these.
-    operator, operands = list[0], list[1:] 
+    operator, operands = iplist[0], iplist[1:] 
     #format is (RecDef (function (x) (y)...) (recursive definition))
     op1, op2 = operands
     if op1[0] in recdefdict.keys():
@@ -493,14 +493,14 @@ def interpret_recdef(list):
         # update the definition if needed.
 
 #-------------------------(13)----------------------------------------------
-def interpret_func(list):
-    operator, operands = list[0], list[1:]
+def interpret_func(iplist):
+    operator, operands = iplist[0], iplist[1:]
     return funcdict[operator][0](*[interpret_ops(op) for op in operands]) 
 
 #--------------------------(14)---------------------------------------------
-def interpret_recfunc(list):
+def interpret_recfunc(iplist):
     #Specifically for function calls, not recursive definitions (see interpret_recdef (12) for this).
-    operator, operands = list[0], list[1:]
+    operator, operands = iplist[0], iplist[1:]
     # #Note: At any point in the program. If we see a recursive function called, we need to define it again
     # # / make sure the version we have is the latest one.
     return recdefdict[operator][0](*[interpret_ops(op) for op in operands])
@@ -508,42 +508,42 @@ def interpret_recfunc(list):
 
 
 #----------------------------(15)---------------------------------------------
-def interpret_setadd(list):
-    operator, operands = list[0], list[1:]
+def interpret_setadd(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands)<2:
         raise Exception('Format is (SetAdd set elt1 elt2...)')
     else:
-        set = interpret_ops(operands[0])
+        return_set = interpret_ops(operands[0])
         for i in range(1,len(operands)):
-            set = SetAdd(set,interpret_ops(operands[i]))
-        return set
+            return_set = SetAdd(return_set,interpret_ops(operands[i]))
+        return return_set
 
 #-------------------------------(16)--------------------------------------------
-def interpret_setunion(list):
-    operator, operands = list[0], list[1:]
+def interpret_setunion(iplist):
+    operator, operands = iplist[0], iplist[1:]
     return SetUnion(*[interpret_ops(op) for op in operands])
 
 #-------------------------------(17)--------------------------------------------
-def interpret_setintersect(list):
-    operator, operands = list[0], list[1:]
+def interpret_setintersect(iplist):
+    operator, operands = iplist[0], iplist[1:]
     return SetIntersect(*[interpret_ops(op) for op in operands])
 
 #--------------------------------(18)-------------------------------------------
-def interpret_issubset(list):
-    operator, operands = list[0], list[1:]
+def interpret_issubset(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands)==2:
         return IsSubset(interpret_ops(operands[0]), interpret_ops(operands[1]))
     else:
         raise Exception('(IsSubset X Y) checks if X is a subset of Y')
 
 #---------------------------------(19)------------------------------------------
-def interpret_isempty(list):
-    operator, operands = list[0], list[1:]
+def interpret_isempty(iplist):
+    operator, operands = iplist[0], iplist[1:]
     return IsSubset(interpret_ops(operands[0]),fgsetsort.lattice_bottom)    #?
 
 #---------------------------------(20)------------------------------------------
-def interpret_ismember(list):
-    operator, operands = list[0], list[1:]
+def interpret_ismember(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands) == 2:
         return IsMember(interpret_ops(operands[0]),interpret_ops(operands[1]))
     else:
@@ -551,7 +551,7 @@ def interpret_ismember(list):
         
 
 #----------------------------------------------------------------------------------
-def sub_functions(list):    #given a rec def, find all other functions this depends on
+def sub_functions(recdef_list):    #given a rec def, find all other functions this depends on
     def find_func_in_list(l):
         funcs = []
         if type(l)==str:
@@ -564,11 +564,11 @@ def sub_functions(list):    #given a rec def, find all other functions this depe
                 funcs = funcs+x
         return funcs            #gives list of functions in a recdef, with repeats.
 
-    tag, name, recdef = list
+    tag, name, defn = recdef_list
     if tag != 'RecDef':
         raise Exception('Not a recursive function')
     if name[0] in recdefdict.keys():
-        p = find_func_in_list(recdef)
+        p = find_func_in_list(defn)
         q = [*set(p)]               #removes duplicates
         r = []
         for i in q:
@@ -578,72 +578,73 @@ def sub_functions(list):    #given a rec def, find all other functions this depe
 
 
 #--------------------Find Support--------------------------------------------------
-def support(list):
+def support(iplist):
     #print('list for supoport----->',list)
-    if type(list) == str or len(list)==1:
-        return support_basics(list)
-    operator = list[0]
+    if type(iplist) == str or len(iplist)==1:
+        return support_basics(iplist)
+    operator = iplist[0]
     if operator == '=' or operator == 'IsMember' or operator =='IsSubset' or operator == '!=':
-        return support_binrel(list)
+        return support_binrel(iplist)
     elif operator == 'not' or operator == 'Not':
-        return support_not(list)
+        return support_not(iplist)
     elif operator == 'ite':
-        return support_ite(list)
+        return support_ite(iplist)
     elif operator == 'and' or operator == 'And' or operator == 'not' or operator == 'Not':
-        return support_and(list)
+        return support_and(iplist)
     #elif operator == 'RecDef':
     #    return support_recdef(list)
     elif operator == 'Support' or operator == 'SP':
-        return support_support(list)
+        return support_support(iplist)
     elif (operator in funcdict.keys()) or (operator in recdefdict.keys()):
-        return support_func(list)
+        return support_func(iplist)
     else:
-        raise Exception('Invalid support operation %s' %list)
+        raise Exception('Invalid support operation %s' %iplist)
 
-def support_basics(list):   #Support of var/const is the empty set
-    if type(list) == str:             
-        x = list                      
+def support_basics(iplist):   #Support of var/const is the empty set
+    if type(iplist) == str:             
+        x = iplist                      
     else:
-        x = list[0]
+        x = iplist[0]
     if x == 'True' or 'False' or 'EmptySet' or (x in vardict.keys()):
         return fgsetsort.lattice_bottom
     else:
         raise Exception('support basics failure')
 
-def support_func(list):     #say func dict is just mutable functions.
-    operator, operands = list[0], list[1:]
+def support_func(iplist):     #say func dict is just mutable functions.
+    operator, operands = iplist[0], iplist[1:]
 
     terms = fgsetsort.lattice_bottom
-    iterm = [interpret_ops(t) for t in operands]
-    for i in iterm:
+    term_list = [interpret_ops(t) for t in operands]
+    for i in term_list:
         terms = SetAdd(terms, i)
 
     sp_terms = SetUnion(*[support(t) for t in operands])
 
-    if list[0] in funcdict.keys():
+    if iplist[0] in funcdict.keys():
         return SetUnion(terms,sp_terms)
-    elif list[0] in recdefdict.keys():
-        if list[0][:2] == 'SP':
-            return SetUnion(sp_terms, interpret_ops(list))
+    elif iplist[0] in recdefdict.keys():
+        if iplist[0][:2] == 'SP':
+            #return SetUnion(sp_terms,interpret_ops(iplist))
+            return interpret_ops(iplist)
         else:
-           pp = ['SP'+list[0]]+operands
+           pp = ['SP'+iplist[0]]+operands
         return SetUnion(sp_terms, interpret_ops(pp))
         
 
-def support_binrel(list):
-    operator, operands = list[0], list[1:]
+def support_binrel(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if len(operands) == 2:
         term1, term2 = operands
         return SetUnion(support(term1),support(term2))
 
-def support_not(list):
-    operator, operands = list[0], list[1:]
+def support_not(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if operator == 'Not' or 'not':
         if len(operands)==1:
             return support(operands[0])
 
-def support_and(list):                                  #also or
-    operator, operands = list[0], list[1:]
+def support_and(iplist):                                  #also or
+    operator, operands = iplist[0], iplist[1:]
 
     if operator == 'And' or 'and' or 'Or' or 'or':
         return SetUnion(*[support(t) for t in operands])
@@ -651,16 +652,16 @@ def support_and(list):                                  #also or
 # def support_or(list):
 #     return support_and(list)
 
-def support_ite(list):
-    operator, operands = list[0], list[1:]
+def support_ite(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if operator == 'ite':
         if len(operands) == 3:
             op1, op2, op3 = operands
             x = If(interpret_ops(op1), SetUnion(support(op1),support(op2)), SetUnion(support(op1),support(op3)))    #...
             return x      #?!
 
-def support_support(list):
-    operator, operands = list[0], list[1:]
+def support_support(iplist):
+    operator, operands = iplist[0], iplist[1:]
     if operator == 'Support' or 'SP':
         if len(operands)==1:
             return support(operands[0])
@@ -670,9 +671,10 @@ def support_support(list):
 #Below we club together everything so far to get a vc function.
 #We assume input is given in the righ format. Need to handle issues better. Will do later.
 init_recdef = dict()
-def vc(list):
+
+def vc(user_input):
     transform = []
-    code_line = [create_input(i) for i in list]
+    code_line = [create_input(i) for i in user_input]
     #printf(code_line)
     printf('done creating input list')
     for i in code_line:

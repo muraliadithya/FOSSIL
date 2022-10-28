@@ -5,7 +5,7 @@ import os
 import z3 #debug
 
 from z3 import And, Or, Not, Implies, If
-from z3 import IsSubset, IsMember, SetIntersect, SetUnion, SetAdd, EmptySet, IntSort, SetDifference, SetDel
+from z3 import IsSubset, IsMember, SetIntersect, SetUnion, SetAdd, EmptySet, IntSort
 
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import Const, Var, Function, AddRecDefinition, AddAxiom
@@ -149,12 +149,10 @@ free_var = Var('free_var', fgsort) # might need to change this when extending to
 freevardict = {'Loc':[],'SetLoc':[],'Int':[],'SetInt':[],'Bool':[]}
 #List to store the Modified variables:
 modified_vars = []
-#set of allocated locations:
-alloc_set = EmptySet(IntSort())                                  #??
+#List of allocated locations:
+alloc_list = []                                     #??
 #Variable keeping track of whether a new mutation has happened
 has_mutated = 0
-#Variable keeping track of the number of function calss
-no_fc = 0
 # -----------------------------------------------
 
 def type_parser(input_type):
@@ -332,13 +330,6 @@ def interpret_ops(iplist):
         return interpret_minus(iplist)
     if operator == 'IntConst':
         return interpret_int(iplist)
-
-    if operator == 'call':
-        return function_call(iplist)
-    if operator == 'alloc':
-        return interpret_alloc(iplist)
-    if operator == 'free':
-        interpret_free(iplist)
 
     raise Exception(f'Invalid Tag {operator} in {iplist}')
 
@@ -638,64 +629,6 @@ def interpret_int(iplist):
         raise Exception(f'Invalid integer declaration {iplist}')
     return int(operands)
 
-def function_call(iplist):
-    operands = iplist[1:]
-    if len(operands) == 2:
-        global alloc_set
-        global no_fc
-        no_fc = no_fc + 1
-
-        op1, op2 = operands
-        sp_pre = support(op1)
-        sp_post = support(op2)
-        to_assume = interpret_assume(['assume', op2])        
-        old_alloc_rem = SetDifference(alloc_set,sp_pre)
-
-        for i,elt in funcdict.items():
-            new_unint_fn = Function(elt['z3name']+'_unint_'+str(no_fc),*elt['z3type'])
-            y = If(IsMember(free_var,old_alloc_rem),elt['z3name'](free_var),new_unint_fn(free_var))
-            func_update(i)
-            x = elt['z3name'](free_var)
-            logging.info(f'Function Call: {x} = {y}')
-            AddAxiom((free_var,), x == y)
-        global has_mutated
-        alloc_set = SetUnion(old_alloc_rem,sp_post)
-        has_mutated = 0
-        for i in recdefdict:
-            func_update(i)
-        for i in recdefdict:
-            if i[:2] != 'SP':
-            interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
-
-
-
-        return to_assume
-    
-def interpret_alloc(iplist):
-    operands = iplist[1:]
-    if len(operands) == 1:
-        x = operands[0]
-        if isinstance(x,str):
-            pass
-        else:
-            x = x[0]
-    global alloc_set
-    alloc_var = vardict[x]['z3name']
-    var_update(x)
-    SetAdd(alloc_set, vardict[x]['z3name'])
-
-def interpret_free(iplist):
-    operands = iplist[1:]
-    if len(operands) == 1:
-        x = operands[0]
-        if isinstance(x,str):
-            pass
-        else:
-            x = x[0]
-    global alloc_set
-    SetDel(alloc_set, vardict[x]['z3name'])
-
-
 #----------------------------------------------------------------------------------
 def sub_functions(recdef_list):
     '''given a rec def, find all other functions this depends on'''
@@ -802,18 +735,16 @@ def support_old(iplist):
     if operator == 'Old' and len(operands)==1:
         recfn, args = operands[0][0], operands[0][1:]
         if recfn in recdefdict:
-            if recfn[:2] == 'SP':
-                return interpret_old(['Old',operands[0]])
-            elif recfn[:2] != 'SP':
+            if recfn[:2] != 'SP':
                 operands[0][0] = 'SP'+recfn
-                sp_old = interpret_old(['Old',operands[0]])
-                sp_terms = SetUnion(*[support(t) for t in args])
-                return SetUnion(sp_old, sp_terms)
-
+            else:
+                pass
+            sp_old = interpret_old([operator,operands[0]])
+            sp_terms = SetUnion(*[support(t) for t in args])
+            return SetUnion(sp_old, sp_terms)
         raise Exception(f'Invalid rec def in support old operation {iplist}')
     raise Exception(f'Invalid tag in support old {iplist}')
 
-#----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
 def remove_comments(user_input):
@@ -893,7 +824,6 @@ def ml_to_sl(user_input):
 
 def vc(user_input):
     '''VC generation'''
-    global alloc_set
     transform = []
     nc_uip = ml_to_sl(remove_comments(user_input))
     code_line = [create_input(i) for i in nc_uip]
@@ -908,8 +838,7 @@ def vc(user_input):
             func_parser(i)
         elif tag == 'Pre':
             precond = interpret_ops(i[1])
-            alloc_set = support(i[1])
-            logging.info(f'Initial Alloc Set: {z3.simplify(alloc_set)}')
+            sp_precond = support(i[1])
         elif tag == 'Post':
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
@@ -926,13 +855,6 @@ def vc(user_input):
             interpret_ops(i)
         elif (tag == 'assign') and not(isinstance(i[1],str) or (len(i[1])==1)): #i.e add axiom
             interpret_ops(i)
-        # elif (tag == 'call'): #handles in else case
-        #     to_assume = function_call(i)    #this will return the post cond of the call,
-        #     transform.append(to_assume)     #while also updating the allocated set
-        elif (tag == 'free'):
-            interpret_free(i)
-        elif (tag == 'alloc'):
-            interpret_alloc(i)
         else:
             intops = interpret_ops(i)
             logging.info('Line of code: %s' %intops)
@@ -956,11 +878,11 @@ def vc(user_input):
             logging.info(z3.simplify(b))
             AddAxiom((free_var,), b)
     printf('\nvardict:',vardict,'\nFuncdict:',funcdict,'\nRecdefdict:', recdefdict)
-    logging.info(f'Final Allocated Set: {z3.simplify(alloc_set)}')
-    logging.info(f'Support of postcond: {z3.simplify(sp_postcond)}')
-    # goal =  Implies(And(precond,*[t for t in transform]), And(postcond, alloc_set == sp_postcond))
     goal =  Implies(And(precond,*[t for t in transform]), postcond)
-    print(goal)
+#    print('spprecond=', z3.simplify(sp_precond))
+#    print('sppostcond=', z3.simplify(sp_postcond ))
+#    goal =  Implies(And(precond,*[t for t in transform]),And(postcond,sp_precond==sp_postcond))
+    printf(goal)
     logging.info('Pre: %s' % precond)
     logging.info('Tranform: %s' % transform)
     logging.info('Post: %s' % postcond)

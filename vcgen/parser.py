@@ -660,6 +660,8 @@ def remove_comments(user_input):
                     j = j+1
             if q == 0:
                 upip.append(i)
+            elif store == 0:
+                pass
             else:
                 upip.append(i[:store])
 
@@ -675,6 +677,7 @@ def remove_comments(user_input):
                         j = j+2
                     else:
                         j = j+1
+    print(upip)
     return upip
 
 

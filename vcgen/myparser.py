@@ -624,7 +624,7 @@ def support_func(iplist):     #say func dict is just mutable functions.
         return SetUnion(terms,sp_terms)
     elif iplist[0] in recdefdict.keys():
         if iplist[0][:2] == 'SP':
-            #return SetUnion(sp_terms,interpret_ops(iplist))
+            # return SetUnion(sp_terms, interpret_ops(iplist))
             return interpret_ops(iplist)
         else:
            pp = ['SP'+iplist[0]]+operands

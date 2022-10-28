@@ -314,7 +314,7 @@ def interpret_ops(iplist):
         return interpret_isempty(iplist)                  
     elif operator == 'IsMember':
         return interpret_ismember(iplist)
-    elif operator == 'Support' or 'SP':
+    elif operator == 'Support' or 'Sp':
         return support(iplist)
 
 
@@ -598,7 +598,7 @@ def support(iplist):
         return support_and(iplist)
     #elif operator == 'RecDef':
     #    return support_recdef(list)
-    elif operator == 'Support' or operator == 'SP':
+    elif operator == 'Support' or operator == 'Sp':
         return support_support(iplist)
     elif (operator in funcdict.keys()) or (operator in recdefdict.keys()):
         return support_func(iplist)

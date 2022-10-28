@@ -9,7 +9,6 @@ swaptwo(x)
 }
 @post: List(x) AND x.key=k' AND x.next.key=k AND Keys(x) = OldKeys(x)
 */
- 
 (Const nil Loc)
 (Function next Loc Loc)
 (Function key Loc Int)

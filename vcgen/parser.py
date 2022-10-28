@@ -1,4 +1,5 @@
 import logging
+from operator import is_
 import os
 
 from z3 import And, Or, Not, Implies, If
@@ -9,6 +10,9 @@ from naturalproofs.decl_api import Const, Var, Function, AddRecDefinition, AddAx
 from naturalproofs.prover import NPSolver
 
 
+#-----tags -------------
+immutables = ['=', 'not', 'or', 'and', 'implies', 'IsMember', 'IsSubset', 'SetAdd', 'Intersect']
+supportTag = 'Sp'
 
 #Set verbose to 1 in order for print statements to be executed
 verbose = 0
@@ -276,25 +280,21 @@ def interpret_ops(iplist):
     if type(iplist) == str or len(iplist)==1:
         return interpret_basics(iplist)
     operator = iplist[0]
-    if operator == 'not' or operator == 'Not':
+    if operator == 'not':
         return interpret_not(iplist)
-    elif operator == 'imp' or operator == 'Imp' or operator == 'implies' or operator == 'Implies':
+    elif operator == 'implies':
         return interpret_imp(iplist)
     elif operator == '=':
         return interpret_eq(iplist)
-    elif operator == '!=':
-        return interpret_neq(iplist)
     elif operator == 'ite':
         return interpret_ite(iplist)
-    elif operator == 'and' or operator == 'And':
+    elif operator == 'and':
         return interpret_and(iplist)
-    elif operator == 'or' or operator == 'Or':
+    elif operator == 'or':
         return interpret_or(iplist)
-    elif operator == 'assume' or operator == 'Assume':
+    elif operator == 'assume':
         return interpret_assume(iplist)
-    elif operator == '.':
-        return interpret_dot(iplist)
-    elif operator == ':=' or operator == 'Assign' or operator == 'assign':
+    elif operator == 'assign':
         return interpret_assign(iplist)
     elif operator == 'RecDef':
         return interpret_recdef(iplist)
@@ -304,9 +304,9 @@ def interpret_ops(iplist):
         return interpret_recfunc(iplist)
     elif operator == 'SetAdd':
         return interpret_setadd(iplist)
-    elif operator == 'Union' or operator == 'SetUnion':
+    elif operator == 'SetUnion':
         return interpret_setunion(iplist)
-    elif operator == 'Intersect' or operator == 'SetIntersect':
+    elif operator == 'SetIntersect':
         return interpret_setintersect(iplist)
     elif operator == 'IsSubset':
         return interpret_issubset(iplist)
@@ -314,7 +314,7 @@ def interpret_ops(iplist):
         return interpret_isempty(iplist)                  
     elif operator == 'IsMember':
         return interpret_ismember(iplist)
-    elif operator == 'Support' or 'Sp':
+    elif operator == 'Sp':
         return support(iplist)
 
 
@@ -366,16 +366,7 @@ def interpret_eq(iplist):
         raise Exception('Equality check(=) takes two arguments. Given %s' %iplist)
 
 
-#----------------(5)------------------------
-def interpret_neq(iplist):
-    #shorthand for Not(x==y)
-    operator, operands = iplist[0], iplist[1:]
-    if len(operands) == 2:
-        op1, op2 = operands
-        return Not((interpret_ops(op1)==interpret_ops(op2)))
-    else:
-        raise Exception ('!= takes two arguments. Given %s' %iplist)
-
+#----------------(5)----------------------------
 #-------------------(6)-------------------------
 def interpret_ite(iplist):
     operator, operands = iplist[0], iplist[1:]
@@ -431,11 +422,8 @@ def interpret_assign(iplist):
             lhs = interpret_ops(op1)
             return (lhs==rhs)                        
             
-        elif op1[0] == '.' or (op1[0] in funcdict.keys()):
-            if op1[0] == '.':
-                dot , var, func = op1
-            else:
-                func, var = op1
+        elif op1[0] in funcdict.keys():
+            func, var = op1
             if type(var) == str:
                 pass
             elif len(var)==1:
@@ -588,17 +576,11 @@ def support(iplist):
     if type(iplist) == str or len(iplist)==1:
         return support_basics(iplist)
     operator = iplist[0]
-    if operator == '=' or operator == 'IsMember' or operator =='IsSubset' or operator == '!=':
-        return support_binrel(iplist)
-    elif operator == 'not' or operator == 'Not':
-        return support_not(iplist)
+    if operator in immutables:
+        return support_immut(iplist)
     elif operator == 'ite':
         return support_ite(iplist)
-    elif operator == 'and' or operator == 'And' or operator == 'not' or operator == 'Not':
-        return support_and(iplist)
-    #elif operator == 'RecDef':
-    #    return support_recdef(list)
-    elif operator == 'Support' or operator == 'Sp':
+    elif operator == supportTag:
         return support_support(iplist)
     elif (operator in funcdict.keys()) or (operator in recdefdict.keys()):
         return support_func(iplist)
@@ -636,26 +618,9 @@ def support_func(iplist):     #say func dict is just mutable functions.
         return SetUnion(sp_terms, interpret_ops(pp))
         
 
-def support_binrel(iplist):
+def support_immut(iplist):
     operator, operands = iplist[0], iplist[1:]
-    if len(operands) == 2:
-        term1, term2 = operands
-        return SetUnion(support(term1),support(term2))
-
-def support_not(iplist):
-    operator, operands = iplist[0], iplist[1:]
-    if operator == 'Not' or 'not':
-        if len(operands)==1:
-            return support(operands[0])
-
-def support_and(iplist):                                  #also or
-    operator, operands = iplist[0], iplist[1:]
-
-    if operator == 'And' or 'and' or 'Or' or 'or':
-        return SetUnion(*[support(t) for t in operands])
-
-# def support_or(list):
-#     return support_and(list)
+    return SetUnion(*[support(t) for t in operands ])
 
 def support_ite(iplist):
     operator, operands = iplist[0], iplist[1:]
@@ -667,41 +632,62 @@ def support_ite(iplist):
 
 def support_support(iplist):
     operator, operands = iplist[0], iplist[1:]
-    if operator == 'Support' or 'SP':
+    if operator == supportTag:
         if len(operands)==1:
             return support(operands[0])
         else:
             raise Exception('Support is a unary operator. Invalid support %s' %operands)
 #----------------------------------------------------------------------------------
+
+def remove_comments(user_input):
+    for i in range(len(user_input)):
+        user_input[i] = user_input[i].rstrip('\n')
+
+    is_comment = 0
+    upip = []
+    for i in user_input:
+        if len(i) == 0:
+            pass
+        elif is_comment == 0:
+            q = 0
+            store = -1
+            j = 0
+            while j < len(i)-1:
+                if i[j:j+2] == '/*':
+                    is_comment = is_comment + 1
+                    if store == -1:
+                        q = 1
+                        store = j
+                    j = j+2
+                elif i[j:j+2] == '*/':
+                    is_comment = is_comment - 1
+                    j = j+2
+                else:
+                    j = j+1
+            if q == 0:
+                upip.append(i)
+            else:
+                upip.append(i[:store])
+
+        else:
+            if len(i)>1:
+                j = 0
+                while j < len(i)-1:
+                    if i[j:j+2] == '/*':
+                        is_comment = is_comment + 1
+                        j = j+2
+                    elif i[j:j+2] == '*/':
+                        is_comment = is_comment - 1
+                        j = j+2
+                    else:
+                        j = j+1
+    return upip
+
+
 #Below we club together everything so far to get a vc function.
 #We assume input is given in the right format.
 init_recdef = dict()
 
-def remove_comments(user_input):
-    #also remove newlines
-    for i in range(len(user_input)):
-        user_input[i] = user_input[i].rstrip('\n')
-    
-    is_comment = 0
-    upip = []
-    for i in user_input:
-        ipoc = 0
-        if len(i)>1:
-            for j in range(len(i)-1):
-                if i[j:j+2]== '/*':
-                    is_comment = is_comment + 1
-                    ipoc = 1
-                elif i[j:j+2] == '*/':
-                    is_comment = is_comment - 1
-                    ipoc = 1
-        if (len(i)==0) or (i[0]=='#'):              #single line comments
-            pass
-        elif (is_comment == 0) and (ipoc == 0):
-            upip.append(i)
-
-    if is_comment != 0:
-        raise Exception('Unenclosed Comment (*/ not followed up by */ to denote end of comment)')
-    return upip
 
 def vc(user_input):
     transform = []
@@ -730,7 +716,7 @@ def vc(user_input):
             else:
                 raise Exception('Bad RecDef')
             interpret_ops(i)
-        elif (tag == ':=' or tag == 'Assign' or tag == 'assign') and not(type(i[1])==str or (len(i[1])==1)): #i.e add axiom
+        elif (tag == 'assign') and not(type(i[1])==str or (len(i[1])==1)): #i.e add axiom
             interpret_ops(i)
         else:
             intops = interpret_ops(i)
@@ -739,9 +725,9 @@ def vc(user_input):
     print('done preprocessing')
     #frame condition:#assume just 1 var for now
     mv = [*set(modified_vars)]
-    mod_set = fgsetsort.lattice_bottom
+    modif_set = fgsetsort.lattice_bottom
     for i in mv:
-        modif_set = SetAdd(mod_set,i)
+        modif_set = SetAdd(modif_set,i)
     logging.info('Modified set is %s' %modif_set)
     for i in recdefdict.keys():
         if i[:2]=='SP':

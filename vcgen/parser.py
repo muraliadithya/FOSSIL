@@ -647,7 +647,7 @@ def remove_comments(user_input):
     is_comment = 0
     upip = []
     for i in user_input:
-        if len(i) <= 1:
+        if len(i) == 0:
             pass
         elif is_comment == 0:
             q = 0
@@ -685,16 +685,38 @@ def remove_comments(user_input):
                     else:
                         j = j+1
     return upip
+#assume comments have been removed
+
+def ml_to_sl(user_input):
+    upip = []
+    current_formula = ''
+    np = 0
+    for i in user_input:
+        if np >= 0:
+            current_formula = current_formula + ' ' + i
+        for j in i:
+            if j == '(':
+                np = np+1
+            elif j == ')':
+                np = np-1
+                if np < 0:
+                    raise Exception('Two inputs in same line')
+
+        if np == 0:
+            upip.append(current_formula)
+            current_formula = ''
+    return upip
+
+    
 
 
 #Below we club together everything so far to get a vc function.
 #We assume input is given in the right format.
-init_recdef = dict()
 
 
 def vc(user_input):
     transform = []
-    nc_uip = remove_comments(user_input)
+    nc_uip = ml_to_sl(remove_comments(user_input))
     code_line = [create_input(i) for i in nc_uip]
     #printf(code_line)
     printf('done creating input list')
@@ -737,7 +759,6 @@ def vc(user_input):
             pass
         else:
             logging.info('Frame assumptions:')
-            #printf('..................',((free_var,), Implies(And(init_recdef[i][0](free_var),IsSubset(SetIntersect(set1,init_recdef['SP'+i][0](free_var)),fgsetsort.lattice_bottom)),recdefdict[i][0](free_var))))
             a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](free_var)), fgsetsort.lattice_bottom),recdefdict[i]['init'](free_var) == recdefdict[i]['z3name'](free_var))
             logging.info(a)
             AddAxiom((free_var,), a)

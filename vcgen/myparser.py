@@ -281,11 +281,11 @@ def interpret_ops(list):
 
     #-------------(7)-------------
     elif operator == 'and':
-        return And(*[interpret_ops[op] for op in operands])
+        return And(*[interpret_ops(op) for op in operands])
 
     #-------------(8)-------------
     elif operator == 'or':
-        return Or(*[interpret_ops[op] for op in operands])
+        return Or(*[interpret_ops(op) for op in operands])
     
     
     #We will also define the assignment, mutation, and assume operators here->
@@ -345,7 +345,8 @@ def interpret_ops(list):
         op1, op2 = operands
         if op1[0] in recdefdict.keys():
             func, vars = op1[0], op1[1:]
-            return AddRecDefinition(recdefdict[func],*[vardict[v[0]] for v in vars],interpret_ops(op2))
+            print('?????', interpret_ops(op2))
+            return AddRecDefinition(recdefdict[func],*[interpret_ops(v) for v in vars],interpret_ops(op2))
 
     #-------------(13)-------------
     elif operator in funcdict.keys(): #i.e the function has been defined.
@@ -419,20 +420,20 @@ def vc(list):
         elif tag == 'Post':
             postcond = interpret_ops(i[1])
         elif tag == 'RecDef':
-            interpret_ops(i[1])
-        elif tag == ':=' and len(i[1])==2 and len(i[2])==4: #i.e add axion
+            interpret_ops(i)
+        elif tag == ':=' and len(i[1])==2 and len(i[2])==4: #i.e add axiom
             interpret_ops(i)
         else:
             transform.append(interpret_ops(i))
     print('done preprocessing')
-    goal = Implies(And(precond,*[t for t in transform]),postcond)
-    #print(goal)
-    np_solver = NPSolver()
-    solution = np_solver.solve(goal)
-    if not solution.if_sat:
-        print('goal (no lemmas) is valid')
-    else:
-        print('goal (no lemmas) is invalid')
+    return Implies(And(precond,*[t for t in transform]),postcond)
+    # print(goal)
+    # np_solver = NPSolver()
+    # solution = np_solver.solve(goal)
+    # if not solution.if_sat:
+    #     print('goal (no lemmas) is valid')
+    # else:
+    #     print('goal (no lemmas) is invalid')
 
 
 
@@ -443,15 +444,38 @@ t1 = ['(Const nil Loc)', '(Var x0 Loc)','(Var y0 Loc)','(Var x1 Loc)','(Var y1 L
 t2 = ['(Function next0 Loc Loc)','(Function next1 Loc Loc)','(Function next2 Loc Loc)']
 t3 = ['(RecFunction list0 Loc Bool)','(RecFunction list2 Loc Bool)', '(RecFunction SPlist0 Loc SetLoc)','(RecFunction SPlist2 Loc SetLoc)']
 t4 = ['(RecDef (SPlist2 var1) (ite (= var1 nil) EmptySet (SetAdd (SPlist2 (next2 var1)) var1)))']
-t5 = ['(RecDef (list0 var1) (ite (= var1 nil) True (list (next0 var1))) )', '(RecDef (list2 var1) (ite (= var1 nil) True (list (next2 var1))) )']
-t6 = ['(RecDef (SPlist0 var1) (ite (= var1 nil) EmptySet (SetAdd (SPlist0 (next0 var1)) var1)))']
+t5 = ['(RecDef (SPlist0 var1) (ite (= var1 nil) EmptySet (SetAdd (SPlist0 (next0 var1)) var1)))']
+t6 = ['(RecDef (list0 var1) (ite (= var1 nil) True (and (not (IsSubset (SetAdd EmptySet var1) (SPlist0 (next0 var1)))) (list0 (next0 var1)))) )'] 
+t66= ['(RecDef (list2 var1) (ite (= var1 nil) True (and (not (IsSubset (SetAdd EmptySet var1) (SPlist2 (next2 var1)))) (list2 (next2 var1)))) )'] 
+
 t7 = ['(Pre (list0 x0))']
 t8 = ['(assume (!= x0 nil))','(:= y1 (. x0 next0))','(assume (!= y1 nil))']
 t9 = ['(:= (next1 var1) (ite (= var1 x0) (. y1 next0) (next0 var1)))', '(:= (next2 var1) (ite (= var1 y1) (x0) (next1 var1)))']
 t10 = ['(:= x1 y1)']
 t11 = ['(Post (list2 x1))']
-t = t1+t2+t3+t4+t5+t6+t7+t8+t9+t10+t11
-vc(t)
+t = t1+t2+t3+t4+t5+t6+t66+t7+t8+t9+t10+t11
+x = vc(t)
+x0 = vardict['x0']
+y1 = vardict['y1']
+list0 = recdefdict['list0']
+list2 = recdefdict['list2']
+SPlist0 = recdefdict['SPlist0']
+SPlist2 = recdefdict['SPlist2']
+next0 = funcdict['next0']
+next2 = funcdict['next2']
+next1 = funcdict['next1']
+nil = vardict['nil']
+set1 = SetAdd(fgsetsort.lattice_bottom,x0)
+set2 = SetAdd(fgsetsort.lattice_bottom,y1)
+fp1 = And(list0(next0(y1)), Not(Or(IsSubset(set1,SPlist0(next0(y1))),IsSubset(set2,SPlist0(next0(y1))))))
+AddAxiom((y1,), Implies(fp1,list2(next0(y1))))
+np_solver = NPSolver()
+print(x)
+solution = np_solver.solve(x)
+if not solution.if_sat:
+    print('goal (no lemmas) is valid')
+else:
+    print('goal (no lemmas) is invalid')
 
 # t1 = ['(Const nil Loc)', '(Var x0 Loc)','(Var y0 Loc)','(Var x1 Loc)','(Var y1 Loc)','(Var var1 Loc)']
 # t2 = ['(Function next0 Loc Loc)','(Function next1 Loc Loc)','(Function next2 Loc Loc)']

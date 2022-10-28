@@ -534,8 +534,15 @@ def interpret_ismember(iplist):
 #---------------------------------(21)-------------------------------------------
 def interpret_old(iplist):
     operator, operands = iplist[0], iplist[1:]
-    return recdefdict[operator]['init'](*[interpret_ops(op) for op in operands])
-        
+    if len(operands) == 1:
+        func, arguments = operands[0][0], operands[0][1:]
+        if func in recdefdict.keys():
+            return recdefdict[func]['init'](*[interpret_ops(op) for op in arguments])
+        else:
+            raise Exception('Old operator only applies to Recursive functions. %s is not' %func)
+
+    else:
+        raise Exception('Old operator takes only one arguments. Error on: %s' %iplist)
 
 #----------------------------------------------------------------------------------
 def sub_functions(recdef_list):    #given a rec def, find all other functions this depends on

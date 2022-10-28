@@ -1,0 +1,74 @@
+/*
+Iterative version of the following function:
+
+SNnode * sll_append(SNnode * x1, SNnode * x2)
+  /*D_requires (sll^(x1) * sll^(x2)) */
+  /*D_ensures  (sll^(ret) & (keys^(ret) s= (old(keys^(x1)) union old(keys^(x2))))) */
+{
+	if (x1 == NULL) {
+		return x2;
+	} else {
+	    SNnode * head = x1;
+	    SNnode * n = x1->next;
+		while (n != NULL)
+		/*D_invariant lseg^(head,x1) * sll^(x1) * sll^(x2) & keyseg^(head,x1) union keys^(x1) union keys^(x2) s= (old(keys^(x1)) union old(keys^(x2)))*/
+		{
+		    x1 = n;
+		    n = x1->next;
+		}
+        n->next = x2;
+		return head;
+	}
+
+}
+
+*/
+
+(Const nil Loc)
+(Function next Loc Loc)
+(Function key Loc Int)
+
+(Var var1 Loc)
+(Var var2 Loc)
+
+(RecFunction List Loc Bool)
+(RecDef (List var1) (ite (= var1 nil) True (and (not (IsMember (var1)  (SPList (next var1)))) (List (next var1)))) )
+
+(RecFunction Lseg Loc Loc Bool)
+(RecDef (Lseg var1 var2) (ite (= var1 var2) True (and (not (IsMember (var1)  (SPLseg (next var1) var2))) (Lseg (next var1) var2))) )
+
+(RecFunction Keys Loc SetInt)
+(RecDef (Keys var1) (ite (= var1 nil) EmptySetInt (SetAdd (Keys (next var1)) (key var1)) ))
+
+(RecFunction Keyseg Loc Loc SetInt)
+(RecDef (Keys var1 var2) (ite (= var1 var2) EmptySetInt (SetAdd (Keyseg (next var1) var2) (key var1)) ))
+
+
+(Var x Loc)
+(Var y Loc)
+(Var head Loc)
+(Var n Loc)
+(Var ret Loc)
+
+/*VC: x != nil, precondition to loop invariant*/
+
+(Pre (and
+ (List x)
+ (List y)
+ (= (Intersect (Sp (List x)) (Sp (List y))) EmptySet)
+))
+
+(assume (not (= x nil)))
+(assign head x)
+(assign n (next x))
+
+(Post (and
+ (Lseg head x)
+ (List x)
+ (List y)
+ (= (Intersect (Sp (Lseg head x)) (Sp (List x))) EmptySet)
+ (= (Intersect (Sp (Lseg head x)) (Sp (List y))) EmptySet)
+ (= (Intersect (Sp (List x)) (Sp (List y))) EmptySet)
+ (= (Union (Keyseg head x) (Union (Keys x) (Keys y))) (Union (Old (Keys x)) (Old (Keys y))))
+))
+

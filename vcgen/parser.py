@@ -884,15 +884,12 @@ def ml_to_sl(user_input):
 #We assume input is given in the right format.
 
 
-def vc(user_input):
+def vc_single(code_line):
     '''VC generation'''
+
+
     global alloc_set
     transform = []
-    nc_uip = ml_to_sl(remove_comments(user_input))
-    code_line = [create_input(i) for i in nc_uip]
-    logging.info(f'vc input list: {code_line}')
-    #printf(code_line)
-    printf('done creating input list')
     for i in code_line:
         tag = i[0]
         if tag =='Var' or tag == 'Const':
@@ -968,6 +965,49 @@ def vc(user_input):
         print('goal is invalid')
     return goal
 
+
+
+def vc(user_input):
+    
+    global vardict
+    global funcdict
+    global recdefdict
+    global freevardict
+    global modified_vars
+    global alloc_set
+    global has_mutated
+    global no_fc 
+    nc_uip = ml_to_sl(remove_comments(user_input))
+    code_line = [create_input(i) for i in nc_uip]
+    logging.info(f'vc input list: {code_line}')
+    #printf(code_line)
+    printf('done creating input list')
+    vcs_in_file = []
+    current_vc = []
+    j = 0
+    while j <len(code_line):
+        if code_line[j] == 'END VC':   #use input is (END VC)
+            vcs_in_file.append(current_vc)
+            current_vc = []
+        elif j == len(code_line)-1:
+            current_vc.append(code_line[j])
+            vcs_in_file.append(current_vc)
+            current_vc = []
+        else:
+            current_vc.append(code_line[j])
+        j = j+1
+
+    for i in vcs_in_file:
+        vardict = {}
+        funcdict = {}
+        recdefdict = {}
+        freevardict = {'Loc':[],'SetLoc':[],'Int':[],'SetInt':[],'Bool':[]}
+        modified_vars = []
+        alloc_set = EmptySet(IntSort())
+        has_mutated = 0
+        no_fc  = 0
+        vc_single(i)
+    
 
 
 

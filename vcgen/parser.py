@@ -778,7 +778,7 @@ def vc(user_input):
     logging.info('Tranform: %s' % transform)
     logging.info('Post: %s' % postcond)
     np_solver = NPSolver()
-    np_solver.options.depth = 2
+    np_solver.options.depth = 1
     solution = np_solver.solve(goal)
     if not solution.if_sat:
         logging.info('goal is valid')

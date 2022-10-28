@@ -273,7 +273,6 @@ def interpret_ops(list):
             raise Exception('Application takes two arguments: (. x function)')
         else:
             op1, op2 = operands
-            print('myr',op1,'velya myr', op2)
             if op2[0] in funcdict.keys():
                 return funcdict[op2[0]](vardict[op1[0]])
             else:
@@ -300,15 +299,13 @@ def interpret_ops(list):
             #recdef functions also defined like this?
 
     elif operator == 'RecDef':
-        if len(operands)== 1:
-            print('operaands:',operands)
-            tag, op1, op2 = operands[0]
-            print('op1',op1)
-            if tag == ':=':
-                if len(op1)>=2:
-                     if op1[0] in recdefdict.keys():
-                        func, vars = op1[0], op1[1:]
-                        return AddRecDefinition(recdefdict[func],*[vardict[v[0]] for v in vars],interpret_ops(op2))
+        #check this again:
+        #format is (RecDef (function (x) (y)...) (recursive definition))
+        op1, op2 = operands
+            #print('op1',op1)
+        if op1[0] in recdefdict.keys():
+            func, vars = op1[0], op1[1:]
+            return AddRecDefinition(recdefdict[func],*[vardict[v[0]] for v in vars],interpret_ops(op2))
     else:
         if operator in funcdict.keys():#i.e the function has been defined.
             return funcdict[operator](*[interpret_ops(op) for op in operands])   
@@ -350,7 +347,7 @@ def vc(list):
 
 t1 = ['(Var y0 Loc)','(Var z Loc)','(Var y1 Loc)','(Var x0 Loc)','(Const nil Loc)','(Function next Loc Loc)']
 t2 = ['(RecFunction list Loc Bool)']
-t3 = ['(RecDef (:= (list (z)) (ite (= (z) (nil)) (True) (list (next (z))))))']
+t3 = ['(RecDef (list (z)) (ite (= (z) (nil)) (True) (list (next (z)))))']
 t4 = ['(assume (!= (x0) (nil)))','(= (y1) (. (x0) (next)))']
 t5 = ['(pre (list (x0)))','(post (list (y1)))']
 var_test = t1+t2+t3+t4+t5

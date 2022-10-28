@@ -26,8 +26,9 @@ PreFormula -> @pre: Formula(Application) % see grammar 'COMBINATOR' below
 PostFormula -> @post: Formula(Application) % see grammar 'COMBINATOR' below
 
 % Program statements
-ProgTerm -> VarName | ProgTerm.FuncName % only arity 1 functions can be mutable fields and usable in program terms (no arbitrary uninterpreted functions)
-ProgCond -> Formula(ProgTerm) % see grammar 'COMBINATOR' below
+ProgApplication -> VarName | ProgApplication.FuncName % only arity 1 functions can be mutable fields and usable in program terms (no arbitrary uninterpreted functions)
+ProgTerm -> Term(ProgApplication)    % see grammar 'COMBINATOR' below
+ProgCond -> Formula(ProgApplication) % see grammar 'COMBINATOR' below
 AssumeStatement -> assume ProgCond
 AssignOrMutateStatement -> ProgTerm := ProgTerm
 Statement -> AssumeStatement | AssignOrMutateStatement

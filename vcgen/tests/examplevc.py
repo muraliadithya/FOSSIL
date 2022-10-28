@@ -34,24 +34,33 @@ AddAxiom((var1,), next_2(var1) == If(var1==y_1, x_0, next_1(var1)))
 splist_0 = RecFunction('splist_0',fgsort,fgsetsort)
 splist_2 = RecFunction('splist_2',fgsort,fgsetsort)
 
+# AddAxiom( (var1,), Implies(var1==nil, next_0(var1)==nil) )
+# AddAxiom( (var1,), Implies(var1==nil, next_1(var1)==nil) )
+# AddAxiom( (var1,), Implies(var1==nil, next_2(var1)==nil) )
 AddRecDefinition(splist_0, var1, If(var1 == nil, fgsetsort.lattice_bottom, SetAdd(splist_0(next_0(var1)),var1)))
 AddRecDefinition(splist_2, var1, If(var1 == nil, fgsetsort.lattice_bottom, SetAdd(splist_2(next_2(var1)),var1)))
 AddRecDefinition(list_0, var1 , If(var1 == nil, True, And(Not(IsSubset(SetAdd(fgsetsort.lattice_bottom,var1),splist_0(next_0(var1)))),list_0(next_0(var1)))))
 AddRecDefinition(list_2, var1 , If(var1 == nil, True, And(Not(IsSubset(SetAdd(fgsetsort.lattice_bottom,var1),splist_2(next_2(var1)))),list_2(next_2(var1)))))
-
-
 # vc
 # pre = And(list_0(x_0),splist_0(x_0))
 # post = And(list_2(x_1),splist_2(x_1))
 pre = list_0(x_0)
 post =list_2(x_1)
+
+#have-> list_2(next_2(next_2(x_1)))
+
+
 #Frame condition:
-
-set1 = SetAdd(fgsetsort.lattice_bottom,x_0)
-set2 = SetAdd(fgsetsort.lattice_bottom,y_1)
-fp1 = And(list_0(next_0(y_1)), Not(Or(IsSubset(set1,splist_0(next_0(y_1))),IsSubset(set2,splist_0(next_0(y_1))))))
-AddAxiom((y_1,), Implies(fp1,list_2(next_0(y_1))))
-
+# set1 = SetAdd(fgsetsort.lattice_bottom,x_0)
+# set2 = SetAdd(fgsetsort.lattice_bottom,y_1)
+# p = Var('p', fgsort)
+# fp1 = And(list_0(p), Not(Or(IsSubset(set1,splist_0(p)),IsSubset(set2,splist_0(p)))))
+# AddAxiom((p,), Implies(fp1,list_2(p)))
+# fp1 = And(list_0(next_0(y_1)), Not(Or(IsSubset(set1,splist_0(next_0(y_1))),IsSubset(set2,splist_0(next_0(y_1))))))
+# AddAxiom((y_1,), Implies(fp1,list_2(next_0(y_1))))
+p = Var('p', fgsort)
+AddAxiom((p,), Implies(And((SetIntersect(SetAdd(SetAdd(fgsetsort.lattice_bottom,x_0),y_1), splist_0(p))== fgsetsort.lattice_bottom),list_0(p)),list_2(p) ))
+AddAxiom((p,), Implies((SetIntersect(SetAdd(SetAdd(fgsetsort.lattice_bottom,x_0),y_1), splist_0(p))== fgsetsort.lattice_bottom),splist_0(p) == splist_2(p) ))
 
 transform = And(Not(x_0 == nil), y_1 == next_0(x_0), Not(y_1 == nil),x_1==y_1 )
 goal = Implies(And(pre,transform),post)
@@ -59,7 +68,9 @@ goal = Implies(And(pre,transform),post)
 # list(y@2) AND (x@0 \not in Sp(list(y@2)) ) => list’(y@2) 
 # check validity with natural proof solver and no hardcoded lemmagis
 np_solver = NPSolver()
+np_solver.options.depth = 2
 solution = np_solver.solve(goal)
+print(next_0(next_0(x_0)) in solution.instantiation_terms)
 if not solution.if_sat:
     print('goal (no lemmas) is valid')
 else:

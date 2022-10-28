@@ -193,6 +193,7 @@ class CombinatorLogic:
         @Formula.set_parse_action
         def interpret_formula(string, loc, tokens):
             numtok = len(tokens)
+            print('loc',loc,'---->','numtok',numtok,'tokens--->',tokens)
             if numtok == 1:
                 return tokens
             elif numtok == 2:

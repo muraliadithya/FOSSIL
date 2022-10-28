@@ -49,7 +49,6 @@ Type = pp.one_of("Loc SetLoc Int SetInt Bool")
 VarName = pp.Word(pp.alphanums)
 FuncName = pp.Word(pp.alphanums)
 
-
 # Interpretation of types
 @Type.set_parse_action
 def translate_type(string, loc, tokens):
@@ -73,13 +72,13 @@ FODecl = pp.Group(VarDecl ^ ConstDecl ^ FuncDecl)
 
 # Interpretation for declarations
 @VarDecl.set_parse_action
-def store_variable(string, loc, tokens):
+def store_variable(string, loc, tokens): #token Var x Loc -> ['x',Fg]
     var_name, var_type = tokens
     _ = vardict.get(var_name, None)
     if _ is not None:
         raise RedeclarationException(f'Variable {var_name} is redeclared', loc, string)
     info_dict = {'type': var_type, 'value': Var(var_name, var_type), 'counter': 1}
-    vardict[var_name] = info_dict
+    vardict[var_name] = info_dict       #add to vardict
 
 
 @ConstDecl.set_parse_action
@@ -133,6 +132,7 @@ Application <<= Variable ^ (pp.Combine(FOFunction + LParen) + pp.delimitedList(A
 # uct sort to be used when parsing formulas.
 @Application.set_parse_action
 def interpret_application(string, loc, tokens):
+    #print('appint-/-/-/-/-/-/-/-/-/-/->>',string, loc, tokens)
     if len(tokens) == 1:
         return tokens[0]
     else:
@@ -165,6 +165,18 @@ def interpret_application(string, loc, tokens):
 annotation_logic = CombinatorLogic(Application)
 AnnotationTerm = annotation_logic.Term
 AnnotationFormula = annotation_logic.Formula
+
+
+# Grammar for program terms and conditions
+# ProgApplication = pp.Forward()
+# ProgApplication <<= Variable ^ (pp.Combine(ProgApplication + Dot + FOFunction))
+# Program applications have to be defined in this weird way because pyparsing has trouble with left recursion
+ProgApplication = Variable + (Dot + FOFunction)[...]
+# The condition language is induced over the program term language defined above.
+prog_logic = CombinatorLogic(ProgApplication)
+ProgTerm = prog_logic.Term
+ProgCond = prog_logic.Formula
+
 # Term/Formula language that does not parse into an expression. This is useful because we just want to store
 # the bodies of recursive definitions as strings until we need to instantiate them at a particular program state.
 # However, the parsing will internally still finish the transformation into an expression
@@ -173,7 +185,7 @@ BareAnnotationTerm = pp.original_text_for(AnnotationTerm)
 BareAnnotationFormula = pp.original_text_for(AnnotationFormula)
 # Grammar for recursive definitions
 RecDef = RecFunctionDefinitionTag + (pp.Combine(FuncName + LParen) + pp.Group(pp.delimitedList(VarName)) + RParen) \
-         + AssignmentOperator + (BareAnnotationTerm ^ BareAnnotationFormula)
+         + AssignmentOperator + (ProgCond^ProgTerm)
 
 
 # Interpretation for recursive definitions
@@ -192,6 +204,7 @@ def store_rec_decl(string, loc, tokens):
     if given_arity != expected_arity:
         raise BadDefinitionException(f'Arity mismatch: {def_name} has arity {expected_arity} '
                                      f'but was given {given_arity} arguments', loc, string)
+    recdefn = AddRecDefinition(def_name, formal_params,body)
     recdefdict[def_name] = {'params': list(formal_params), 'body': body}
 
 
@@ -210,10 +223,10 @@ def check_decls(string, loc, tokens):
         raise BadDefinitionException(f'The following were declared as recursive functions '
                                      f'but no definition was given: {", ".join(no_body)}')
     # Check whether footprint functions are defined for every normal recursive definition
-    basic_defs = [recdef for recdef in recdefdict if not recdef.startswith('SP')]
-    for recdef in basic_defs:
-        if 'SP' + recdef not in recdefdict:
-            raise BadDefinitionException(f'Footprint definition {"SP" + recdef} not found for definition {recdef}')
+    # basic_defs = [recdef for recdef in recdefdict if not recdef.startswith('SP')]
+    # for recdef in basic_defs:
+    #     if 'SP' + recdef not in recdefdict:
+    #         raise BadDefinitionException(f'Footprint definition {"SP" + recdef} not found for definition {recdef}')
     return True
 
 
@@ -278,21 +291,14 @@ def store_annotation(string, loc, tokens):
         post_cond = annotation_formula
 
 
-# Grammar for program terms and conditions
-# ProgApplication = pp.Forward()
-# ProgApplication <<= Variable ^ (pp.Combine(ProgApplication + Dot + FOFunction))
-# Program applications have to be defined in this weird way because pyparsing has trouble with left recursion
-ProgApplication = Variable + (Dot + FOFunction)[...]
-# The condition language is induced over the program term language defined above.
-prog_logic = CombinatorLogic(ProgApplication)
-ProgTerm = prog_logic.Term
-ProgCond = prog_logic.Formula
 
 
 # Interpretation of program application expressions
 @ProgApplication.set_parse_action
 def interpret_prog_term(string, loc, tokens):
+    #print('programapp happening:',ProgApplication,'\n')
     if len(tokens) == 1:
+        print('print tokens--->',tokens[0])
         return tokens[0]
     (interp, interp_sort), applications = tokens[0], tokens[1:]
     # Build the sequence of applications
@@ -308,7 +314,7 @@ def interpret_prog_term(string, loc, tokens):
         interp = func_info['value'](interp)
         interp_sort = func_info['type'][-1]
     return interp, interp_sort
-
+#split into 2?
 
 # Grammar for program statements
 AssumeStatement = AssumeStatementTag + ProgCond
@@ -318,8 +324,30 @@ Statements = Statement[...]
 
 
 # Interpretation for program statements
+
 # TODO
 
+#assume (formula). Add 
+@AssumeStatement.set_parse_action
+def make_assumption(tag, formula):
+    #Formula <<= Atom ^ (LParen + UnBoolOp + Formula + RParen)
+    #  ^ (LParen + Formula + BinBoolOp + Formula + RParen) 
+    # ^ ITEFormula
+    #We want to look at the counter associated with each variable inside
+    #the formula. And for each x in it, x->x@counter_value
+    
+    #To do this, we need to keep track of the variables in formula.
+
+
+    trans.append(formula[0])
+
+    return formula[0]
+
+#store assume in a list. We'll add this to tranform.
+
+@AssignOrMutateStatement.set_parse_action
+def make_updates(app,op,term):
+    return None
 
 Program = Decls + Annotation + Statements + Annotation
 # Add single and multiline comments (c++ style)

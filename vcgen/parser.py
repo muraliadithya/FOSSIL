@@ -658,10 +658,17 @@ def function_call(iplist):
             x = elt['z3name'](free_var)
             logging.info(f'Function Call: {x} = {y}')
             AddAxiom((free_var,), x == y)
-            global has_mutated
-            
-        has_mutated = 1
+        global has_mutated
         alloc_set = SetUnion(old_alloc_rem,sp_post)
+        has_mutated = 0
+        for i in recdefdict:
+            func_update(i)
+        for i in recdefdict:
+            if i[:2] != 'SP':
+            interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
+
+
+
         return to_assume
     
 def interpret_alloc(iplist):

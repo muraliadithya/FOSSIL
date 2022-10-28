@@ -127,8 +127,8 @@ def make_list(list): #elements can be strings or lists
             
 def create_input(string):
     return make_list(listify(string))[0]            #0?
-#x = '(pre (and (list (next x)) (not (= x y))))'
-# y = make_list(x)
+# x = '(pre (and (list (next x)) (not (= x y))))'
+# y = create_input(x)
 # print(x)
 # print(y)
 #print(create_input('(RecDef list Int Bool)'))
@@ -205,7 +205,14 @@ def func_parser(funcinfo):
 #(or x y z...) -> Or(x,y,z,...)
 
 def interpret_ops(list):
-    if len(list)==1:
+    if type(list) == str:         
+        if list =='True':
+            return True
+        elif list[0]=='False':
+            return False            #this is to deal with when the input variable is given without brackets
+        elif list in vardict.keys():#for example (func x (y))-> ['fun', 'x', ['y']] 
+            return vardict[list]    #This then does func( interpret_ops('x'), interpret_ops(['y']))
+    if len(list)==1:              
         if list[0]=='True':
             return True
         elif list[0]=='False':
@@ -302,7 +309,6 @@ def interpret_ops(list):
         #check this again:
         #format is (RecDef (function (x) (y)...) (recursive definition))
         op1, op2 = operands
-            #print('op1',op1)
         if op1[0] in recdefdict.keys():
             func, vars = op1[0], op1[1:]
             return AddRecDefinition(recdefdict[func],*[vardict[v[0]] for v in vars],interpret_ops(op2))

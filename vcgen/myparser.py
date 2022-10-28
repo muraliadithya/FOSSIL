@@ -310,7 +310,6 @@ def interpret_ops(list):
         if operator in funcdict.keys():#i.e the function has been defined.
             return funcdict[operator](*[interpret_ops(op) for op in operands])   
         elif operator in recdefdict.keys():
-            print('operands', operands)
             return recdefdict[operator](*[interpret_ops(op) for op in operands])        
     
     
@@ -319,7 +318,6 @@ def vc(list):
     transform = []
     code_line = [create_input(i) for i in list]
     for i in code_line:
-        #print('i...................',i)
         tag = i[0]
         if tag =='Var' or tag == 'Const':
             var_parser(i)

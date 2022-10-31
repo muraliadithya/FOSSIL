@@ -1,0 +1,239 @@
+/*
+// ---- Commmon definitions for circular list examples  ----
+#include <vcc.h>
+#include <stdlib.h>
+
+typedef
+/*D_tag node */
+struct node {
+  int key;
+  struct node * next;
+} CNode;
+
+/*D_defs
+  define relation lseg^(head, tail):
+  (
+  ((head l= tail) & emp) |
+  ((head |-> loc next: nxt) * lseg^(nxt, tail))
+  ) ;
+*/
+// ---------------------------------------------------------
+
+_(dryad)
+CNode * lseg_delete_back(CNode * hd, CNode * tl)
+  /*D_requires  ((~(hd l= nil)) & lseg^(hd, tl)) */
+  /*D_ensures lseg^(ret, tl) */
+{
+	CNode * next = hd->next;
+
+	if (next == NULL) return next;
+	if (next == tl) {
+		free(hd);
+		return next;
+	} else {
+		CNode * hd_next = lseg_delete_back(next, tl);
+		hd->next = hd_next;
+		return hd;
+	}
+}
+
+_(dryad)
+CNode * circular_list_delete_back(CNode * x)
+  /*D_requires ((x |-> loc next: nxt) * lseg^(nxt, x)) */
+  /*D_ensures ((emp & ((x l= nxt) => (ret l= nil))) |
+       ((~(x l= nxt)) => ((x |-> loc next: ret) * lseg^(ret, x))) */
+{
+	CNode * next = x->next;
+	if (next == x) {
+		free(next);
+		return NULL;
+	} else {
+		CNode * hd_next = lseg_delete_back(next, x);
+		x->next = hd_next;
+		return hd_next;
+	}
+}
+*/
+
+
+(Const nil Loc)
+(Function next Loc Loc)
+
+(Var var1 Loc)
+(Var var2 Loc)
+
+(RecFunction Lseg Loc Loc Bool)
+(RecDef (Lseg var1 var2) (ite (= var1 var2) True (and (not (IsMember var1  (Sp (Lseg [(next var1)] var2)))) (Lseg (next var1) var2))) )
+
+/*
+(Contract lseg_delete_back
+  (head tail)
+  (ret)
+  (and
+    (not (= head nil))
+    (Lseg head tail))
+  (Lseg ret tail)
+)
+
+(Contract circular_list_delete_back
+  (x)
+  (ret)
+  (and
+    (Lseg (next x) x)
+    (not (IsMember x (Sp (Lseg [(next x)] x)))))
+  (ite (= (next x) x)
+    (= ret nil)
+    (and
+      (= (next x) ret)
+      (Lseg ret x)
+      (not (IsMember x (Sp (Lseg ret x))))))
+)
+*/
+
+/* Variables used in both functions */
+(Var head Loc)
+(Var tail Loc)
+(Var nxt Loc)
+(Var head_nxt Loc)
+(Var x Loc)
+
+/* VCs for lseg_delete_back */
+/* VC:  next(head) = nil */
+
+(Pre (and
+  (not (= head nil))
+  (Lseg head tail)
+))
+
+(assign nxt (next head))
+(assume (= nxt nil))
+(assign ret nxt)
+
+(Post (Lseg ret tail))
+
+
+/* VC: next(head) != nil and next(head) = tail */
+
+(Pre (and
+  (not (= head nil))
+  (Lseg head tail)
+))
+
+(assign nxt (next head))
+(assume (not (= nxt nil)))
+(assume (= nxt tail))
+(free head)
+(assign ret nxt)
+
+(Post (Lseg ret tail))
+
+
+/* VC: next(head) != nil and next(head) != tail to precondition of recursive call*/
+
+(Pre (and
+  (not (= head nil))
+  (Lseg head tail)
+))
+
+(assign nxt (next head))
+(assume (not (= nxt nil)))
+(assume (not (= nxt tail)))
+
+/* CNode * hd_next = lseg_delete_back(next, x); */
+(RelaxedPost (and
+  (not (= nxt nil))
+  (Lseg nxt x)
+))
+
+
+/* VC: next(head) != nil and next(head) != tail through recursive call to postcondition */
+
+(Pre (and
+  (not (= head nil))
+  (Lseg head tail)
+))
+
+(assign nxt (next head))
+(assume (not (= nxt nil)))
+(assume (not (= nxt tail)))
+/* CNode * hd_next = lseg_delete_back(next, x); */
+(call
+  (and
+    (not (= nxt nil))
+    (Lseg nxt x))
+  (Lseg head_nxt x)
+)
+(assign (next head) head_nxt)
+(assign ret head)
+
+(Post (Lseg ret tail))
+
+
+/* VCs for circular_list_delete_back */
+/* VC: next(x) = x */
+
+(Pre (and
+  (Lseg (next x) x)
+  (not (IsMember x (Sp (Lseg [(next x)] x))))
+))
+
+(assign nxt (next x))
+(assume (= nxt x))
+(free nxt)
+(assign ret nil)
+
+(Post (ite
+  (= (next x) x)
+  (= ret nil)
+  (and
+    (= (next x) ret)
+    (Lseg ret x)
+    (not (IsMember x (Sp (Lseg ret x)))))
+  )
+)
+
+
+/* VC: next(x) != x to precondition of call to lseg_delete_back */
+
+(Pre (and
+  (Lseg (next x) x)
+  (not (IsMember x (Sp (Lseg [(next x)] x))))
+))
+
+(assign nxt (next x))
+(assume (not (= nxt x)))
+/* CNode * hd_next = lseg_delete_back(next, x); */
+(RelaxedPost (and
+  (not (= nxt nil)) /* this may not be provable without additional modeling assumptions */
+  (Lseg nxt x)
+))
+
+
+/* VC: next(x) != x through call to lseg_delete_back to postcondition */
+
+(Pre (and
+  (Lseg (next x) x)
+  (not (IsMember x (Sp (Lseg [(next x)] x))))
+))
+
+(assign nxt (next x))
+(assume (not (= nxt x)))
+/* CNode * hd_next = lseg_delete_back(next, x); */
+(call
+  (and
+    (not (= nxt nil))
+    (Lseg nxt x))
+  (Lseg head_nxt x)
+)
+(assign (next x) head_nxt)
+(assign ret head_nxt)
+
+(Post (ite
+  (= (next x) x)
+  (= ret nil)
+  (and
+    (= (next x) ret)
+    (Lseg ret x)
+    (not (IsMember x (Sp (Lseg ret x)))))
+  )
+)

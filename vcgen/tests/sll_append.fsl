@@ -1,0 +1,112 @@
+/*
+SNnode * sll_append(SNnode * x1, SNnode * x2)
+  /*D_requires (sll^(x1) * sll^(x2)) */
+  /*D_ensures  (sll^(ret) & (keys^(ret) s= (old(keys^(x1)) union old(keys^(x2))))) */
+{
+	if (x1 == NULL) {
+		return x2;
+	} else {
+		SNnode * tmp = sll_append(x1->next, x2);
+		x1->next = tmp;
+		return x1;
+	}
+	
+}
+*/
+
+(Const nil Loc)
+(Function next Loc Loc)
+(Function key Loc Int)
+
+(Var var1 Loc)
+
+(RecFunction List Loc Bool)
+(RecDef (List var1) (ite (= var1 nil) True (and (not (IsMember var1  (Sp (List [(next var1)])))) (List (next var1)))) )
+
+(RecFunction Keys Loc SetInt)
+(RecDef (Keys var1) (ite (= var1 nil) EmptySetInt (SetAdd (Keys (next var1)) (key var1)) ))
+
+(Var x Loc)
+(Var y Loc)
+(Var ret Loc)
+
+/*
+(Contract sll_append
+  (x y)
+  (ret)
+  (and
+    (List x)
+    (List y)
+    (= (Intersect (Sp (List x)) (Sp (List y))) EmptySetLoc))
+  (and
+    (List ret)
+    (= (Keys ret) (Union (OldKeys x) (OldKeys y))))
+)
+*/
+
+(Var tmp Loc)
+
+/* VC: x = nil */
+
+(Pre (and
+  (List x)
+  (List y)
+  (= (Intersect (Sp (List x)) (Sp (List y))) EmptySetLoc)
+))
+
+(assume (= x nil))
+(assign ret y)
+
+(Post (and
+  (List ret)
+  (= (Keys ret) (Union (OldKeys x) (OldKeys y)))
+))
+
+
+/* VC: x != nil, till recursive function call */
+
+(Pre (and
+  (List x)
+  (List y)
+  (= (Intersect (Sp (List x)) (Sp (List y))) EmptySetLoc)
+))
+
+(assume (not (= x nil)))
+
+/* SNnode * tmp = sll_append(x1->next, x2) */
+
+(RelaxedPost (and
+  (List [(next x)])
+  (List y)
+  (= (Intersect (Sp (List [(next x)])) (Sp (List y))) EmptySetLoc)
+))
+
+
+/* VC: x != nil through the function call till return */
+
+(Pre (and
+  (List x)
+  (List y)
+  (= (Intersect (Sp (List x)) (Sp (List y))) EmptySetLoc)
+))
+
+(assume (not (= x nil)))
+
+/* SNnode * tmp = sll_append(x1->next, x2) */
+(call
+  (and
+    (List [(next x)])
+    (List y)
+    (= (Intersect (Sp (List [(next x)])) (Sp (List y))) EmptySetLoc))
+  (and
+    (List tmp)
+    (= (Keys tmp) (Union (OldKeys [(next x)]) (OldKeys y))))
+)
+
+(assign (next x) tmp)
+(assign ret x)
+
+(Post (and
+  (List ret)
+  (= (Keys ret) (Union (OldKeys x) (OldKeys y)))
+))

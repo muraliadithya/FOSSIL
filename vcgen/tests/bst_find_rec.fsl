@@ -1,0 +1,203 @@
+/*
+// ---- Commmon definitions for bst examples  ----
+#include <vcc.h>
+#include <stdlib.h>
+
+typedef
+/*D_tag b_node */
+struct b_node {
+  struct b_node * left;
+  struct b_node * right;
+  int key;
+} BNode;
+
+/*D_defs 
+define pred bst^(x): 
+  ( ((x l= nil) & emp) |
+    ((x |-> loc left: lft; loc right: rgt; int key: ky) * ((bst^(lft) & (keys^(lft) set-lt ky)) * (bst^(rgt) & (ky lt-set keys^(rgt)))))  
+  );
+
+define set-fun keys^(x):
+  (case (x l= nil): emptyset;
+   case ((x |-> loc left: lft; loc right: rgt; int key: ky) * true): 
+    ((singleton ky) union (keys^(lft) union keys^(rgt)));
+   default: emptyset
+  ) ;
+*/
+// -----------------------------------------------
+
+_(dryad)
+int bst_find_rec(BNode * x, int k)
+  /*D_requires bst^(x)) */
+  /*D_ensures  (((ret i= 1) & (k i-in old(keys^(x)))) | ((ret i= 0) & (~ (k i-in old(keys^(x)))))) */
+{
+  if (x == NULL) {
+    return 0;
+  } else {
+      if (k == x->key) {
+        return 1;
+      } else if (k < x->key) {
+        int r = bst_find_rec(x->left, k);
+        return r;
+      } else {
+        int r = bst_find_rec(x->right, k);
+        return r;
+    }
+  }
+}
+*/
+
+(Const nil Loc)
+(Const minus_infty Int)
+(Const plus_infty Int)
+
+/*
+(Var i1 Int)
+(Var i2 Int)
+(Macro min (i1 i2) (ite (< i1 i2) i1 i2))
+(Macro max (i1 i2) (ite (> i1 i2) i1 i2))
+*/
+
+(Function left Loc Loc)
+(Function right Loc Loc)
+(Function key Loc Int)
+
+(Var var1 Loc)
+
+(RecFunction Mintree Loc Int)
+/* below can be written easier with macros */
+(RecDef (Mintree var1) (ite (= var nil)
+                            plus_infty
+                            (ite (< (key var1) (Maxtree (left var1)))
+                                 (ite (< (key var1) (Maxtree (right var1))) (key var1) (Maxtree (right var1)))
+                                 (ite (< (Maxtree (left var1)) (Maxtree (right var1))) (Maxtree (left var1)) (Maxtree (right var1)))) ))
+
+(RecFunction Maxtree Loc Int)
+/* below can be written easier with macros */
+(RecDef (Maxtree var1) (ite (= var nil)
+                            minus_infty
+                            (ite (> (key var1) (Maxtree (left var1)))
+                                 (ite (> (key var1) (Maxtree (right var1))) (key var1) (Maxtree (right var1)))
+                                 (ite (> (Maxtree (left var1)) (Maxtree (right var1))) (Maxtree (left var1)) (Maxtree (right var1)))) ))
+
+(RecFunction Bst Loc Bool)
+(RecDef (Bst var1) (ite (= var1 nil) True (and (and (< (key var1) plus_infty) (minus_infty (key var1)))
+                                               (and (Bst (left var1)) (<= (Maxtree (left var1)) (key var1)))
+                                               (and (Bst (right var1)) (>= (Mintree (right var1)) (key var1)))
+                                                (= EmptySetLoc (Intersect (Sp (and (Bst [(left var1)]) (<= (Maxtree [(left var1)]) [(key var1)])))
+                                                                          (Sp (and (Bst [(right var1)]) (>= (Mintree [(right var1)]) [(key var1)])))))) ))
+
+(RecFunction Keys Loc SetInt)
+(RecDef (Keys var1) (ite (= var1 nil) EmptySetInt (SetAdd (Union (Keys (left var1)) (Keys (right var1))) (key var1)) ))
+
+(Var x Loc)
+(Var k Int)
+(Var r Bool)
+(Var ret Bool)
+
+/*
+(Contract bst_find_rec
+  (x k)
+  (ret)
+  (Bst x)
+  (ite ret (IsMember k (OldKeys x)) (not (IsMember k (OldKeys x))))
+)
+*/
+
+/* VC: x = nil */
+
+(Pre (Bst x)
+)
+
+(assume (= x nil))
+(assign ret False)
+
+(Post (ite ret
+           (IsMember k (OldKeys x))
+           (not (IsMember k (OldKeys x))))
+)
+
+
+/* VC: x != nil and k = key(x) */
+
+(Pre (Bst x)
+)
+
+(assume (not (= x nil)))
+(assume (= k (key x)))
+(assign ret True)
+
+(Post (ite ret
+           (IsMember k (OldKeys x))
+           (not (IsMember k (OldKeys x))))
+)
+
+
+/* VC: x != nil and k != key(x) and k < key(x) to precondition of recursive call */
+
+(Pre (Bst x)
+)
+
+(assume (not (= x nil)))
+(assume (not (= k (key x))))
+(assume (< k (key x)))
+/* int r = bst_find_rec(x->left, k) */
+(RelaxedPost (Bst (left x)))
+
+
+/* VC: x != nil and k != key(x) and k < key(x) through recursive call to postcondition */
+
+(Pre (Bst x)
+)
+
+(assume (not (= x nil)))
+(assume (not (= k (key x))))
+(assume (< k (key x)))
+/* int r = bst_find_rec(x->left, k) */
+(call
+  (Bst [(left x)])
+  (ite r
+       (IsMember k (OldKeys [(left x)]))
+       (not (IsMember k (OldKeys [(left x)]))))
+)
+(assign ret r)
+
+(Post (ite ret
+           (IsMember k (OldKeys x))
+           (not (IsMember k (OldKeys x))))
+)
+
+
+/* VC: x != nil and k != key(x) and k >= key(x) to precondition of recursive call */
+
+(Pre (Bst x)
+)
+
+(assume (not (= x nil)))
+(assume (not (= k (key x))))
+(assume (>= k (key x)))
+/* int r = bst_find_rec(x->right, k) */
+(RelaxedPost (Bst (right x)))
+
+
+/* VC: x != nil and k != key(x) and k >= key(x) through recursive call to postcondition */
+
+(Pre (Bst x)
+)
+
+(assume (not (= x nil)))
+(assume (not (= k (key x))))
+(assume (>= k (key x)))
+/* int r = bst_find_rec(x->right, k) */
+(call
+  (Bst [(right x)])
+  (ite r
+       (IsMember k (OldKeys [(right x)]))
+       (not (IsMember k (OldKeys [(right x)]))))
+)
+(assign ret r)
+
+(Post (ite ret
+           (IsMember k (OldKeys x))
+           (not (IsMember k (OldKeys x))))
+)

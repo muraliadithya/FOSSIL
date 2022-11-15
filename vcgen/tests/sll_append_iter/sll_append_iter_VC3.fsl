@@ -1,0 +1,103 @@
+/*
+Iterative version of the following function:
+
+SNnode * sll_append(SNnode * x1, SNnode * x2)
+  /*D_requires (sll^(x1) * sll^(x2)) */
+  /*D_ensures  (sll^(ret) & (keys^(ret) s= (old(keys^(x1)) union old(keys^(x2))))) */
+{
+	if (x1 == NULL) {
+		return x2;
+	} else {
+	    SNnode * head = x1;
+	    SNnode * n = x1->next;
+		while (n != NULL)
+		/*D_invariant lseg^(head,x1) * sll^(x1) * sll^(x2) & keyseg^(head,x1) union keys^(x1) union keys^(x2) s= (old(keys^(x1)) union old(keys^(x2)))*/
+		{
+		    x1 = n;
+		    n = x1->next;
+		}
+        n->next = x2;
+		return head;
+	}
+
+}
+
+*/
+
+(Const nil Loc)
+(Function next Loc Loc)
+(Function key Loc Int)
+
+(Var var1 Loc)
+(Var var2 Loc)
+
+(RecFunction List Loc Bool)
+(RecDef (List var1) (ite (= var1 nil) True (and (not (IsMember (var1)  (SPList (next var1)))) (List (next var1)))) )
+
+(RecFunction Lseg Loc Loc Bool)
+(RecDef (Lseg var1 var2) (ite (= var1 var2) True (and (not (IsMember (var1)  (SPLseg (next var1) var2))) (Lseg (next var1) var2))) )
+
+(RecFunction Keys Loc SetInt)
+(RecDef (Keys var1) (ite (= var1 nil) EmptySetInt (SetAdd (Keys (next var1)) (key var1)) ))
+
+(RecFunction Keyseg Loc Loc SetInt)
+(RecDef (Keyseg var1 var2) (ite (= var1 var2) EmptySetInt (SetAdd (Keyseg (next var1) var2) (key var1)) ))
+
+
+(Var x Loc)
+(Var y Loc)
+(Var head Loc)
+(Var n Loc)
+(Var ret Loc)
+
+
+/*VC: loop entrance through invariant invariance*/
+
+(Pre (and
+ (Lseg head x)
+ (= (next x) n)
+ (List n)
+ (List y)
+ (= (Intersect (Sp (Lseg head x)) (Sp (Lseg x n))) EmptySetLoc)
+ (= (Intersect (Sp (Lseg head x)) (Sp (List n))) EmptySetLoc)
+ (= (Intersect (Sp (Lseg head x)) (Sp (List y))) EmptySetLoc)
+ (= (Intersect (Sp (Lseg x n)) (Sp (List n))) EmptySetLoc)
+ (= (Intersect (Sp (Lseg x n)) (Sp (List y))) EmptySetLoc)
+ (= (Intersect (Sp (List n)) (Sp (List y))) EmptySetLoc)
+ (= (Union (SetAdd (Keyseg head x) (key x)) (Union (Keys n) (Keys y))) (Union (Old (Keys head)) (Old (Keys y))))
+))
+
+
+/* instantiated lemmas */
+(assume (= (SPKeys n) (SPList n)))
+(assume (= (SPKeys y) (SPList y)))
+(assume (= (SPKeyseg head n) (SPLseg head n)))
+(assume (=> (and (Lseg head x) (Lseg x n)) (Lseg head n)))
+(assume (= (Union (SPLseg head x) (SPLseg x n)) (SPLseg head n)))
+(assume (= (Union (Keyseg head x) (Keyseg x n)) (Keyseg head n)))
+(assume (= (Union (SPKeyseg head x) (SPKeyseg x n)) (SPKeyseg head n))) /* implied by other lemmas */
+
+(assume (not (= n nil)))
+(assign x n)
+(assign n (next x))
+
+/* instantiated lemmas */
+(assume (= (SPKeyseg head n) (SPLseg head n)))
+(assume (=> (and (Lseg head x) (Lseg x n)) (Lseg head n)))
+(assume (= (Union (SPLseg head x) (SPLseg x n)) (SPLseg head n)))
+(assume (= (Union (Keyseg head x) (Keyseg x n)) (Keyseg head n)))
+(assume (= (Union (SPKeyseg head x) (SPKeyseg x n)) (SPKeyseg head n))) /* implied by other lemmas */
+
+(Post (and
+ (Lseg head x)
+ (= (next x) n)
+ (List n)
+ (List y)
+ (= (Intersect (Sp (Lseg head x)) (Sp (Lseg x n))) EmptySetLoc)
+ (= (Intersect (Sp (Lseg head x)) (Sp (List n))) EmptySetLoc)
+ (= (Intersect (Sp (Lseg head x)) (Sp (List y))) EmptySetLoc)
+ (= (Intersect (Sp (Lseg x n)) (Sp (List n))) EmptySetLoc)
+ (= (Intersect (Sp (Lseg x n)) (Sp (List y))) EmptySetLoc)
+ (= (Intersect (Sp (List n)) (Sp (List y))) EmptySetLoc)
+ (= (Union (SetAdd (Keyseg head x) (key x)) (Union (Keys n) (Keys y))) (Union (Old (Keys head)) (Old (Keys y))))
+))

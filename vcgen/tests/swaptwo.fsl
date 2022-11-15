@@ -1,0 +1,43 @@
+/*
+swaptwo(x)
+@pre: List(x) AND x!=nil AND x.next!=nil AND x.key=k AND x.key'=k'
+{
+    y := x.next;
+    x.next := y.next;
+    y.next := x;
+    x := y}
+}
+@post: List(x) AND x.key=k' AND x.next.key=k AND Keys(x) = OldKeys(x)
+*/
+
+(Const nil Loc)
+(Function next Loc Loc)
+(Function key Loc Int)
+
+(Var var1 Loc)
+
+(RecFunction List Loc Bool)
+(RecDef (List var1) (ite (= var1 nil) True (and (not (IsMember (var1)  (SPList (next var1)))) (List (next var1)))) )
+
+(Var head Loc)
+(Var x Loc)
+(Var y Loc)
+(Var z Loc)
+
+(Pre
+(List x)
+)
+
+(assume (not (= x nil)))
+(assign head x)
+(assign y (next x))
+(assume (not (= y nil)))
+(assign z (next y))
+(assign (next x) z)
+(assign (next y) x)
+(assign x y)
+
+
+(Post
+ (List x)
+)

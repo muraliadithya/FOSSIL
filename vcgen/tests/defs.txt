@@ -1,0 +1,19 @@
+/* Linked list stuff */
+(RecFunction List Loc Bool)
+(RecDef (List var1) (ite (= var1 nil) True (and (not (IsMember var1  (Sp (List [(next var1)])))) (List (next var1))) ))
+
+(RecFunction Keys Loc SetInt)
+(RecDef (Keys var1) (ite (= var1 nil) EmptySetInt (SetAdd (Keys (next var1)) (key var1)) ))
+
+(RecFunction Length Loc Int)
+(RecDef (Length var1) (ite (= var1 nil) 0 (+ 1 (Length (next var1))) ))
+
+/* Linked list segment stuff */
+(RecFunction Lseg Loc Loc Bool)
+(RecDef (Lseg var1 var2) (ite (= var1 var2) True (and (not (IsMember var1  (Sp (Lseg [(next var1)] var2)))) (Lseg (next var1) var2)) ))
+
+(RecFunction Lengthseg Loc Loc Int)
+(RecDef (Lengthseg var1 var2) (ite (= var1 var2) 0 (+ 1 (Lengthseg (next var1) var2)) ))
+
+(RecFunction Keyseg Loc Loc SetInt)
+(RecDef (Keyseg var1 var2) (ite (= var1 var2) EmptySetInt (SetAdd (Keyseg (next var1) var2) (key var1)) ))

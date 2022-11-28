@@ -153,8 +153,14 @@ modified_vars = []
 alloc_set = EmptySet(IntSort())                                  #??
 #Variable keeping track of whether a new mutation has happened
 has_mutated = 0
-#Variable keeping track of the number of function calss
+#Variable keeping track of the number of function calls
 no_fc = 0
+
+#Set of lemmas to be instantiated
+lemma_set = set()
+
+#Descriptions of the lemmas
+lemma_desc = []
 # -----------------------------------------------
 
 def type_parser(input_type):
@@ -313,9 +319,10 @@ def interpret_ops(iplist):
         return function_call(iplist)
     if operator == 'alloc':
         return interpret_alloc(iplist)
-    if operator == 'free':
+    if operator == 'free':                  
         interpret_free(iplist)
-
+    if operator == 'lemma':
+        interpret_lemma(iplist)
     raise Exception(f'Invalid Tag {operator} in {iplist}')
 
 #---------(1)--------------
@@ -484,10 +491,11 @@ def interpret_func(iplist):
 #--------------------------(14)---------------------------------------------
 def interpret_recfunc(iplist):
     '''(recfunc args) -> recfunc(args)
-        Specifically for function calls, not recursive definitions. When a recfunc is called,
+        Specifically for calling a fn, not recursive definitions. When a recfunc is called,
         need to check if it has been updated in accordance with mutations'''
     operator, operands = iplist[0], iplist[1:]
     global has_mutated
+    global lemma_desc
     if has_mutated == 1:        # if a function has been changed and we see a recfunc called, we update the defn, then apply the recfn.
         has_mutated = 0
         for i in recdefdict:
@@ -495,6 +503,9 @@ def interpret_recfunc(iplist):
         for i in recdefdict:
             if i[:2] != 'SP':
                 interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
+        
+        for i in lemma_desc:
+            instantiate_lemma(i)
 
     return recdefdict[operator]['z3name'](*[interpret_ops(op) for op in operands])
 
@@ -652,6 +663,9 @@ def function_call(iplist):
             if i[:2] != 'SP':
                 interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
 
+        global lemma_desc
+        for i in lemma_desc:
+            instantiate_lemma(i)
 
 
         return to_assume
@@ -679,6 +693,40 @@ def interpret_free(iplist):
             x = x[0]
     global alloc_set
     SetDel(alloc_set, vardict[x]['z3name'])
+
+
+
+def interpret_lemma(iplist):
+    global lemma_desc
+    operands = iplist[1:]
+    lemma_desc.append(operands)
+    instantiate_lemma(operands)
+
+
+
+
+#---------------------------------------------------------------------------
+def instantiate_lemma(operands):        #this 'instantiates' a lemma
+    
+    global lemma_set                    # (lemma (args) (body) )
+    if len(operands)==2:
+        argop, bodyop   = operands
+        arglist = []
+        for i in argop:
+            if isinstance(i,str):
+                if i in vardict:
+                    arglist.append(vardict[i]['z3name'])
+            elif len(i)==1:
+                if i[0] in vardict:
+                    arglist.append(vardict[i[0]]['z3name'])
+            else:
+                raise Exception(f'Invalid argument inputs in {operands}')
+
+        argtuple = tuple(arglist)
+        body = interpret_ops(bodyop)
+        lemma_set.add((argtuple,body))
+    else:
+        raise Exception(f'lemma format (args) (body). Given {operands}')
 
 
 #----------------------------------------------------------------------------------
@@ -884,6 +932,7 @@ def vc(user_input):
     #printf(code_line)
     printf('done creating input list')
     global alloc_set
+    global lemma_set
     transform = []
 
     for i in code_line:
@@ -899,6 +948,11 @@ def vc(user_input):
         elif tag == 'Post':
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
+            rp = 0
+        elif tag == 'RelPost':
+            postcond = interpret_ops(i[1])
+            sp_postcond = support(i[1])
+            rp = 1
         elif tag == 'RecDef':
             name = i[1][0]
             spname = 'SP'+i[1][0]
@@ -919,6 +973,8 @@ def vc(user_input):
             interpret_free(i)
         elif (tag == 'alloc'):
             interpret_alloc(i)
+        elif (tag == 'lemma'):
+            interpret_lemma(i)
         else:
             intops = interpret_ops(i)
             logging.info('Line of code: %s' %intops)
@@ -949,76 +1005,22 @@ def vc(user_input):
     printf('\nvardict:',vardict,'\nFuncdict:',funcdict,'\nRecdefdict:', recdefdict)
     logging.info(f'Final Allocated Set: {z3.simplify(alloc_set)}')
     logging.info(f'Support of postcond: {z3.simplify(sp_postcond)}')
-    goal =  Implies(And(precond,*[t for t in transform]), And(postcond, alloc_set == sp_postcond))
+    if rp == 0:
+        goal =  Implies(And(precond,*[t for t in transform]), And(postcond,sp_postcond == alloc_set))
+        
+    elif rp == 1:
+        goal =  Implies(And(precond,*[t for t in transform]), And(postcond, IsSubset(sp_postcond,alloc_set)))   #changed to issubset from ==
     # goal =  Implies(And(precond,*[t for t in transform]), postcond)
+    else:
+        raise Exception ('No postcondition given')
     print(goal)
     logging.info(f'Goal: {goal}')
     np_solver = NPSolver()
     np_solver.options.depth = 1
-    solution = np_solver.solve(goal)
+    solution = np_solver.solve(goal,lemma_set)
     if not solution.if_sat:
         logging.info('goal is valid')
         print('goal is valid')
     else:
         logging.info('goal is invalid')
         print('goal is invalid')
-    # return goal
-
-
-
-# def vc_mult(user_input):
-    
-#     global vardict
-#     global funcdict
-#     global recdefdict
-#     global freevardict
-#     global modified_vars
-#     global alloc_set
-#     global has_mutated
-#     global no_fc 
-#     nc_uip = ml_to_sl(remove_comments(user_input))
-#     code_line = [create_input(i) for i in nc_uip]
-#     logging.info(f'vc input list: {code_line}')
-#     #printf(code_line)
-#     printf('done creating input list')
-#     vcs_in_file = []
-#     current_vc = []
-#     j = 0
-#     while j <len(code_line):
-#         if code_line[j] == ['END']:   #user input is (END)
-#             vcs_in_file.append(current_vc)
-#             current_vc = []
-#         elif j == len(code_line)-1:
-#             current_vc.append(code_line[j])
-#             vcs_in_file.append(current_vc)
-#             current_vc = []
-#         else:
-#             current_vc.append(code_line[j])
-#         j = j+1
-#     print(len(vcs_in_file))
-#     for i in vcs_in_file:
-#         vardict = {}
-#         funcdict = {}
-#         recdefdict = {}
-#         freevardict = {'Loc':[],'SetLoc':[],'Int':[],'SetInt':[],'Bool':[]}
-#         modified_vars = []
-#         alloc_set = EmptySet(IntSort())
-#         has_mutated = 0
-#         no_fc  = 0
-#         vc(i)
-    
-
-
-
-#####################################################################################
-# t1 = ['(Const nil Loc)', '(Var x Loc)','(Var y Loc)','(Var var1 Loc)']
-# t2 = ['(Function next Loc Loc)']
-# t3 = ['(RecFunction list Loc Bool)']
-# t5 = ['(RecDef (list var1) (ite (= var1 nil) True (and (not (IsMember (var1) (SPlist (next var1)))) (list (next var1)))) )'] 
-# t6 = ['(Pre (list x))']
-# t7 = ['(assume (!= x nil))','(:= y (. x next))','(assume (!= y nil))']
-# t8 = ['(:= (. x next) (. y next))', '(:= (. y next) x)']
-# t9 = ['(:= x y)']
-# t10 = ['(Post (list x))']
-# t = t1+t2+t3+t5+t6+t7+t8+t9+t10
-# vc(t)

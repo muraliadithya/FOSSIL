@@ -219,7 +219,7 @@ def func_parser(funcinfo):
         #...............
         if name[:2]!= 'SP':
             typelist = [type_parser(i) for i in iptype[:-1]]
-            z3_sptype = [*typelist,type_parser('Set'+iptype[0])]       #Only really makes sense in (F name type1 type2)
+            z3_sptype = [*typelist,fgsetsort]       #Only really makes sense in (F name type1 type2)
             
             z3_spfunc = Function('SP'+name+'0',*z3_sptype)
             recdefdict['SP'+name] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
@@ -642,13 +642,14 @@ def function_call(iplist):
         old_alloc_rem = SetDifference(alloc_set,sp_pre)
 
         for i,elt in funcdict.items():
-            new_unint_fn = Function(elt['z3name']+'_unint_'+str(no_fc),*elt['z3type'])
+            # new_unint_fn = Function(elt['z3name']+'_unint_'+str(no_fc),*elt['z3type'])
+            new_unint_fn = Function(i+'_unint_'+str(no_fc),*elt['z3type'])
             input_type = elt['input_type']
             no_inputs = elt['no_inputs']
             fv_used = freevardict[input_type][:no_inputs]
             fv_set = EmptySet(IntSort())
-            for i in fv_used:
-                fv_set = SetAdd(fv_set,i)
+            for j in fv_used:
+                fv_set = SetAdd(fv_set,j)
             y = If(IsSubset(fv_set,old_alloc_rem),elt['z3name'](*fv_used),new_unint_fn(*fv_used))
             func_update(i)
             x = elt['z3name'](*fv_used)
@@ -702,9 +703,15 @@ def interpret_lemma(iplist):
     lemma_desc.append(operands)
     instantiate_lemma(operands)
 
-
-
-
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+def interpret_antisp(iplist):
+    '''(antiSp X) -> X '''
+    operands = iplist[1:]
+    if len(operands) != 1:
+        raise Exception(f'not operator is unary. Given {iplist}')
+    return interpret_ops(operands[0])
+#---------------------------------------------------------------------------
 #---------------------------------------------------------------------------
 def instantiate_lemma(operands):        #this 'instantiates' a lemma
     
@@ -774,6 +781,8 @@ def support(iplist):
         return support_func(iplist)
     if operator == 'Old':
         return support_old(iplist)
+    if operator == 'antiSp':
+        return support_antisp(iplist)
     raise Exception(f'Invalid support operation {iplist}')
 
 def support_basics(iplist):
@@ -790,20 +799,26 @@ def support_func(iplist):
     '''Say func dict is just mutable functions.'''
     operands = iplist[1:]
 
-    terms = fgsetsort.lattice_bottom
-    term_list = [interpret_ops(t) for t in operands]
-    for i in term_list:
-        terms = SetAdd(terms, i)
 
     sp_terms = SetUnion(*[support(t) for t in operands])
 
     if iplist[0] in funcdict:
+        terms = fgsetsort.lattice_bottom
+        term_list = [interpret_ops(t) for t in operands]
+        for i in term_list:
+            terms = SetAdd(terms, i)
         return SetUnion(terms,sp_terms)
     if iplist[0] in recdefdict:
+        # if iplist[0][:2] == 'SP':
+        #     return interpret_ops(iplist)
+        # pp = ['SP'+iplist[0]]+operands
+        # ipp = interpret_ops(pp)
+        # return SetUnion(sp_terms, ipp)
         if iplist[0][:2] == 'SP':
-            return interpret_ops(iplist)
-        pp = ['SP'+iplist[0]]+operands
-        ipp = interpret_ops(pp)
+            ipp = interpret_ops(iplist)
+        else:
+            pp = ['SP'+iplist[0]]+operands
+            ipp = interpret_ops(pp)
         return SetUnion(sp_terms, ipp)
     raise Exception(f'Invalid support on functionos in {iplist}')
 
@@ -845,7 +860,14 @@ def support_old(iplist):
 
         raise Exception(f'Invalid rec def in support old operation {iplist}')
     raise Exception(f'Invalid tag in support old {iplist}')
-
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+def support_antisp(iplist):
+    '''(Sp (antiSp X)) -> EmptySetLoc'''
+    operator, operands = iplist[0], iplist[1:]
+    if operator == 'antiSp' and len(operands)==1:
+        return fgsetsort.lattice_bottom
+    raise Exception(f'Invalid tag in support old {iplist}')
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
 
@@ -915,6 +937,8 @@ def ml_to_sl(user_input):
         if np == 0:
             upip.append(current_formula)
             current_formula = ''
+    if np != 0:
+        raise Exception ('Incomplete Parantheses')
     return upip
 
     
@@ -949,7 +973,7 @@ def vc(user_input):
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
             rp = 0
-        elif tag == 'RelPost':
+        elif tag == 'RelaxedPost':
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
             rp = 1
@@ -990,37 +1014,45 @@ def vc(user_input):
         if i[:2]=='SP':
             pass
         else:
-            logging.info('Frame assumptions:')
+            # logging.info('Frame assumptions:')
 
             fv_used = []
             for j in range(recdefdict[i]['no_inputs']):
                 fv_used.append(freevardict[recdefdict[i]['input_type']][j])
         
             a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),recdefdict[i]['init'](*fv_used) == recdefdict[i]['z3name'](*fv_used))
-            logging.info(z3.simplify(a))
+            # logging.info(z3.simplify(a))
             AddAxiom((*fv_used,), a)
             b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),recdefdict['SP'+i]['init'](*fv_used) == recdefdict['SP'+i]['z3name'](*fv_used))
-            logging.info(z3.simplify(b))
+            # logging.info(z3.simplify(b))
             AddAxiom((*fv_used,), b)
     printf('\nvardict:',vardict,'\nFuncdict:',funcdict,'\nRecdefdict:', recdefdict)
-    logging.info(f'Final Allocated Set: {z3.simplify(alloc_set)}')
-    logging.info(f'Support of postcond: {z3.simplify(sp_postcond)}')
+    # logging.info(f'Final Allocated Set: {z3.simplify(alloc_set)}')
+    # logging.info(f'Support of postcond: {z3.simplify(sp_postcond)}')
+    logging.info(f'Final alloc set: {z3.simplify(alloc_set)}')
+    logging.info(f'Sp of postcondition: {z3.simplify(sp_postcond)}')
     if rp == 0:
         goal =  Implies(And(precond,*[t for t in transform]), And(postcond,sp_postcond == alloc_set))
-        
+        # goal =  Implies(And(precond,*[t for t in transform]), postcond)
     elif rp == 1:
         goal =  Implies(And(precond,*[t for t in transform]), And(postcond, IsSubset(sp_postcond,alloc_set)))   #changed to issubset from ==
     # goal =  Implies(And(precond,*[t for t in transform]), postcond)
+    # elif rp == 2:
+    #     goal =  Implies(And(precond,*[t for t in transform]), postcond)
     else:
         raise Exception ('No postcondition given')
-    print(goal)
+    # print(goal)
+    for i in lemma_set:
+        logging.info(f'Lemma : {i}')
     logging.info(f'Goal: {goal}')
     np_solver = NPSolver()
     np_solver.options.depth = 1
+    print('checking validity...')
+    # print('Goal:',goal,'\n Lemmas:', lemma_set)
     solution = np_solver.solve(goal,lemma_set)
     if not solution.if_sat:
         logging.info('goal is valid')
         print('goal is valid')
     else:
-        logging.info('goal is invalid')
-        print('goal is invalid')
+        logging.info('goal not proven')
+        print('goal not proven')

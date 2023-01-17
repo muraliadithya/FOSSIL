@@ -49,7 +49,7 @@ BNode * bst_delete_rec(BNode * x, int k)
   }
 }*/
 
-
+(Var var1 Loc)
 (Const nil Loc)
 (Var x Loc)
 (Function left Loc Loc)
@@ -62,41 +62,87 @@ BNode * bst_delete_rec(BNode * x, int k)
 (Var lft Loc)
 (Var rgt Loc)
 (Var ky Int)
-(RecFunction bst Loc Bool)
-(RecDef (bst x) (ite (= x nil) True (and 
-(= (left x) lft) (= (right x) rgt)
-(bst rgt) (bst lft)
-(or (= (key x) (key lft)) (> (key x) (key lft)))
-(or (= (key x) (key rgt)) (< (key x) (key rgt)))
-(not (IsMember x (Sp (bst lft))))
-(not (IsMember x (Sp (bst rgt))))
-(= (SetIntersect (Sp (bst lft)) (Sp (bst rgt))) EmptySetLoc)
-						)
-			)
-)
 
+
+
+(Const plus_infty Int)
+(Const minus_infty Int)
+
+(RecFunction Mintree Loc Int)
+(RecDef (Mintree var1) (ite (= var1 nil)
+                            plus_infty
+                            (ite (< (key var1) (Mintree (left var1)))
+                                 (ite (< (key var1) (Mintree (right var1))) (key var1) (Mintree (right var1)))
+                                 (ite (< (Mintree (left var1)) (Mintree (right var1))) (Mintree (left var1)) (Mintree (right var1)))) ))
+
+(RecFunction Maxtree Loc Int)
+(RecDef (Maxtree var1) (ite (= var1 nil)
+                            minus_infty
+                            (ite (> (key var1) (Maxtree (left var1)))
+                                 (ite (> (key var1) (Maxtree (right var1))) (key var1) (Maxtree (right var1)))
+                                 (ite (> (Maxtree (left var1)) (Maxtree (right var1))) (Maxtree (left var1)) (Maxtree (right var1)))) ))
+
+(RecFunction Bst Loc Bool)
+(RecDef (Bst var1) (ite (= var1 nil) True (and (and (< (key var1) plus_infty) (< minus_infty (key var1)))
+                                               (and (Bst (left var1)) (< (Maxtree (left var1)) (key var1)))
+                                               (and (Bst (right var1)) (> (Mintree (right var1)) (key var1)))
+                                               (not (IsMember var1 (Sp (Bst (antiSp (left var1))))))
+                                               (not (IsMember var1 (Sp (Bst (antiSp (right var1))))))
+                                                (= EmptySetLoc (SetIntersect (Sp (and (Bst (antiSp (left var1))) (< (Maxtree (antiSp (left var1))) (antiSp (key var1)))))
+                                                                          (Sp (and (Bst (antiSp(right var1))) (> (Mintree (antiSp (right var1))) (antiSp (key var1)))))))) ))
+
+
+
+(Var y Loc)
+(Var z Loc)
 (Var k Int)
 (Var ret Loc)
+(Var oldkeysx SetInt)
+/*To remove k from bst(x). If root is k; past  remove_root fn call*/
+
+
+
+(Const m Int)
+/*..................*/
+(lemma (x) (=> (Bst x) (and (not (IsMember (key x) (Keys (left x))) ) (not (IsMember (key x) (Keys (right x))) )))) 
+(lemma (x) (= (SPBst x) (SPKeys x)))
+(lemma (x) (= (SPBst x) (SPMintree x)))
+(lemma (x) (= (SPBst x) (SPMaxtree x)))
+(lemma (x y) (=>   (not (IsMember (key x) (Keys y)))          (not (IsMember x (SPKeys y))) )          )
+
+
+(lemma (x) (=> (and (Bst x) (IsMember k (Keys x)))    (=> (< (key x) k)   (not (IsMember k (Keys (left x))))   )     ))
+
 (Var tmp Loc)
+(Var rgtcopy Loc)
 
-/*key(x)<k; through function call to ret */
-
-(Pre (and (bst x) (IsMember k (Keys x))))
+(Pre (and (Bst x) (IsMember k (Keys x))))
 (assume (< (key x) k))
 
+
+(assume (= oldkeysx (Keys x)))
 (assign rgt (right x))
 (assign lft (left x))
-
-/*BNode * tmp = bst_delete_rec(rgt, k);*/
-(call (and (bst rgt) (IsMember k (Keys rgt)) ) 
-(and (bst tmp) (= (Keys tmp) (SetDel (Old (Keys rgt)) k)) )
+(assign rgtcopy (right x))
+/*BNode * tmp = bst_delete_rec(lft, k);*/
+(call (and (Bst rgt) (IsMember k (Keys rgt)) ) 
+(and (Bst tmp) (antiSp (= (Keys tmp) (SetDel (Old (Keys rgt)) k)) ))
 )
 
+(assume (=> (Bst tmp) (IsMember (Mintree tmp) (Keys tmp) ) ))
+(assume (=> (not (= rgtcopy nil)) (=> (IsMember (Mintree tmp) (Old (Keys rgtcopy))) (<= (Old (Mintree rgtcopy)) (Mintree tmp)) ) )  )
 (assign (right x) tmp)
 (assign ret x)
 
 (Post (and
+(Bst ret)
+(= (SetDel oldkeysx k) (Keys ret) )
+))
+
+
+
+/*(Post (and
 (bst ret)
 (= (Keys ret) (SetDel (Old (Keys x)) k))
 	)
-)
+)*/

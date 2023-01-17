@@ -49,7 +49,7 @@ BNode * bst_delete_rec(BNode * x, int k)
   }
 }*/
 
-
+(Var var1 Loc)
 (Const nil Loc)
 (Var x Loc)
 (Function left Loc Loc)
@@ -62,26 +62,52 @@ BNode * bst_delete_rec(BNode * x, int k)
 (Var lft Loc)
 (Var rgt Loc)
 (Var ky Int)
-(RecFunction bst Loc Bool)
-(RecDef (bst x) (ite (= x nil) True (and 
-(= (left x) lft) (= (right x) rgt)
-(bst rgt) (bst lft)
-(or (= (key x) (key lft)) (> (key x) (key lft)))
-(or (= (key x) (key rgt)) (< (key x) (key rgt)))
-(not (IsMember x (Sp (bst lft))))
-(not (IsMember x (Sp (bst rgt))))
-(= (SetIntersect (Sp (bst lft)) (Sp (bst rgt))) EmptySetLoc)
-						)
-			)
-)
 
-(Var k Int)
-(Var ret Loc)
+
+
+(Const plus_infty Int)
+(Const minus_infty Int)
+
+(RecFunction Mintree Loc Int)
+(RecDef (Mintree var1) (ite (= var1 nil)
+                            plus_infty
+                            (ite (< (key var1) (Mintree (left var1)))
+                                 (ite (< (key var1) (Mintree (right var1))) (key var1) (Mintree (right var1)))
+                                 (ite (< (Mintree (left var1)) (Mintree (right var1))) (Mintree (left var1)) (Mintree (right var1)))) ))
+
+(RecFunction Maxtree Loc Int)
+(RecDef (Maxtree var1) (ite (= var1 nil)
+                            minus_infty
+                            (ite (> (key var1) (Maxtree (left var1)))
+                                 (ite (> (key var1) (Maxtree (right var1))) (key var1) (Maxtree (right var1)))
+                                 (ite (> (Maxtree (left var1)) (Maxtree (right var1))) (Maxtree (left var1)) (Maxtree (right var1)))) ))
+
+(RecFunction Bst Loc Bool)
+(RecDef (Bst var1) (ite (= var1 nil) True (and (and (< (key var1) plus_infty) (< minus_infty (key var1)))
+                                               (and (Bst (left var1)) (< (Maxtree (left var1)) (key var1)))
+                                               (and (Bst (right var1)) (> (Mintree (right var1)) (key var1)))
+                                               (not (IsMember var1 (Sp (Bst (antiSp (left var1))))))
+                                               (not (IsMember var1 (Sp (Bst (antiSp (right var1))))))
+                                                (= EmptySetLoc (SetIntersect (Sp (and (Bst (antiSp (left var1))) (< (Maxtree (antiSp (left var1))) (antiSp (key var1)))))
+                                                                          (Sp (and (Bst (antiSp(right var1))) (> (Mintree (antiSp (right var1))) (antiSp (key var1)))))))) ))
+
+
+
 (Var tmp Loc)
+(Var lftcopy Loc)
+(Var k Loc)
+
+/*key(x)>k; upto function call */
+
+(lemma (x) (=> (Bst x) (and (not (IsMember (key x) (Keys (left x))) ) (not (IsMember (key x) (Keys (right x))) )))) 
+(lemma (x) (= (SPBst x) (SPKeys x)))
+(lemma (x) (=> (and (Bst x) (IsMember k (Keys x))) 
+                      (ite (= k (key x)) True (ite (< k (key x)) (IsMember k (Keys (left x)))  (IsMember k (Keys (right x))))  )
+                      ))
 
 /*key(x)<k; upto function call */
 
-(Pre (and (bst x) (IsMember k (Keys x))))
+(Pre (and (Bst x) (IsMember k (Keys x))))
 (assume (< (key x) k))
 
 (assign rgt (right x))
@@ -89,7 +115,7 @@ BNode * bst_delete_rec(BNode * x, int k)
 
 /*BNode * tmp = bst_delete_rec(rgt, k);*/
 (RelaxedPost (and
-(bst rgt)
+(Bst rgt)
 (IsMember k (Keys rgt))
 	)
 )

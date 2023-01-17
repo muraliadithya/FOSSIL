@@ -86,26 +86,24 @@ BNode * bst_delete_rec(BNode * x, int k)
 (RecDef (Bst var1) (ite (= var1 nil) True (and (and (< (key var1) plus_infty) (< minus_infty (key var1)))
                                                (and (Bst (left var1)) (< (Maxtree (left var1)) (key var1)))
                                                (and (Bst (right var1)) (> (Mintree (right var1)) (key var1)))
+                                               (not (IsMember var1 (Sp (Bst (antiSp (left var1))))))
+                                               (not (IsMember var1 (Sp (Bst (antiSp (right var1))))))
                                                 (= EmptySetLoc (SetIntersect (Sp (and (Bst (antiSp (left var1))) (< (Maxtree (antiSp (left var1))) (antiSp (key var1)))))
                                                                           (Sp (and (Bst (antiSp(right var1))) (> (Mintree (antiSp (right var1))) (antiSp (key var1)))))))) ))
 
 
 
+(Var tmp Loc)
+(Var lftcopy Loc)
+(Var k Loc)
 
-(Var k Int)
-(Var ret Loc)
-(Var oldkeysx SetInt)
-/*To remove k from bst(x). If root is k; past  remove_root fn call*/
+/*key(x)>k; upto function call */
 
 (lemma (x) (=> (Bst x) (and (not (IsMember (key x) (Keys (left x))) ) (not (IsMember (key x) (Keys (right x))) )))) 
 (lemma (x) (= (SPBst x) (SPKeys x)))
 (lemma (x) (=> (and (Bst x) (IsMember k (Keys x))) 
                       (ite (= k (key x)) True (ite (< k (key x)) (IsMember k (Keys (left x)))  (IsMember k (Keys (right x))))  )
                       ))
-
-(Var tmp Loc)
-
-/*key(x)>k; upto function call */
 
 (Pre (and (Bst x) (IsMember k (Keys x))))
 (assume (> (key x) k))

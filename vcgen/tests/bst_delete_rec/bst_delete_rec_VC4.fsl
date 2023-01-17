@@ -94,41 +94,31 @@ BNode * bst_delete_rec(BNode * x, int k)
 
 
 (Var y Loc)
+(Var z Loc)
 (Var k Int)
 (Var ret Loc)
 (Var oldkeysx SetInt)
 /*To remove k from bst(x). If root is k; past  remove_root fn call*/
 
-(lemma (x) (=> (Bst x) (and (not (IsMember (key x) (Keys (left x))) ) (not (IsMember (key x) (Keys (right x))) ))))
-
-(lemma (x) (= (SPBst x) (SPKeys x)))
-(lemma (x) (=> (and (Bst x) (IsMember k (Keys x))) 
-                      (ite (= k (key x)) True (ite (< k (key x)) (IsMember k (Keys (left x)))  (IsMember k (Keys (right x))))  )
-                      ))
 
 
-(lemma (x) (=> (and (Bst x) (IsMember k (Keys x))) 
-                      (ite (= k (key x)) True (ite (IsMember k (Keys (left x))) (< k (key x))  (> k (key x)))  )
-                      ))
-
-
-
-
-(lemma (x y) (=> (not (IsMember (key x) (Keys y))) (not (IsMember x (SPKeys y))) ) )
-
-
-
-
-(lemma (x y) (=> (and (IsSubset (Keys x) (Keys y)))      
-                  (and (<= (Maxtree x) (Maxtree y)) (>= (Mintree x) (Mintree y)))
-              )
-)
-
+(Const m Int)
 /*..................*/
-(lemma (x) (=> (Bst x) (IsMember (Maxtree x) (Keys x))))
+(lemma (x) (=> (Bst x) (and (not (IsMember (key x) (Keys (left x))) ) (not (IsMember (key x) (Keys (right x))) )))) 
+(lemma (x) (= (SPBst x) (SPKeys x)))
+(lemma (x) (= (SPBst x) (SPMintree x)))
+(lemma (x) (= (SPBst x) (SPMaxtree x)))
+(lemma (x y) (=>   (not (IsMember (key x) (Keys y)))          (not (IsMember x (SPKeys y))) )          )
+
+
+(lemma (x) (=> (and (Bst x) (IsMember k (Keys x)))    (=> (> (key x) k)   (not (IsMember k (Keys (right x))))   )     ))
+
+
+
 
 
 (Var tmp Loc)
+(Var lftcopy Loc)
 
 (Pre (and (Bst x) (IsMember k (Keys x))))
 (assume (> (key x) k))
@@ -136,22 +126,19 @@ BNode * bst_delete_rec(BNode * x, int k)
 (assume (= oldkeysx (Keys x)))
 (assign rgt (right x))
 (assign lft (left x))
-
+(assign lftcopy (left x))
 /*BNode * tmp = bst_delete_rec(lft, k);*/
 (call (and (Bst lft) (IsMember k (Keys lft)) ) 
 (and (Bst tmp) (antiSp (= (Keys tmp) (SetDel (Old (Keys lft)) k)) ))
 )
 
+(assume (=> (Bst tmp) (IsMember (Maxtree tmp) (Keys tmp) ) ))
+(assume (=> (not (= lftcopy nil)) (=> (IsMember (Maxtree tmp) (Old (Keys lftcopy))) (>= (Old (Maxtree lftcopy)) (Maxtree tmp)) ) )  )
 (assign (left x) tmp)
 (assign ret x)
 
+
 (Post (and
-(Bst tmp)
-(not (IsMember x (SPBst tmp)))
-(<= (Maxtree tmp) (key x))
-/*(< (Maxtree tmp) (key x))*/
-/*(= EmptySetLoc (SetIntersect (SPBst tmp) (SPBst (right x)) ))*/
-/*(not (IsMember (key x) (Keys tmp)))*/
-/*(= (SetDel oldkeysx k) (Keys ret) )*/
-	)
-)
+(Bst ret)
+(= (SetDel oldkeysx k) (Keys ret) )
+))

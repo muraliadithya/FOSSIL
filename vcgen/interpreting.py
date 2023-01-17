@@ -497,7 +497,6 @@ def function_call(iplist):
         global alloc_set
         global number_of_function_calls
         number_of_function_calls = number_of_function_calls + 1
-        print('alloc set before function call:', z3.simplify(alloc_set))
         op1, op2 = operands
         sp_pre = support(op1)
                
@@ -531,15 +530,14 @@ def function_call(iplist):
 
         sp_post = support(op2)
         
-        print('old alloc rem:',z3.simplify(old_alloc_rem))
-        print('fdafdfdsfdasfdsfdsfdsafdsfdsfdsafdsaf',sp_post)
+
         alloc_set = SetUnion(old_alloc_rem,sp_post)
-        print('alloc set after function call:', z3.simplify(alloc_set))
+
         to_assume = interpret_assume(['assume', op2])
         for i in recdefdict:
             recdefdict[i]['in_call'].append(recdefdict[i]['z3name'])
             
-        return to_assume
+        return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    #changed from just returning to_assume
     raise Exception('Bad function call')
     
 def interpret_alloc(iplist):
@@ -790,20 +788,16 @@ def vc(user_input):
 
             for version_in_function_call in recdefdict[i]['in_call']:
                 a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),version_in_function_call(*fv_used) == recdefdict[i]['z3name'](*fv_used))
-                print(z3.simplify(a))
+
                 AddAxiom((*fv_used,), a)
             for version_in_function_call in recdefdict['SP'+i]['in_call']:            
                 b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),version_in_function_call(*fv_used) == recdefdict['SP'+i]['z3name'](*fv_used))
-                print(z3.simplify(b))
                 AddAxiom((*fv_used,), b)
             for j in range(len(recdefdict[i]['in_call'])):
                 a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['in_call'][j](*fv_used)), fgsetsort.lattice_bottom),recdefdict[i]['in_call'][j](*fv_used) == recdefdict[i]['z3name'](*fv_used))
                 
                 AddAxiom((*fv_used,), a)
                 b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['in_call'][j](*fv_used)), fgsetsort.lattice_bottom),recdefdict['SP'+i]['in_call'][j](*fv_used) == recdefdict['SP'+i]['z3name'](*fv_used))
-                print('Function call frame rules:')
-                print(z3.simplify(a))
-                print(z3.simplify(b))
                 AddAxiom((*fv_used,), b)
 
 
@@ -812,10 +806,10 @@ def vc(user_input):
 
     logging.info(f'Final alloc set: {z3.simplify(alloc_set)}')
     logging.info(f'Sp of postcondition: {z3.simplify(sp_postcond)}')
-    print('sp of postcond:', sp_postcond)
+    # print('sp of postcond:', sp_postcond)
     if rp == 0:
-        # goal =  Implies(And(precond,*[t for t in transform]), And(postcond,sp_postcond == alloc_set))
-        goal =  Implies(And(precond,*[t for t in transform]), postcond)
+        goal =  Implies(And(precond,*[t for t in transform]), And(postcond,sp_postcond == alloc_set))
+        # goal =  Implies(And(precond,*[t for t in transform]), postcond)
     elif rp == 1:
         goal =  Implies(And(precond,*[t for t in transform]), And(postcond, IsSubset(sp_postcond,alloc_set)))
     else:

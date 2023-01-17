@@ -1,0 +1,102 @@
+/*/*D_defs 
+define pred bst^(x): 
+  ( ((x l= nil) & emp) |
+    ((x |-> loc left: lft; loc right: rgt; int key: ky) * ((bst^(lft) & (keys^(lft) set-lt ky)) * (bst^(rgt) & (ky lt-set keys^(rgt)))))  
+  );
+
+define set-fun keys^(x):
+  (case (x l= nil): emptyset;
+   case ((x |-> loc left: lft; loc right: rgt; int key: ky) * true): 
+    ((singleton ky) union (keys^(lft) union keys^(rgt)));
+   default: emptyset
+  ) ;
+*/
+// -----------------------------------------------
+
+BNode * bst_remove_root(BNode * x)
+  /*D_requires  (((x |-> loc left: lft; loc right: rgt; int key: ky) * 
+     (bst^(lft) * bst^(rgt))) & (keys^(lft) lt keys^(rgt))) */
+  /*D_ensures (bst^(ret) & (keys^(ret) s= (old(keys^(lft)) union old(keys^(rgt)))))*/
+;
+
+_(dryad)
+BNode * bst_delete_rec(BNode * x, int k)
+  /*D_requires (bst^(x) & & (k i-in keys^(x))) */
+  /*D_ensures  (bst^(ret) & (keys^(ret) s= (old(keys^(x)) setminus (singleton k)))) */
+{
+
+  if(x->key == k) {
+    BNode * r = bst_remove_root(x);
+    return r;
+  } else if (k < x->key) {
+    
+    BNode * xl = x->left;
+    BNode * xr = x->right;
+    BNode * l = bst_delete_rec(xl, k);
+
+    x->left = l;
+
+    return x;
+  } else {
+    
+    BNode * xl = x->left;
+    BNode * xr = x->right;
+    BNode * r = bst_delete_rec(xr, k);
+
+    x->right = r;
+
+    return x;
+  }
+}*/
+
+
+(Const nil Loc)
+(Var x Loc)
+(Function left Loc Loc)
+(Function right Loc Loc)
+(Function key Loc Int)
+
+(RecFunction Keys Loc SetInt)
+(RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (SetUnion (Keys (right x)) (Keys (left x))) (key x))))
+
+(Var lft Loc)
+(Var rgt Loc)
+(Var ky Int)
+(RecFunction bst Loc Bool)
+(RecDef (bst x) (ite (= x nil) True (and 
+(= (left x) lft) (= (right x) rgt)
+(bst rgt) (bst lft)
+(or (= (key x) (key lft)) (> (key x) (key lft)))
+(or (= (key x) (key rgt)) (< (key x) (key rgt)))
+(not (IsMember x (Sp (bst lft))))
+(not (IsMember x (Sp (bst rgt))))
+(= (SetIntersect (Sp (bst lft)) (Sp (bst rgt))) EmptySetLoc)
+						)
+			)
+)
+
+(Var k Int)
+(Var ret Loc)
+(Var tmp Loc)
+
+/*key(x)<k; through function call to ret */
+
+(Pre (and (bst x) (IsMember k (Keys x))))
+(assume (< (key x) k))
+
+(assign rgt (right x))
+(assign lft (left x))
+
+/*BNode * tmp = bst_delete_rec(rgt, k);*/
+(call (and (bst rgt) (IsMember k (Keys rgt)) ) 
+(and (bst tmp) (= (Keys tmp) (SetDel (Old (Keys rgt)) k)) )
+)
+
+(assign (right x) tmp)
+(assign ret x)
+
+(Post (and
+(bst ret)
+(= (Keys ret) (SetDel (Old (Keys x)) k))
+	)
+)

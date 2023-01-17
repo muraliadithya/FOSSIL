@@ -1,0 +1,121 @@
+/*/*D_defs 
+define pred bst^(x): 
+  ( ((x l= nil) & emp) |
+    ((x |-> loc left: lft; loc right: rgt; int key: ky) * ((bst^(lft) & (keys^(lft) set-lt ky)) * (bst^(rgt) & (ky lt-set keys^(rgt)))))  
+  );
+
+define set-fun keys^(x):
+  (case (x l= nil): emptyset;
+   case ((x |-> loc left: lft; loc right: rgt; int key: ky) * true): 
+    ((singleton ky) union (keys^(lft) union keys^(rgt)));
+   default: emptyset
+  ) ;
+*/
+// -----------------------------------------------
+
+BNode * bst_remove_root(BNode * x)
+  /*D_requires  (((x |-> loc left: lft; loc right: rgt; int key: ky) * 
+     (bst^(lft) * bst^(rgt))) & (keys^(lft) lt keys^(rgt))) */
+  /*D_ensures (bst^(ret) & (keys^(ret) s= (old(keys^(lft)) union old(keys^(rgt)))))*/
+;
+
+_(dryad)
+BNode * bst_delete_rec(BNode * x, int k)
+  /*D_requires (bst^(x) & & (k i-in keys^(x))) */
+  /*D_ensures  (bst^(ret) & (keys^(ret) s= (old(keys^(x)) setminus (singleton k)))) */
+{
+
+  if(x->key == k) {
+    BNode * r = bst_remove_root(x);
+    return r;
+  } else if (k < x->key) {
+    
+    BNode * xl = x->left;
+    BNode * xr = x->right;
+    BNode * l = bst_delete_rec(xl, k);
+
+    x->left = l;
+
+    return x;
+  } else {
+    
+    BNode * xl = x->left;
+    BNode * xr = x->right;
+    BNode * r = bst_delete_rec(xr, k);
+
+    x->right = r;
+
+    return x;
+  }
+}*/
+
+(Var var1 Loc)
+(Const nil Loc)
+(Var x Loc)
+(Function left Loc Loc)
+(Function right Loc Loc)
+(Function key Loc Int)
+
+(RecFunction Keys Loc SetInt)
+(RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (SetUnion (Keys (right x)) (Keys (left x))) (key x))))
+
+(Var lft Loc)
+(Var rgt Loc)
+(Var ky Int)
+
+
+
+(Const plus_infty Int)
+(Const minus_infty Int)
+
+(RecFunction Mintree Loc Int)
+(RecDef (Mintree var1) (ite (= var1 nil)
+                            plus_infty
+                            (ite (< (key var1) (Mintree (left var1)))
+                                 (ite (< (key var1) (Mintree (right var1))) (key var1) (Mintree (right var1)))
+                                 (ite (< (Mintree (left var1)) (Mintree (right var1))) (Mintree (left var1)) (Mintree (right var1)))) ))
+
+(RecFunction Maxtree Loc Int)
+(RecDef (Maxtree var1) (ite (= var1 nil)
+                            minus_infty
+                            (ite (> (key var1) (Maxtree (left var1)))
+                                 (ite (> (key var1) (Maxtree (right var1))) (key var1) (Maxtree (right var1)))
+                                 (ite (> (Maxtree (left var1)) (Maxtree (right var1))) (Maxtree (left var1)) (Maxtree (right var1)))) ))
+
+(RecFunction Bst Loc Bool)
+(RecDef (Bst var1) (ite (= var1 nil) True (and (and (< (key var1) plus_infty) (< minus_infty (key var1)))
+                                               (and (Bst (left var1)) (< (Maxtree (left var1)) (key var1)))
+                                               (and (Bst (right var1)) (> (Mintree (right var1)) (key var1)))
+                                                (= EmptySetLoc (SetIntersect (Sp (and (Bst (antiSp (left var1))) (< (Maxtree (antiSp (left var1))) (antiSp (key var1)))))
+                                                                          (Sp (and (Bst (antiSp(right var1))) (> (Mintree (antiSp (right var1))) (antiSp (key var1)))))))) ))
+
+
+
+
+(Var k Int)
+(Var ret Loc)
+(Var oldkeysx SetInt)
+/*To remove k from bst(x). If root is k; past  remove_root fn call*/
+
+(lemma (x) (=> (Bst x) (and (not (IsMember (key x) (Keys (left x))) ) (not (IsMember (key x) (Keys (right x))) )))) 
+(lemma (x) (= (SPBst x) (SPKeys x)))
+(lemma (x) (=> (and (Bst x) (IsMember k (Keys x))) 
+                      (ite (= k (key x)) True (ite (< k (key x)) (IsMember k (Keys (left x)))  (IsMember k (Keys (right x))))  )
+                      ))
+
+(Var tmp Loc)
+
+/*key(x)>k; upto function call */
+
+(Pre (and (Bst x) (IsMember k (Keys x))))
+(assume (> (key x) k))
+
+(assign rgt (right x))
+(assign lft (left x))
+
+/*BNode * tmp = bst_delete_rec(lft, k);*/
+(RelaxedPost (and
+(Bst lft)
+(IsMember k (Keys lft))
+	)
+)

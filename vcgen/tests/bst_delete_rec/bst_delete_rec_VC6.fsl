@@ -59,9 +59,7 @@ BNode * bst_delete_rec(BNode * x, int k)
 (RecFunction Keys Loc SetInt)
 (RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (SetUnion (Keys (right x)) (Keys (left x))) (key x))))
 
-(Var lft Loc)
-(Var rgt Loc)
-(Var ky Int)
+
 
 
 
@@ -92,29 +90,20 @@ BNode * bst_delete_rec(BNode * x, int k)
                                                                           (Sp (and (Bst (antiSp(right var1))) (> (Mintree (antiSp (right var1))) (antiSp (key var1)))))))) ))
 
 
-
-(Var y Loc)
-(Var z Loc)
 (Var k Int)
-(Var ret Loc)
-(Var oldkeysx SetInt)
-/*To remove k from bst(x). If root is k; past  remove_root fn call*/
 
-
-
-(Const m Int)
-/*..................*/
-(lemma (x) (=> (Bst x) (and (not (IsMember (key x) (Keys (left x))) ) (not (IsMember (key x) (Keys (right x))) )))) 
 (lemma (x) (= (SPBst x) (SPKeys x)))
 (lemma (x) (= (SPBst x) (SPMintree x)))
 (lemma (x) (= (SPBst x) (SPMaxtree x)))
-(lemma (x y) (=>   (not (IsMember (key x) (Keys y)))          (not (IsMember x (SPKeys y))) )          )
-
-
 (lemma (x) (=> (and (Bst x) (IsMember k (Keys x)))    (=> (< (key x) k)   (not (IsMember k (Keys (left x))))   )     ))
 
-(Var tmp Loc)
+(Var lft Loc)
+(Var rgt Loc)
 (Var rgtcopy Loc)
+(Var tmp Loc)
+
+(Var ret Loc)
+(Var oldkeysx SetInt)
 
 (Pre (and (Bst x) (IsMember k (Keys x))))
 (assume (< (key x) k))
@@ -130,7 +119,7 @@ BNode * bst_delete_rec(BNode * x, int k)
 )
 
 (assume (=> (Bst tmp) (IsMember (Mintree tmp) (Keys tmp) ) ))
-(assume (=> (not (= rgtcopy nil)) (=> (IsMember (Mintree tmp) (Old (Keys rgtcopy))) (<= (Old (Mintree rgtcopy)) (Mintree tmp)) ) )  )
+(assume (=> (not (= rgtcopy nil)) (=> (IsSubset (Keys tmp) (Old (Keys rgtcopy))) (<= (Old (Mintree rgtcopy)) (Mintree tmp)) ) )  )
 (assign (right x) tmp)
 (assign ret x)
 
@@ -138,11 +127,3 @@ BNode * bst_delete_rec(BNode * x, int k)
 (Bst ret)
 (= (SetDel oldkeysx k) (Keys ret) )
 ))
-
-
-
-/*(Post (and
-(bst ret)
-(= (Keys ret) (SetDel (Old (Keys x)) k))
-	)
-)*/

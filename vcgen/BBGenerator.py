@@ -57,7 +57,7 @@ class _ProgDeclParser:
 
     def _make_parser(self):
         Keywords = pp.one_of("Program Pre Post")
-        Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_')
+        Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_<>')
 
         TextExpr = pp.Forward()
         TextExpr <<= pp.original_text_for(Thing ^ (LParen + TextExpr[1, ...] + RParen))
@@ -139,7 +139,7 @@ class BBGenerator:
 
     def _make_parser(self):
         Keywords = pp.one_of("Program Pre Post skip assign assume alloc free call return If Then Else")
-        Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_')
+        Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_<>')
 
         TextExpr = pp.Forward()
         TextExpr <<= pp.original_text_for(Thing ^ (LParen + TextExpr[1, ...] + RParen))

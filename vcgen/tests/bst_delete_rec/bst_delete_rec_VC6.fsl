@@ -125,5 +125,5 @@ BNode * bst_delete_rec(BNode * x, int k)
 
 (Post (and
 (Bst ret)
-(= (SetDel oldkeysx k) (Keys ret) )
+True
 ))

@@ -488,7 +488,8 @@ def interpret_int(iplist):
     else:
         if isinstance(operands[0],str):
             operands = operands[0]
-        raise Exception(f'Invalid integer declaration {iplist}')
+        else:
+            raise Exception(f'Invalid integer declaration {iplist}')
     return int(operands)
 
 def function_call(iplist):
@@ -546,13 +547,14 @@ def interpret_alloc(iplist):
         x = operands[0]
         if isinstance(x,str):
             pass
-        else:
+        else:   #add exception
             x = x[0]
     global alloc_set
     alloc_var = vardict[x]['z3name']
     var_update(x)
-    SetAdd(alloc_set, vardict[x]['z3name'])
-
+    to_return = Not(IsMember(vardict[x]['z3name'], alloc_set))
+    alloc_set = SetAdd(alloc_set, vardict[x]['z3name'])
+    return to_return
 def interpret_free(iplist):
     operands = iplist[1:]
     if len(operands) == 1:
@@ -562,7 +564,8 @@ def interpret_free(iplist):
         else:
             x = x[0]
     global alloc_set
-    SetDel(alloc_set, vardict[x]['z3name'])
+    alloc_set = SetDel(alloc_set, vardict[x]['z3name'])
+    
 
 
 
@@ -612,6 +615,8 @@ def support(iplist):
     if isinstance(iplist,str) or len(iplist)==1:
         return support_basics(iplist)
     operator = iplist[0]
+    if operator == 'IntConst':
+        return fgsetsort.lattice_bottom
     if operator in immutables:
         return support_immut(iplist)
     if operator == 'ite':
@@ -740,6 +745,11 @@ def vc(user_input):
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
             rp = 1
+        elif tag == 'SupportlessPost':      #for testing
+            postcond = interpret_ops(i[1])
+            sp_postcond = support(i[1])
+            rp = 2
+
         elif tag == 'RecDef':
             name = i[1][0]
             spname = 'SP'+i[1][0]
@@ -756,7 +766,8 @@ def vc(user_input):
         elif (tag == 'free'):
             interpret_free(i)
         elif (tag == 'alloc'):
-            interpret_alloc(i)
+            intops = interpret_alloc(i)
+            transform.append(intops)
         elif (tag == 'lemma'):
             interpret_lemma(i)
         else:
@@ -812,6 +823,8 @@ def vc(user_input):
         # goal =  Implies(And(precond,*[t for t in transform]), postcond)
     elif rp == 1:
         goal =  Implies(And(precond,*[t for t in transform]), And(postcond, IsSubset(sp_postcond,alloc_set)))
+    elif rp == 2:
+        goal =  Implies(And(precond,*[t for t in transform]), postcond)
     else:
         raise Exception ('No postcondition given')
     for i in lemma_set:
@@ -820,6 +833,7 @@ def vc(user_input):
     # print('goal:->',goal)
     np_solver = NPSolver()
     np_solver.options.depth = 1
+    print(np_solver.options.instantiation_mode)
     print('checking validity...')
     solution = np_solver.solve(goal,lemma_set)
     if not solution.if_sat:

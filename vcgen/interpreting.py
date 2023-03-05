@@ -76,7 +76,11 @@ def func_parser(funcinfo):
     '''
     if len(funcinfo)<4:
         raise Exception(f'Function input error: insufficient no. of arguments: {funcinfo}')
-    tag, name, type_info = funcinfo[0], funcinfo[1], funcinfo[2:]
+    tag  = funcinfo[0]
+    if tag == 'RecFunction':
+        name, type_info =  funcinfo[1], funcinfo[2:]
+    elif tag == 'Function':
+        name, type_info, default_value =  funcinfo[1], funcinfo[2:-1], funcinfo[-1]
 
     # The following looks at a function's input types and creates free variables if necessary.
     # If the max no. of Loc in a fn is k, there will be k free_Loc variables created.
@@ -95,7 +99,8 @@ def func_parser(funcinfo):
     z3_type = [type_parser(x) for x in type_info]
     if tag == 'Function':
         z3_func = Function(name+'0', *z3_type)
-        funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0,'input_type': type_of_inputs, 'no_inputs': no_of_inputs}
+        interpreted_dv = interpret_ops(default_value)
+        funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0,'input_type': type_of_inputs, 'no_inputs': no_of_inputs, 'default_value': interpreted_dv}
     elif tag == 'RecFunction':
         z3_func = Function(name+'0', *z3_type)
         recdefdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'description': [],
@@ -492,7 +497,7 @@ def interpret_int(iplist):
             raise Exception(f'Invalid integer declaration {iplist}')
     return int(operands)
 
-def function_call(iplist):
+def function_call(iplist):  # add a var update somewhere here in case someone uses an allocated var in return?
     operands = iplist[1:]
     if len(operands) == 2:
         global alloc_set
@@ -530,11 +535,10 @@ def function_call(iplist):
             instantiate_lemma(i)
 
         sp_post = support(op2)
-        
 
         alloc_set = SetUnion(old_alloc_rem,sp_post)
 
-        to_assume = interpret_assume(['assume', op2])
+        to_assume = interpret_ops(op2)   #dafdsfdsfdsfadsfdsfadfd
         for i in recdefdict:
             recdefdict[i]['in_call'].append(recdefdict[i]['z3name'])
             
@@ -550,11 +554,16 @@ def interpret_alloc(iplist):
         else:   #add exception
             x = x[0]
     global alloc_set
-    alloc_var = vardict[x]['z3name']
+    
     var_update(x)
-    to_return = Not(IsMember(vardict[x]['z3name'], alloc_set))
-    alloc_set = SetAdd(alloc_set, vardict[x]['z3name'])
-    return to_return
+    alloc_var = vardict[x]['z3name']
+    to_return = [Not(IsMember(alloc_var, alloc_set))]
+    alloc_set = SetAdd(alloc_set, alloc_var)
+    for i, elt in funcdict.items():
+        to_return.append(elt[alloc_var] == elt['default_value'])
+            
+    return And(*[to_return])
+
 def interpret_free(iplist):
     operands = iplist[1:]
     if len(operands) == 1:

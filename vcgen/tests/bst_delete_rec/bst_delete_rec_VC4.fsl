@@ -52,9 +52,9 @@ BNode * bst_delete_rec(BNode * x, int k)
 (Var var1 Loc)
 (Const nil Loc)
 (Var x Loc)
-(Function left Loc Loc)
-(Function right Loc Loc)
-(Function key Loc Int)
+(Function left Loc Loc nil)
+(Function right Loc Loc nil)
+(Function key Loc Int (IntConst 0))
 
 (RecFunction Keys Loc SetInt)
 (RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (SetUnion (Keys (right x)) (Keys (left x))) (key x))))
@@ -134,6 +134,8 @@ BNode * bst_delete_rec(BNode * x, int k)
 
 (assume (=> (Bst tmp) (IsMember (Maxtree tmp) (Keys tmp) ) ))
 (assume (=> (not (= lftcopy nil)) (=> (IsMember (Maxtree tmp) (Old (Keys lftcopy))) (>= (Old (Maxtree lftcopy)) (Maxtree tmp)) ) )  )
+
+
 (assign (left x) tmp)
 (assign ret x)
 

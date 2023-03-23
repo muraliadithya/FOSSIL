@@ -23,34 +23,39 @@ from interpreting import vc
 # 	}	
 # }
 
-program = """
+real_prog = """
 (Const nil Loc)
 (Var x Loc)
 (Var y Loc)
 (Var ret Loc)
 (Var nxt Loc)
 (Var tmp Loc)
-(Var oldkeys_x SetInt)
-(Var oldkeys_y SetInt)
-(Function next Loc Loc)
-(Function key Loc Int)
+
+(Function next Loc Loc nil)
+(Function key Loc Int (IntConst 0))
 
 (RecFunction List Loc Bool)
 (RecFunction Keys Loc SetInt)
 (RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x))))))  ) ))
 (RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (Keys (next x)) (key x)) ))
 
-(Program sll_append (x y ret))
+(lemma (x) (= (Sp (Keys x)) (Sp (List x))))
+
+(Var aux Loc)
+(Var oldkeysx SetInt)
+(Var oldkeysy SetInt)
+(Var oldkeysaux SetInt)
+(Program sll_append (x y oldkeysx oldkeysy ret))
 (Pre (and
-(= oldkeys_x (Keys x))
-(= oldkeys_y (Keys y))
+(= oldkeysx (Keys x))
+(= oldkeysy (Keys y))
 (List x)
 (List y)
 (= (SetIntersect (Sp (List x)) (Sp (List y))) EmptySetLoc)
 ))
 (Post (and
 (List ret)
-(= (Keys ret) (SetUnion oldkeys_x oldkeys_y))
+(= (Keys ret) (SetUnion oldkeysx oldkeysy))
 ))
 
 (If (= x nil)
@@ -58,16 +63,21 @@ Then
 (assign ret y)
 (return)
 Else
-(call sll_append ((next x) y tmp)
+(assign aux (next x))
+(assign oldkeysaux (Keys aux))
+(call sll_append (aux y oldkeysaux oldkeysy tmp))
 (assign (next x) tmp)
-(assignt ret x)
+(assign ret x)
 (return)
 )
 """
 
 bbgen_object = BBGenerator()
-parsed_bbs = bbgen_object.parse_input(program)
-print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[0]))
+parsed_bbs = bbgen_object.parse_input(real_prog)
+i = 2
 
 
-vc(parsed_bbs[0])
+print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[i]))
+
+
+vc(parsed_bbs[i])

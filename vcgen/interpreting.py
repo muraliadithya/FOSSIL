@@ -70,12 +70,10 @@ def var_parser(varinfo):
 
 
 def func_parser(funcinfo):
-    '''Adding to func_dict. Input of the form [TAG, NAME, type, type....., output_type]
+    '''Adding to func_dict. Input of the form [TAG, NAME, type, type....., output_type, default_value(if uninterpreted fn)]
     All input types are the same.
     
     '''
-    if len(funcinfo)<4:
-        raise Exception(f'Function input error: insufficient no. of arguments: {funcinfo}')
     tag  = funcinfo[0]
     if tag == 'RecFunction':
         name, type_info =  funcinfo[1], funcinfo[2:]
@@ -98,6 +96,7 @@ def func_parser(funcinfo):
 
     z3_type = [type_parser(x) for x in type_info]
     if tag == 'Function':
+        print('ddd->', z3_type)
         z3_func = Function(name+'0', *z3_type)
         interpreted_dv = interpret_ops(default_value)
         funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0,'input_type': type_of_inputs, 'no_inputs': no_of_inputs, 'default_value': interpreted_dv}

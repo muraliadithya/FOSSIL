@@ -24,15 +24,14 @@ from interpreting import vc
 # }
 
 real_prog = """
-(Const nil Loc)
 (Var x Loc)
 (Var y Loc)
 (Var ret Loc)
 (Var nxt Loc)
 (Var tmp Loc)
 
-(Function next Loc Loc nil)
-(Function key Loc Int (IntConst 0))
+(Function next Loc Loc)
+(Function key Loc Int)
 
 (RecFunction List Loc Bool)
 (RecFunction Keys Loc SetInt)
@@ -74,7 +73,7 @@ Else
 
 bbgen_object = BBGenerator()
 parsed_bbs = bbgen_object.parse_input(real_prog)
-i = 2
+i = 0
 
 
 print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[i]))

@@ -26,7 +26,7 @@ with open(logfile, 'w'):
     pass
 
 # --------------------GLOBAL-------------------------------
-vardict = {}                                                        # Dictionary to store variables
+vardict = {'nil' : {'z3name': Const('nil', fgsort),'z3type': fgsort, 'counter': None}}                                                        # Dictionary to store variables
 funcdict = {}                                                       # Dictionary to store functions
 recdefdict = {}                                                     # Dictionary for the recusive definitions
 freevardict = {'Loc':[],'SetLoc':[],'Int':[],'SetInt':[],'Bool':[]} # Will add free vars based on max arity of fn.
@@ -36,6 +36,8 @@ has_mutated = 0                                                     # If == 1, n
 number_of_function_calls = 0                                        #
 lemma_set = set()                                                   # lemmas to be instantiated
 lemma_description = []                                              #
+defaultdict = {'Loc': vardict['nil']['z3name'],'Int': -1 ,'SetLoc': fgsetsort.lattice_bottom,'SetInt': intsetsort.lattice_bottom}
+
 # -----------------------------------------------
 
 def type_parser(input_type):
@@ -70,7 +72,7 @@ def var_parser(varinfo):
 
 
 def func_parser(funcinfo):
-    '''Adding to func_dict. Input of the form [TAG, NAME, type, type....., output_type, default_value(if uninterpreted fn)]
+    '''Adding to func_dict. Input of the form [TAG, NAME, type, type....., output_type]
     All input types are the same.
     
     '''
@@ -78,11 +80,12 @@ def func_parser(funcinfo):
     if tag == 'RecFunction':
         name, type_info =  funcinfo[1], funcinfo[2:]
     elif tag == 'Function':
-        name, type_info, default_value =  funcinfo[1], funcinfo[2:-1], funcinfo[-1]
+        name, type_info=  funcinfo[1], funcinfo[2:]
 
     # The following looks at a function's input types and creates free variables if necessary.
     # If the max no. of Loc in a fn is k, there will be k free_Loc variables created.
     type_of_inputs = type_info[0]
+    type_of_output = type_info[-1]
     for input_type in type_info[:-1]:
         if not(input_type == type_of_inputs):
             raise Exception('A function input types must be the same')
@@ -96,14 +99,12 @@ def func_parser(funcinfo):
 
     z3_type = [type_parser(x) for x in type_info]
     if tag == 'Function':
-        print('ddd->', z3_type)
         z3_func = Function(name+'0', *z3_type)
-        interpreted_dv = interpret_ops(default_value)
-        funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0,'input_type': type_of_inputs, 'no_inputs': no_of_inputs, 'default_value': interpreted_dv}
+        funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
     elif tag == 'RecFunction':
         z3_func = Function(name+'0', *z3_type)
         recdefdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'description': [],
-                                'counter': 0, 'init': z3_func, 'input_type': type_of_inputs,'no_inputs': no_of_inputs, 'in_call': []}
+                                'counter': 0, 'init': z3_func, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs, 'in_call': []}
         #...............
         if name[:2]!= 'SP':
             typelist = [type_parser(i) for i in type_info[:-1]]
@@ -111,7 +112,7 @@ def func_parser(funcinfo):
             
             z3_spfunc = Function('SP'+name+'0',*z3_sptype)
             recdefdict['SP'+name] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
-                                        'counter': 0, 'init': z3_spfunc,'input_type': type_of_inputs,'no_inputs': no_of_inputs, 'in_call': []}
+                                        'counter': 0, 'init': z3_spfunc,'input_type': type_of_inputs,'output_type': 'SetLoc','no_inputs': no_of_inputs, 'in_call': []}
         else:
             raise Exception('Functions not allowed to start with SP')
         #..............
@@ -557,7 +558,7 @@ def interpret_alloc(iplist):
     to_return = []
     if Not(IsMember(alloc_var, alloc_set)):
         for i, elt in funcdict.items():
-            to_return.append(elt[alloc_var] == elt['default_value'])
+            to_return.append(elt[alloc_var] == defaultdict[elt['output_type']])
             SetAdd(alloc_var, alloc_set)
         return And(*[to_return])
     raise Exception(f'Var already in allocated set: {alloc_var}')

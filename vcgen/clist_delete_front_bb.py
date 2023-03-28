@@ -79,7 +79,7 @@ Else
 bbgen_object = BBGenerator()
 parsed_bbs = bbgen_object.parse_input(program)
 
-i = 0
+i = 2
 
 print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[i]))
 

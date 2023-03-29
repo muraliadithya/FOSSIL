@@ -554,14 +554,15 @@ def interpret_alloc(iplist):
         else:   #add exception
             x = x[0]
     global alloc_set
+    var_update(x)
     alloc_var = vardict[x]['z3name']
     to_return = []
-    if Not(IsMember(alloc_var, alloc_set)):
-        for i, elt in funcdict.items():
-            to_return.append(elt[alloc_var] == defaultdict[elt['output_type']])
-            SetAdd(alloc_var, alloc_set)
-        return And(*[to_return])
-    raise Exception(f'Var already in allocated set: {alloc_var}')
+    to_return.append(Not(IsMember(alloc_var, alloc_set)))
+    for i, elt in funcdict.items():
+        to_return.append(elt['z3name'](alloc_var) == defaultdict[elt['output_type']])
+
+    alloc_set = SetAdd(alloc_set, alloc_var)
+    return And(*[to_return])
 
 def interpret_free(iplist):
     operands = iplist[1:]

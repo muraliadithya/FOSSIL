@@ -16,7 +16,10 @@
 ->(lemma (x1 x2 .. xn) X)					Lemmas are instantiated over the same 'versions' of functions. 
 
 ->(Pre X)								Precondition
-->(Post X)								Postcondition
+->(Post X)								Postcondition. This not only checks that X is true, but also that the support of X is 
+									exactly the locations being kept track of. There are two variants to this that the tool allows.
+->(RelaxedPost X)							Check if X is true and if the support of X is containted in the locations being kept track of
+->(SupportlessPost X)						Check if X is true.
 ->(assume X)							Assume
 ->(assign x y)							Assign y to location x. x := y
 ->(assign (f x1 .. xn) y)					Mutation. f'(x) := if (x == x1 .. xn) then y else f
@@ -75,9 +78,6 @@ Sample program that checks if swapping the first two elements of a list is still
 (assign (next y) x)
 (assign x y)
 (return)
-
-
-# time outs on depth 2; relaxedpost; supportless post for debugging
 
 
 

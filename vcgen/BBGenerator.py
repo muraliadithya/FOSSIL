@@ -287,6 +287,7 @@ class BBGenerator:
             # Add the declarations before the beginning of each basic block
             self.basic_blocks = [self.decls_and_lemmas + bb for bb in self.basic_blocks]
 
+        FrontEnd = FrontEnd.ignore(pp.cpp_style_comment)
         return FrontEnd
 
     def parse_input(self, input_string):

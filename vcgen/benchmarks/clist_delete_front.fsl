@@ -1,0 +1,39 @@
+
+(Var x Loc)
+(Var y Loc)
+
+(Var head Loc)
+(Var tail Loc)
+(Var ret Loc)
+(Var nxt Loc)
+(Var new_nxt Loc)
+(Var hd_nxt Loc)
+(Function next Loc Loc)
+(RecFunction Lseg Loc Loc Bool)
+(RecDef (Lseg x y) (ite (= x y) True (and (Lseg (next x) y) (not (IsMember x (Sp (Lseg (antiSp (next x)) y)))))   )    )
+
+(Program circular_list_delete_front (x nxt ret))
+(Pre (and (= nxt (next x)) 
+(Lseg nxt x)
+(not (IsMember x (SPLseg nxt x)))
+))
+(Post (ite
+  (= nxt x)
+  (= ret nil)
+  (and
+    (= (next x) ret)
+    (Lseg ret x)
+    (not (IsMember x (Sp (Lseg ret x)))))
+))
+(If (= nxt x)
+Then
+(free nxt)
+(assign ret nil)
+(return)
+Else
+(assign new_nxt (next nxt))
+(free nxt)
+(assign (next x) new_nxt)
+(assign ret new_nxt)
+(return)
+)

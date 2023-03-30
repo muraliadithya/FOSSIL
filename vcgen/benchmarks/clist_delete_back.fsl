@@ -1,9 +1,4 @@
-from BBGenerator import BBGenerator
-import argparse
-import importlib
-from interpreting import vc
 
-program = """
 (Var x Loc)
 (Var y Loc)
 
@@ -74,16 +69,3 @@ Else
 (assign ret hd_nxt)
 (return)
 )
-"""
-
-
-
-bbgen_object = BBGenerator()
-parsed_bbs = bbgen_object.parse_input(program)
-
-i = 6
-
-print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[i]))
-
-
-vc(parsed_bbs[i])

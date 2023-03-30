@@ -1,55 +1,3 @@
-from BBGenerator import BBGenerator
-import argparse
-import importlib
-from interpreting import vc
-# typedef
-# /*D_tag node */
-# struct node {
-#   int key;
-#   struct node * next;
-# } SNnode;
-
-# /*D_defs
-# define pred sorted^(x): 
-#   ( 
-#   ((x l= nil) & emp) | 
-#   ((x |-> loc next: nxt; int key: ky) * 
-#   (sorted^(nxt) & (ky lt-set keys^(nxt)))
-#    )  
-#   ) ;
-  
-# define set-fun keys^(x):
-#   (case (x l= nil): emptyset;
-#    case ((x |-> loc next: nxt; int key: ky) * true): 
-#     ((singleton ky) union keys^(nxt));
-#    default: emptyset
-#   ) ;*/
-# // -------------------------------------------------------
-
-# _(dryad)
-# SNnode * sorted_insert(SNnode *x, int k)
-#    /*D_requires sorted^(x) */
-#    /*D_ensures (sorted^(ret) & (keys^(ret) s= (old(keys^(x)) union (singleton k)))) */
-
-
-# _(dryad)
-# SNnode * insertion_sort_copy(SNnode * l)
-#   /*D_requires sll^(l) */
-#   /*D_ensures ((sll^(ret) & sorted^(ret)) & (keys^(ret) s= old(keys^(l)))) */
-# {
-# 	if (l == NULL) {
-# 		return l;
-# 	} else {
-# 		SNnode * tl = insertion_sort_copy(l->next);
-
-# 		SNnode * nl = sorted_insert(tl, l->key);
-# 		return nl;
-# 	}
-# }
-
-
-real_prog = """
-(Const nil Loc)
 (Var x Loc)
 (Var k Int)
 (Var ret Int)
@@ -141,16 +89,3 @@ Else
 (assign ret tmp2)
 )
 (return)
-"""
-
-
-
-bbgen_object = BBGenerator()
-parsed_bbs = bbgen_object.parse_input(real_prog)
-i = 7
-
-
-print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[i]))
-
-
-vc(parsed_bbs[i])

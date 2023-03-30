@@ -1,122 +1,29 @@
-from BBGenerator import BBGenerator
+import argparse
+import os
+
+from vcgen.BBGenerator import BBGenerator
 
 
-# Programs below are nonsense and only intended to be used for testing purposes
-# as they mimic the 'form' of real inputs
+argparser = argparse.ArgumentParser()
+argparser.add_argument('progfile', help='Path to .fsl file containing the program to be verified')
 
-one_prog = """
-(Const nil Loc)
-(Var var1 Loc)
-(Function next1 Loc Loc)
-(Function next2 Loc Loc)
-(Lemma (var1 Loc) (= var1 var1))
+args = argparser.parse_args()
+progfile = args.progfile
+with open(progfile, 'r') as f:
+    program = f.read()
+progname = os.path.basename(progfile).split('.fsl')[0]
 
-(Program my_func (x y))
-(Pre (= x (next1 y)))
-(Post (= y nil))
-(If (= x nil)
-Then
-    (If (= x y)
-    Then
-    (assign x (f y))
-    (return)
-    Else
-    (alloc z)
-    (call my_func (y z))
-    (assume (not (= z nil)))
-    )
-Else
-(free z)
-)
-(return)
-"""
+bbparser = BBGenerator()
+parsed_bbs = bbparser.parse_input(program)
 
-two_prog = """
-(Const nil Loc)
-(Var var1 Loc)
-(Function next1 Loc Loc)
-(Function next2 Loc Loc)
-(Lemma (var1 Loc) (= var1 var1))
+print(f'Number of basic blocks: {len(parsed_bbs)}')
 
-(Program my_func1 (x y))
-(Pre (= x (next1 y)))
-(Post (= y nil))
-(If (= x nil)
-Then
-    (If (= x y)
-    Then
-    (assign x (f y))
-    (return)
-    Else
-    (alloc z)
-    (call my_func2 (y z))
-    (assume (not (= z nil)))
-    )
-Else
-(free z)
-)
-(return)
+bbpath = os.path.join(os.path.abspath('.'), '.tmp', progname)
+os.makedirs(bbpath, exist_ok=True)
 
-(Program my_func2 (x y))
-(Pre (= x (next2 y)))
-(Post (= y nil))
-(If (= x nil)
-Then
-(assign x x)
-(call my_func2 (y z))
-(assume (not (= z nil)))
-Else
-(skip)
-)
-(return)
-"""
+for i, bb in enumerate(parsed_bbs):
+    bbfile = os.path.join(bbpath, f'bb_{str(i+1)}.fsl')
+    with open(bbfile, 'w') as f:
+        f.write('\n'.join(parsed_bbs[i]))
 
-test_prog = """
-(Const nil Loc)
-(Function next Loc Loc)
-(Var var1 Loc)
-(RecFunction List Loc Bool)
-(RecDef (List var1) (ite (= var1 nil) True (and (not (IsMember (var1)  (SPList (next var1)))) (List (next var1)))) )
-
-(Program this1 (x y z))
-(Pre (List x))
-(Post (List y))
-(assume (not (= x nil)))
-(assign y (next x))
-(assume (not (= y nil)))
-(assign z (next y))
-(assign (next x) z)
-
-(return)
-"""
-
-real_prog = """
-(Var var1 Loc)
-(Const nil Loc)
-(Const plus_infty Int)
-(Function left Loc Loc)
-(Function right Loc Loc)
-(Function key Loc Int)
-(RecFunction Mintree Loc Int)
-(RecDef (Mintree var1) (ite (= var1 nil) plus_infty
-                            (ite (< (key var1) (Mintree (left var1)) )
-                                 (ite (< (key var1) (Mintree (right var1)) ) (key var1) (Mintree (right var1))  )
-                                 (ite (< (Mintree (left var1)) (Mintree (right var1))) (Mintree (left var1)) (Mintree (right var1)) )  
-                              )
-                         )
-)
-
-
-
-
-
-(Program bst_delete_rec (x))
-(Pre True)
-(Post True)
-(assign x x)
-(return)
-"""
-
-bbgen_object = BBGenerator()
-parsed_bbs = bbgen_object.parse_input(real_prog)
-print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[0]))
+print(f'Basic blocks written to .tmp/{progname}/bb_#.fsl')

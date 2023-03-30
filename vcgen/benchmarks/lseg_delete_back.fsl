@@ -1,10 +1,4 @@
-from BBGenerator import BBGenerator
-import argparse
-import importlib
-from interpreting import vc
 
-real_prog = """
-(Const nil Loc)
 (Var x Loc)
 (Var y Loc)
 
@@ -47,16 +41,3 @@ Else
     )
 )
 (return)
-"""
-
-
-
-bbgen_object = BBGenerator()
-parsed_bbs = bbgen_object.parse_input(real_prog)
-i =3
-
-
-print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[i]))
-
-
-vc(parsed_bbs[i])

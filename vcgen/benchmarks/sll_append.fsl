@@ -1,0 +1,46 @@
+
+(Var x Loc)
+(Var y Loc)
+(Var ret Loc)
+(Var nxt Loc)
+(Var tmp Loc)
+
+(Function next Loc Loc)
+(Function key Loc Int)
+
+(RecFunction List Loc Bool)
+(RecFunction Keys Loc SetInt)
+(RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x))))))  ) ))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (Keys (next x)) (key x)) ))
+
+(lemma (x) (= (Sp (Keys x)) (Sp (List x))))
+
+(Var aux Loc)
+(Var oldkeysx SetInt)
+(Var oldkeysy SetInt)
+(Var oldkeysaux SetInt)
+(Program sll_append (x y oldkeysx oldkeysy ret))
+(Pre (and
+(= oldkeysx (Keys x))
+(= oldkeysy (Keys y))
+(List x)
+(List y)
+(= (SetIntersect (Sp (List x)) (Sp (List y))) EmptySetLoc)
+))
+(Post (and
+(List ret)
+(= (Keys ret) (SetUnion oldkeysx oldkeysy))
+))
+
+(If (= x nil)
+Then
+(assign ret y)
+(return)
+Else
+(assign aux (next x))
+(assign oldkeysaux (Keys aux))
+(call sll_append (aux y oldkeysaux oldkeysy tmp))
+(assign (next x) tmp)
+(assign ret x)
+(return)
+)

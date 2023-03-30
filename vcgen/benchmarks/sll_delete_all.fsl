@@ -1,30 +1,3 @@
-from BBGenerator import BBGenerator
-import argparse
-import importlib
-from interpreting import vc  
-
-
-# _(dryad)
-# SNnode * sll_delete_all(SNnode * x, int k)
-#   /*D_requires sll^(x) */
-#   /*D_ensures (sll^(ret) & (((k i-in old(keys^(x))) => (keys^(ret) s= (old(keys^(x)) setminus (singleton k)))) &
-#                  ((~ (k i-in old(keys^(x)))) => (keys^(ret) s= old(keys^(x)))))) */
-# {
-# 	if (x == NULL) {
-# 		return x;
-# 	} else if (x->key == k) {
-# 		SNnode * tmp = sll_delete_all(x->next, k);
-# 		free(x);
-# 		return tmp;
-# 	} else {
-# 		SNnode * tmp = sll_delete_all(x->next, k);
-# 		x->next = tmp;
-# 		return x;
-# 	}
-# }
-
-program = """
-(Const nil Loc)
 (Var x Loc)
 (Var y Loc)
 (Var ret Loc)
@@ -70,11 +43,3 @@ Else
     (return)
     )
 )
-"""
-
-bbgen_object = BBGenerator()
-parsed_bbs = bbgen_object.parse_input(program)
-print(f'{str(len(parsed_bbs))} Basic Blocks\n', '\n'.join(parsed_bbs[0]))
-
-
-vc(parsed_bbs[0])

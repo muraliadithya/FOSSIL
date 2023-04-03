@@ -33,10 +33,12 @@ freevardict = {'Loc':[],'SetLoc':[],'Int':[],'SetInt':[],'Bool':[]} # Will add f
 modified_vars = []                                                  # Modified_vars used for frame rule
 alloc_set = fgsetsort.lattice_bottom                                #
 has_mutated = 0                                                     # If == 1, need to update recfns
+in_call = 0
 number_of_function_calls = 0                                        #
 lemma_set = set()                                                   # lemmas to be instantiated
 lemma_description = []                                              #
 defaultdict = {'Loc': vardict['nil']['z3name'],'Int': -1 ,'SetLoc': fgsetsort.lattice_bottom,'SetInt': intsetsort.lattice_bottom}
+snapshotdict = {}
 
 # -----------------------------------------------
 
@@ -429,11 +431,16 @@ def interpret_ismember(iplist):
 
 def interpret_old(iplist):
     '''(Old (recfunc args)) -> apply the initial recfunc (before mutations) onto args'''
+    global in_call
+    global number_of_function_calls
     operands = iplist[1:]
     if len(operands) == 1:
         func, arguments = operands[0][0], operands[0][1:]
         if func in recdefdict:
-            return recdefdict[func]['init'](*[interpret_ops(op) for op in arguments])
+            if in_call == 0:
+                return recdefdict[func]['init'](*[interpret_ops(op) for op in arguments])
+            elif in_call ==1:
+                return snapshot['call_'+str(number_of_function_calls)][func](*[interpret_ops(op) for op in arguments])
         raise Exception(f'{func} is not a recursive function')
     raise Exception(f'Multiple arguments given to Old tag: {iplist}')
 
@@ -498,18 +505,21 @@ def interpret_int(iplist):
     return int(operands)
 
 def function_call(iplist):  # add a var update somewhere here in case someone uses an allocated var in return?
+    global in_call
+    in_call = 1
     operands = iplist[1:]
     if len(operands) == 2:
         global alloc_set
         global number_of_function_calls
+
         number_of_function_calls = number_of_function_calls + 1
+        snapshot('call_'+str(number_of_function_calls))
         op1, op2 = operands
         sp_pre = support(op1)
                
         old_alloc_rem = SetDifference(alloc_set,sp_pre)
 
         for i,elt in funcdict.items():
-            # new_unint_fn = Function(elt['z3name']+'_unint_'+str(no_fc),*elt['z3type'])
             new_unint_fn = Function(i+'_unint_'+str(number_of_function_calls),*elt['z3type'])
             input_type = elt['input_type']
             no_inputs = elt['no_inputs']
@@ -541,7 +551,7 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
         to_assume = interpret_ops(op2)   #dafdsfdsfdsfadsfdsfadfd
         for i in recdefdict:
             recdefdict[i]['in_call'].append(recdefdict[i]['z3name'])
-            
+        in_call = 0    
         return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    #changed from just returning to_assume
     raise Exception('Bad function call')
     
@@ -615,7 +625,7 @@ def instantiate_lemma(operands):        #this 'instantiates' a lemma
         lemma_set.add((argtuple,body))
     else:
         raise Exception(f'lemma format (args) (body). Given {operands}')
-
+#---------------------------------------------------------------------------------
 
 #--------------------Find Support--------------------------------------------------
 def support(iplist):
@@ -724,6 +734,24 @@ def support_antisp(iplist):
     raise Exception(f'Invalid tag in support old {iplist}')
 #----------------------------------------------------------------------------------
 #----------------------------------------------------------------------------------
+
+
+def snapshot(state):
+    '''Store the current recursive definitions and functions under state'''
+    if state in snapshotdict.key():
+        raise Exception(f'{state} already a snapshot state')
+    
+    funcs = {}
+    for name, elt in funcdict:
+        funcs[name] = elt['z3name']
+
+    recdefs = {}
+    for name, elt in recdefdict:
+        recdefs[name] = elt['z3name']
+
+    snapshot[state] = {'func': funcs, 'recdef': recdefs}
+
+
 
 
 def vc(user_input):

@@ -196,6 +196,9 @@ class BBGenerator:
         FreeStmt = LParen + pp.Literal("free") + Thing + RParen
         CallStmt = LParen + pp.Literal("call").suppress() + ProgName + Params + RParen
         ReturnStmt = LParen + pp.Literal("return").suppress() + RParen
+        # The fork tag marks forks above which both forks will share side condition checking
+        # We can eliminate these redundant obligations when generating bbs
+        ForkTag = pp.original_text_for(LParen + pp.Literal("fork") + RParen)
         ITEStmt = LParen + pp.Literal("If").suppress() + TextExpr + pp.Literal(
             "Then").suppress() + Program + pp.Literal("Else").suppress() + Program + RParen
         BasicStmt = SkipStmt ^ AssignStmt ^ AssumeStmt ^ AllocStmt ^ FreeStmt
@@ -235,7 +238,7 @@ class BBGenerator:
             assume_stmt = f'(assume {cond_expr})'
             negated_assume_stmt = f'(assume (not {cond_expr}))'
             then_bbs = [[assume_stmt] + bb for bb in then_prog]
-            else_bbs = [[negated_assume_stmt] + bb for bb in else_prog]
+            else_bbs = [[negated_assume_stmt, ForkTag] + bb for bb in else_prog]
             return _BBWrapper(then_bbs + else_bbs)
 
         @Program.set_parse_action
@@ -275,7 +278,7 @@ class BBGenerator:
             bbs = [bb[:-1] for bb in bbs]
             precondition = f"(Pre {expr_to_str(self.contracts[prog_name]['pre'])})"
             postcondition = f"(Post {expr_to_str(self.contracts[prog_name]['post'])})"
-            bbs = [[precondition] + bb for bb in bbs]
+            bbs = [[precondition, ForkTag] + bb for bb in bbs]
             bbs = [bb[:-1] + [postcondition] if bb[-1] == '<!RETURN!>' else bb for bb in bbs]
             self.basic_blocks += bbs
 
@@ -283,12 +286,31 @@ class BBGenerator:
         def parse_decls_and_lemmas(string, loc, tokens):
             return [list(tokens)]
 
+        # This function eliminates redundant obligations by switching off side condition checking
+        # We use the ForkTag for this
+        def eliminate_redundant_obligations(bb):
+            # The last fork tag must switch on side condition checking
+            # The first fork tag, if any, must switch off side condition checking
+            # All fork tags in the middle can be eliminated
+            fork_tag_indices = [idx for idx, command in enumerate(bb) if command == ForkTag]
+            # There is at least one fork tag because the precondition is always marked
+            assert len(fork_tag_indices) > 0
+            if len(fork_tag_indices) == 1:
+                marked_bb = ['(:side-conditions true)' if idx == fork_tag_indices[0] else command for idx, command in
+                             enumerate(bb)]
+            else:
+                marked_bb = ['(:side-conditions true)' if idx == fork_tag_indices[-1] else (
+                             '(:side-conditions false)' if idx == fork_tag_indices[0] else
+                             command)
+                             for idx, command in enumerate(bb)]
+            return marked_bb
+
         @FrontEnd.set_parse_action
         def parse_front_end(string, loc, tokens):
             self.decls_and_lemmas = tokens[0]
             # Add the declarations before the beginning of each basic block
             self.basic_blocks = [self.decls_and_lemmas + bb for bb in self.basic_blocks]
-
+            self.basic_blocks = [eliminate_redundant_obligations(bb) for bb in self.basic_blocks]
         FrontEnd = FrontEnd.ignore(pp.cpp_style_comment)
         return FrontEnd
 

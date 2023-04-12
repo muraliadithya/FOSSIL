@@ -219,7 +219,9 @@ class BBGenerator:
             replacement_scheme = [(formal_params[i], actual_params[i]) for i in range(len(formal_params))]
             actual_pre = expr_to_str(substitute_expr(formal_pre, replacement_scheme))
             actual_post = expr_to_str(substitute_expr(formal_post, replacement_scheme))
-            return _BBWrapper([[f'(RelaxedPost {actual_pre})', '<!END!>'], [f'(call {actual_pre} {actual_post})']])
+            return _BBWrapper([[f'(call {actual_pre} {actual_post})']])
+            # Commenting out path with checking precondition of call since it is handled downstream
+            # return _BBWrapper([[f'(RelaxedPost {actual_pre})', '<!END!>'], [f'(call {actual_pre} {actual_post})']])
 
         @ReturnStmt.set_parse_action
         def parse_return_stmt(string, loc, tokens):

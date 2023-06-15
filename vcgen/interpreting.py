@@ -308,7 +308,7 @@ def interpret_assign(iplist):
                 if number_of_function_calls == 0:
                     state = 'initial'
                 else:
-                    state = 'call_'+str(number_of_function_calls)
+                    state = 'after_call_'+str(number_of_function_calls)
                 modified_vars = SetAdd(modified_vars, argument)
 
             # free_var = freevardict[funcdict[func]['input_type']][0]
@@ -440,7 +440,7 @@ def interpret_old(iplist):
             if in_call == 0:
                 return statesdict['initial']['recdefs'][func](*[interpret_ops(op) for op in arguments])
             elif in_call ==1:
-                return statesdict['call_'+str(number_of_function_calls)]['recdefs'][func](*[interpret_ops(op) for op in arguments])
+                return statesdict['before_call_'+str(number_of_function_calls)]['recdefs'][func](*[interpret_ops(op) for op in arguments])
         raise Exception(f'{func} is not a recursive function')
     raise Exception(f'Multiple arguments given to Old tag: {iplist}')
 
@@ -512,21 +512,14 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
         global alloc_set
         global number_of_function_calls
 
-        number_of_function_calls = number_of_function_calls + 1
-        op1, op2 = operands
-        sp_pre = support(op1)
-               
-        old_alloc_rem = SetDifference(alloc_set,sp_pre)
-
-        for i,elt in funcdict.items():
-            new_unint_fn = Function(i+'_unint_'+str(number_of_function_calls),*elt['z3type'])
-            # free_var = freevardict[elt['input_type']][0]
-            x = elt['macro']
-            new_macro = lambda free_var: If(Not(IsMember(free_var,sp_pre)), x(free_var), new_unint_fn(free_var))
-            func_update(i)
-            elt['macro'] = new_macro
         global has_mutated
         has_mutated = 0
+
+        global lemma_description
+
+        number_of_function_calls = number_of_function_calls + 1
+        op1, op2 = operands
+
         for i in recdefdict:
             func_update(i)
         for i in recdefdict:
@@ -538,17 +531,45 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
             instantiate_lemma(i)
 
             
-        snapshot('call_'+str(number_of_function_calls))
+        snapshot('before_call_'+str(number_of_function_calls))
+        sp_pre = support(op1)
+               
+        old_alloc_rem = SetDifference(alloc_set,sp_pre)
+
         if number_of_function_calls == 1:
             before = 'initial'
-            now = 'call_'+str(number_of_function_calls)
+            now = 'before_call_'+str(number_of_function_calls)
         else:
-            before = 'call_'+str(number_of_function_calls-1)
-            now = 'call_'+str(number_of_function_calls)
-            
+            before = 'after_call_'+str(number_of_function_calls-1)
+            now = 'before_call_'+str(number_of_function_calls)
+
         global modified_vars
         frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
         modified_vars = fgsetsort.lattice_bottom    # reset modified locations to start tracking for the next call to call frame rules.
+        
+        for i,elt in funcdict.items():
+            new_unint_fn = Function(i+'_unint_'+str(number_of_function_calls),*elt['z3type'])
+            # free_var = freevardict[elt['input_type']][0]
+            x = elt['macro']
+            new_macro = lambda free_var: If(Not(IsMember(free_var,sp_pre)), x(free_var), new_unint_fn(free_var))
+            func_update(i)
+            elt['macro'] = new_macro
+        for i in recdefdict:
+            func_update(i)
+        for i in recdefdict:
+            if i[:2] != 'SP':
+                interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
+
+        
+        for i in lemma_description:
+            instantiate_lemma(i)
+
+            
+        snapshot('after_call_'+str(number_of_function_calls))
+
+        before = 'before_call_'+str(number_of_function_calls)
+        now = 'after_call_'+str(number_of_function_calls)
+            
         frame_rule(before, now, use_alt = 1, alt_mod_set = old_alloc_rem)  # modified set is the retained heap
 
         sp_post = support(op2)
@@ -556,7 +577,7 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
         alloc_set = SetUnion(old_alloc_rem,sp_post)
 
         to_assume = interpret_ops(op2)   #dafdsfdsfdsfadsfdsfadfd
-        in_call = 0    
+        in_call = 0  
         return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
     raise Exception('Bad function call')
     
@@ -633,14 +654,13 @@ def instantiate_lemma(operands):        #this 'instantiates' a lemma
         raise Exception(f'lemma format (args) (body). Given {operands}')
 #---------------------------------------------------------------------------------
 def side_conditions_update(iplist):
-        global check_side_conditions
         if len(iplist) == 2:
-            if iplist[1] == 'False':
-                check_side_conditions = 0
-            elif iplist[1] == 'True':
-                check_side_conditions = 1
+            if iplist[1] == 'False' or iplist[1] == 'false':
+                return 0
+            elif iplist[1] == 'True' or iplist[1] == 'true':
+                return 1
             else:
-                raise Exception(':side-condition should be followed only by True or False')
+                raise Exception(f':side-condition should be followed only by True or False. Error in: {iplist}')
         else:
             raise Exception(f' Wrong number of operands in {iplist}')
 
@@ -904,7 +924,7 @@ def vc(user_input):
         elif tag == 'assign':     #do case by case on (assign x y) (assign x (f x)) (assign (f x) y)... check if (Sp X) and (Sp Y) are in the alloc set
 
             obligation = IsSubset(SetUnion(support(i[1]),support(i[2])),alloc_set)
-            if not(cl_check(np_solver,lemma_set,transform,obligation)) and (check_side_conditions == 1):
+            if (check_side_conditions == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
                 print(f'Assuming obligations: {i}')
             to_append = interpret_assign(i)
             if to_append == None:   #?!
@@ -913,7 +933,7 @@ def vc(user_input):
                 transform.append(to_append)
         elif tag == 'free':
             obligation =  IsMember(interpret_ops(i[1:]), alloc_set) 
-            if not(cl_check(np_solver,lemma_set,transform,obligation)) and (check_side_conditions == 1):
+            if (check_side_conditions == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
                 print(f'Assuming in support: {i}')
             interpret_free(i)
         elif tag == 'alloc':
@@ -921,12 +941,11 @@ def vc(user_input):
         elif tag == 'call':
             if len(i) == 3:
                 obligation = And(interpret_ops(i[1]), IsSubset(support(i[1]),alloc_set))
-            if not(cl_check(np_solver,lemma_set,transform, obligation)) and (check_side_conditions == 1):
+            if (check_side_conditions == 1) and not(cl_check(np_solver,lemma_set,transform, obligation)):
                 print(f'Could not prove the preconditions for the function call: {i}')
-            
             transform.append(function_call(i))
         elif tag == ':side-conditions':
-            side_conditions_update(i)
+            check_side_conditions = side_conditions_update(i)
 
 
         else:        
@@ -941,7 +960,7 @@ def vc(user_input):
         frame_rule('initial','final')
     else:
 
-        frame_rule('call_'+str(number_of_function_calls),'final')
+        frame_rule('after_call_'+str(number_of_function_calls),'final')
                 
     print('checking validity...')
     if rp == 0:

@@ -29,16 +29,18 @@ with open(logfile, 'w'):
 vardict = {'nil' : {'z3name': Const('nil', fgsort),'z3type': fgsort, 'counter': None}}                                                        # Dictionary to store variables
 funcdict = {}                                                       # Dictionary to store functions
 recdefdict = {}                                                     # Dictionary for the recusive definitions
-freevardict = {'Loc':[],'SetLoc':[],'Int':[],'SetInt':[],'Bool':[]} # Will add free vars based on max arity of fn.
-modified_vars = []                                                  # Modified_vars used for frame rule
+freevardict = {'Loc': 0,'SetLoc': 0,'Int': 0,'SetInt': 0,'Bool': 0} # Will add free vars based on max arity of fn. Tracks number so far
 alloc_set = fgsetsort.lattice_bottom                                #
 has_mutated = 0                                                     # If == 1, need to update recfns
 in_call = 0
 number_of_function_calls = 0                                        #
 lemma_set = set()                                                   # lemmas to be instantiated
 lemma_description = []                                              #
-defaultdict = {'Loc': vardict['nil']['z3name'],'Int': -1 ,'SetLoc': fgsetsort.lattice_bottom,'SetInt': intsetsort.lattice_bottom}
-snapshotdict = {}
+defaultdict = {'Loc': vardict['nil']['z3name'],'Int': -1 , 'Bool': False  ,'SetLoc': fgsetsort.lattice_bottom,'SetInt': intsetsort.lattice_bottom}
+statesdict = {}
+modified_vars = fgsetsort.lattice_bottom
+transform = []
+check_side_conditions = 1                                           # default: check all obligations 
 
 # -----------------------------------------------
 
@@ -65,10 +67,10 @@ def var_parser(varinfo):
     z3_type = type_parser(input_type)
     if tag == 'Var':
         z3_var = Var(name+'0', z3_type)
-        vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'counter': 0}
+        vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'type': input_type,'counter': 0}
     elif tag == 'Const':
         z3_var = Const(name, z3_type)
-        vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'counter': None}
+        vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'type': input_type, 'counter': None}
     else:
         raise Exception(f'Invalid Var/Const tag {varinfo}')
 
@@ -93,20 +95,27 @@ def func_parser(funcinfo):
             raise Exception('A function input types must be the same')
         
     no_of_inputs = len(type_info) - 1
-    no_of_freevars_sofar = len(freevardict[type_of_inputs])
+    no_of_freevars_sofar = freevardict[type_of_inputs]
     if no_of_inputs > no_of_freevars_sofar:
         for i in range(no_of_freevars_sofar,no_of_inputs):
-            freevardict[type_of_inputs].append(Var('free_'+type_of_inputs+str(i), type_parser(type_of_inputs)))
+            vardict['free_'+type_of_inputs+str(i)] = {'z3name': (Var('free_'+type_of_inputs+str(i), type_parser(type_of_inputs))),
+                                                      'z3type': type_parser(type_of_inputs), 'type': type_of_inputs,'counter': 0}
+        freevardict[type_of_inputs] = no_of_inputs
+
+    # assuming only one imput per function for now. Will expand later
 
 
     z3_type = [type_parser(x) for x in type_info]
     if tag == 'Function':
         z3_func = Function(name+'0', *z3_type)
-        funcdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
+        funcdict[name] = {'macro': lambda free_var: z3_func(free_var), 'z3type': z3_type, 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
+        statesdict['initial']['funcs'][name] = funcdict[name]['macro']
+
     elif tag == 'RecFunction':
         z3_func = Function(name+'0', *z3_type)
         recdefdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'description': [],
-                                'counter': 0, 'init': z3_func, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs, 'in_call': []}
+                                'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
+        statesdict['initial']['recdefs'][name] = z3_func
         #...............
         if name[:2]!= 'SP':
             typelist = [type_parser(i) for i in type_info[:-1]]
@@ -114,7 +123,8 @@ def func_parser(funcinfo):
             
             z3_spfunc = Function('SP'+name+'0',*z3_sptype)
             recdefdict['SP'+name] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
-                                        'counter': 0, 'init': z3_spfunc,'input_type': type_of_inputs,'output_type': 'SetLoc','no_inputs': no_of_inputs, 'in_call': []}
+                                        'counter': 0,'input_type': type_of_inputs,'output_type': 'SetLoc','no_inputs': no_of_inputs}
+            statesdict['initial']['recdefs']['SP'+name] = z3_spfunc
         else:
             raise Exception('Functions not allowed to start with SP')
         #..............
@@ -135,10 +145,9 @@ def var_update(name):
 def func_update(name):
     '''Update functions(and rec functions) and counters'''
     if name in funcdict:
-        z3_type,counter =  funcdict[name]['z3type'], funcdict[name]['counter']
+        counter =  funcdict[name]['counter']
         counter_new = counter+1
-        func_new = Function(name+str(counter_new), *z3_type)
-        funcdict[name]['z3name'], funcdict[name]['counter'] = func_new, counter_new
+        funcdict[name]['counter'] =  counter_new
     elif name in recdefdict:
         z3_type, counter = recdefdict[name]['z3type'], recdefdict[name]['counter']
         counter_new = counter+1
@@ -165,17 +174,10 @@ def interpret_ops(iplist):
         return interpret_and(iplist)
     if operator == 'or':
         return interpret_or(iplist)
-    if operator == 'assume':
-        return interpret_assume(iplist)
-    if operator == 'assign':
-        return interpret_assign(iplist)
-    if operator == 'RecDef':
-        return interpret_recdef(iplist)
     if operator in funcdict:
         return interpret_func(iplist)
     if operator in recdefdict:
         return interpret_recfunc(iplist)
-
     if operator == 'SetAdd':
         return interpret_setadd(iplist)
     if operator == 'SetUnion':
@@ -209,17 +211,10 @@ def interpret_ops(iplist):
         return interpret_minus(iplist)
     if operator == 'IntConst':
         return interpret_int(iplist)
-
-    if operator == 'call':
-        return function_call(iplist)
-    if operator == 'alloc':
-        return interpret_alloc(iplist)
-    if operator == 'free':                  
-        interpret_free(iplist)
-    if operator == 'lemma':
-        interpret_lemma(iplist)
     if operator == 'antiSp':
         return interpret_antisp(iplist)
+
+
     raise Exception(f'Invalid Tag {operator} in {iplist}')
 
 #---------(1)--------------
@@ -296,7 +291,7 @@ def interpret_assign(iplist):
         x:= Y will update x (increment counter to make an updated variable) to be Y
         (func x) := Y will update the function func' to say -> 
                         if arg is x then Y else (func arg) '''
-    global modified_vars
+    global number_of_function_calls
     operands = iplist[1:]
     if len(operands)==2:
         lhs, rhs = operands
@@ -306,20 +301,23 @@ def interpret_assign(iplist):
             interpreted_lhs = interpret_ops(lhs)
             return interpreted_lhs==interpreted_rhs
         if lhs[0] in funcdict:  #if mutation
+            global modified_vars
             func = lhs[0]
-            to_check = []
-            free_vars_used = []
             for i in range(1,len(lhs)):
                 argument = interpret_ops(lhs[i])
-                modified_vars.append(argument)
-                to_check.append(freevardict[funcdict[func]['input_type']][i-1] == argument)
-                free_vars_used.append(freevardict[funcdict[func]['input_type']][i-1])
+                if number_of_function_calls == 0:
+                    state = 'initial'
+                else:
+                    state = 'call_'+str(number_of_function_calls)
+                modified_vars = SetAdd(modified_vars, argument)
 
-            new_func_definition = If(And(*to_check),interpret_ops(rhs), funcdict[func]['z3name'](*free_vars_used))
+            # free_var = freevardict[funcdict[func]['input_type']][0]
+            x = funcdict[func]['macro']
+            y = interpret_ops(rhs)
+            new_macro = lambda free_var: If(free_var == argument, y, x(free_var))
             func_update(func)
-            new_func = funcdict[func]['z3name'](*free_vars_used)
-            logging.info('Mutation: %s = %s' %(new_func,new_func_definition))
-            AddAxiom((*free_vars_used,), new_func == new_func_definition)
+            funcdict[func]['macro'] = new_macro
+            logging.info('Mutation: %s = %s' %(func, new_macro))
             global has_mutated
             has_mutated = 1 #indicates recdefs need to be updated. Will do when necessary.
             return None
@@ -355,8 +353,10 @@ def interpret_recdef(iplist):
 def interpret_func(iplist):
     '''(func args) -> func(args)
         Used for non recursive functions'''
-    operator, operands = iplist[0], iplist[1:]
-    return funcdict[operator]['z3name'](*[interpret_ops(op) for op in operands])
+    if len(iplist) != 2:
+        raise Exception('Invalid number of arguments on function')
+    operator, operands = iplist[0], iplist[1]
+    return funcdict[operator]['macro'](interpret_ops(operands))
 
 def interpret_recfunc(iplist):
     '''(recfunc args) -> recfunc(args)
@@ -438,9 +438,9 @@ def interpret_old(iplist):
         func, arguments = operands[0][0], operands[0][1:]
         if func in recdefdict:
             if in_call == 0:
-                return recdefdict[func]['init'](*[interpret_ops(op) for op in arguments])
+                return statesdict['initial']['recdefs'][func](*[interpret_ops(op) for op in arguments])
             elif in_call ==1:
-                return snapshot['call_'+str(number_of_function_calls)][func](*[interpret_ops(op) for op in arguments])
+                return statesdict['call_'+str(number_of_function_calls)]['recdefs'][func](*[interpret_ops(op) for op in arguments])
         raise Exception(f'{func} is not a recursive function')
     raise Exception(f'Multiple arguments given to Old tag: {iplist}')
 
@@ -513,7 +513,6 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
         global number_of_function_calls
 
         number_of_function_calls = number_of_function_calls + 1
-        snapshot('call_'+str(number_of_function_calls))
         op1, op2 = operands
         sp_pre = support(op1)
                
@@ -521,17 +520,11 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
 
         for i,elt in funcdict.items():
             new_unint_fn = Function(i+'_unint_'+str(number_of_function_calls),*elt['z3type'])
-            input_type = elt['input_type']
-            no_inputs = elt['no_inputs']
-            fv_used = freevardict[input_type][:no_inputs]
-            fv_set = fgsetsort.lattice_bottom
-            for j in fv_used:
-                fv_set = SetAdd(fv_set,j)
-            y = If(IsSubset(fv_set,old_alloc_rem),elt['z3name'](*fv_used),new_unint_fn(*fv_used))
+            # free_var = freevardict[elt['input_type']][0]
+            x = elt['macro']
+            new_macro = lambda free_var: If(Not(IsMember(free_var,sp_pre)), x(free_var), new_unint_fn(free_var))
             func_update(i)
-            x = elt['z3name'](*fv_used)
-            logging.info(f'Function Call: {x} = {y}')
-            AddAxiom((*fv_used,), x == y)
+            elt['macro'] = new_macro
         global has_mutated
         has_mutated = 0
         for i in recdefdict:
@@ -544,15 +537,27 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
         for i in lemma_description:
             instantiate_lemma(i)
 
+            
+        snapshot('call_'+str(number_of_function_calls))
+        if number_of_function_calls == 1:
+            before = 'initial'
+            now = 'call_'+str(number_of_function_calls)
+        else:
+            before = 'call_'+str(number_of_function_calls-1)
+            now = 'call_'+str(number_of_function_calls)
+            
+        global modified_vars
+        frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
+        modified_vars = fgsetsort.lattice_bottom    # reset modified locations to start tracking for the next call to call frame rules.
+        frame_rule(before, now, use_alt = 1, alt_mod_set = old_alloc_rem)  # modified set is the retained heap
+
         sp_post = support(op2)
 
         alloc_set = SetUnion(old_alloc_rem,sp_post)
 
         to_assume = interpret_ops(op2)   #dafdsfdsfdsfadsfdsfadfd
-        for i in recdefdict:
-            recdefdict[i]['in_call'].append(recdefdict[i]['z3name'])
         in_call = 0    
-        return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    #changed from just returning to_assume
+        return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
     raise Exception('Bad function call')
     
 def interpret_alloc(iplist):
@@ -569,7 +574,7 @@ def interpret_alloc(iplist):
     to_return = []
     to_return.append(Not(IsMember(alloc_var, alloc_set)))
     for i, elt in funcdict.items():
-        to_return.append(elt['z3name'](alloc_var) == defaultdict[elt['output_type']])
+        to_return.append(elt['macro'](alloc_var) == defaultdict[elt['output_type']])
 
     alloc_set = SetAdd(alloc_set, alloc_var)
     return And(*[to_return])
@@ -603,6 +608,7 @@ def interpret_antisp(iplist):
         raise Exception(f'not operator is unary. Given {iplist}')
     return interpret_ops(operands[0])
 #---------------------------------------------------------------------------
+
 #---------------------------------------------------------------------------
 def instantiate_lemma(operands):        #this 'instantiates' a lemma
     
@@ -626,6 +632,17 @@ def instantiate_lemma(operands):        #this 'instantiates' a lemma
     else:
         raise Exception(f'lemma format (args) (body). Given {operands}')
 #---------------------------------------------------------------------------------
+def side_conditions_update(iplist):
+        global check_side_conditions
+        if len(iplist) == 2:
+            if iplist[1] == 'False':
+                check_side_conditions = 0
+            elif iplist[1] == 'True':
+                check_side_conditions = 1
+            else:
+                raise Exception(':side-condition should be followed only by True or False')
+        else:
+            raise Exception(f' Wrong number of operands in {iplist}')
 
 #--------------------Find Support--------------------------------------------------
 def support(iplist):
@@ -710,17 +727,21 @@ def support_support(iplist):
     raise Exception(f'Support is a unary operator. Invalid support {iplist}')
 
 def support_old(iplist):
-    '''(Sp (Old (recfunc X))) -> (Old (Sp (recfunc X)))'''
+    '''
+    # (Sp (Old (recfunc X))) -> (Old (Sp (recfunc X)))
+    (Sp (Old (recfunc X))) -> empty
+    '''
     operator, operands = iplist[0], iplist[1:]
     if operator == 'Old' and len(operands)==1:
         recfn, args = operands[0][0], operands[0][1:]
         if recfn in recdefdict:
-            if recfn[:2] == 'SP':
-                return interpret_old(['Old',operands[0]])
-            elif recfn[:2] != 'SP':
-                sp_old = interpret_old(['Old',['SP'+recfn]+args])
-                sp_terms = SetUnion(*[support(t) for t in args])
-                return SetUnion(sp_old, sp_terms)
+            # if recfn[:2] == 'SP':
+            #     return interpret_old(['Old',operands[0]])
+            # elif recfn[:2] != 'SP':
+            #     sp_old = interpret_old(['Old',['SP'+recfn]+args])
+            #     sp_terms = SetUnion(*[support(t) for t in args])
+            #     return SetUnion(sp_old, sp_terms)
+            return fgsetsort.lattice_bottom                     # assumed antisp brackets around old.
 
         raise Exception(f'Invalid rec def in support old operation {iplist}')
     raise Exception(f'Invalid tag in support old {iplist}')
@@ -738,31 +759,98 @@ def support_antisp(iplist):
 
 def snapshot(state):
     '''Store the current recursive definitions and functions under state'''
-    if state in snapshotdict.key():
+    if state in statesdict.keys():
         raise Exception(f'{state} already a snapshot state')
     
     funcs = {}
-    for name, elt in funcdict:
-        funcs[name] = elt['z3name']
+    for name, elt in funcdict.items():
+        funcs[name] = elt['macro']
 
     recdefs = {}
-    for name, elt in recdefdict:
+    for name, elt in recdefdict.items():
         recdefs[name] = elt['z3name']
 
-    snapshot[state] = {'func': funcs, 'recdef': recdefs}
+    statesdict[state] = {'funcs': funcs, 'recdefs': recdefs}
 
 
+def cl_check(solver,lemmas,assumptions, obligation):
+    '''Return true if the solver can prove the obligation with the set of assumptions and lemmas'''
+    solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
+    if not solution.if_sat:
+        return True
+    return False
+
+def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
+    '''
+    Adds frame rules between state1 and state2 (assumed to be consecutive)
+    For each recursive function F: If x not in modified_set Intersection Support_of_F1(x), then F1(x) = F2(x).
+    '''
+    s1 = statesdict[state1]['recdefs']
+    s2 = statesdict[state2]['recdefs']
+    if use_alt == 0:
+        # modified_vars = statesdict[state1]['modified_vars'] #extend this to be more general? i.e when 1 and 2 are not consecutive
+        # mv = [*set(modified_vars)]
+        # modified_set = fgsetsort.lattice_bottom
+        # for i in mv:
+        #     modified_set = SetAdd(modified_set,i)
+        global modified_vars
+        modified_set = modified_vars
+    else:
+        modified_set = alt_mod_set
+
+    for name in s1.keys():
+        if name[:2] == 'SP':
+            pass
+        else:
+
+            fv_used = []
+            for j in range(recdefdict[name]['no_inputs']):
+                fv_used.append(vardict['free_' + recdefdict[name]['input_type'] + str(j)]['z3name'])
+
+            recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                        ,s1[name](*fv_used) == s2[name](*fv_used))
+
+            AddAxiom((*fv_used,), recdef_frame)
+            support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                        ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
+            AddAxiom((*fv_used,), support_frame)
+
+
+# ------------------------------------------
+def replace_var(the_map, iplist ):
+    '''
+    the_map -> {'x': 'm_x','y': 'm_y'...}
+    return iplist[x<-m_x, y<-m_y, ...]
+    '''
+    new_list = []
+    map_keys = the_map.keys()
+    for elt in iplist:
+        if isinstance(elt, str):
+            if elt in map_keys:
+                new_list.append(the_map[elt])
+            else:
+                new_list.append(elt)
+        else:
+            new_list.append(replace_var(the_map, elt))
+    return new_list
+# ----------------------------------------------
 
 
 def vc(user_input):
     '''VC generation'''
     nc_uip = ml_to_sl(remove_comments(user_input))
     code_line = [create_input(i) for i in nc_uip]
-    logging.info(f'vc input list: {code_line}')
     print('done creating input list')
     global alloc_set
     global lemma_set
+    global check_side_conditions
+    global modified_vars
+    np_solver = NPSolver()
+    np_solver.options.depth = 2
+
     transform = []
+    statesdict['initial']= {'funcs': {},'recdefs': {}}
+
 
     for i in code_line:
         tag = i[0]
@@ -773,7 +861,7 @@ def vc(user_input):
         elif tag == 'Pre':
             precond = interpret_ops(i[1])
             alloc_set = support(i[1])
-            logging.info(f'Initial Alloc Set: {z3.simplify(alloc_set)}')
+            transform.append(precond)
         elif tag == 'Post':
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
@@ -782,7 +870,7 @@ def vc(user_input):
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
             rp = 1
-        elif tag == 'SupportlessPost':      #for testing
+        elif tag == 'SupportlessPost':
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
             rp = 2
@@ -791,91 +879,108 @@ def vc(user_input):
             name = i[1][0]
             spname = 'SP'+i[1][0]
             if name in recdefdict:
-                recdefdict[name]['description']  = i
-                z3_name = recdefdict[name]['z3name']
-                recdefdict[name]['init'] = z3_name
-                recdefdict[spname]['init'] = recdefdict[spname]['z3name']
+                type_of_inputs = recdefdict[name]['input_type']
+                no_of_inputs = recdefdict[name]['no_inputs']
+                the_map = {}
+                for j in range(1, len(i[1])):   #i[1] = [name, arg1, arg2, ...]
+                    if isinstance(i[1][j],str):
+                        x = i[1][j]
+                    else:
+                        x = i[1][j][0]
+                    the_map[x] = 'free_'+type_of_inputs+str(j-1)
+                recdefdict[name]['description']  = replace_var(the_map, i)
+                interpret_recdef(recdefdict[name]['description'])
+                
             else:
                 raise Exception('Bad RecDef %s' %name)
-            interpret_ops(i)
-        elif (tag == 'assign') and not(isinstance(i[1],str) or (len(i[1])==1)): #i.e add axiom
-            interpret_ops(i)
-        elif (tag == 'free'):
-            interpret_free(i)
-        elif (tag == 'alloc'):
-            intops = interpret_alloc(i)
-            transform.append(intops)
-        elif (tag == 'lemma'):
+            
+            
+        elif tag == 'lemma':
             interpret_lemma(i)
-        else:
-            intops = interpret_ops(i)
-            logging.info('Line of code: %s' %intops)
-            transform.append(intops)
+
+
+        elif tag == 'assume':
+            transform.append(interpret_assume(i))  #remove tags inside interpretops
+        elif tag == 'assign':     #do case by case on (assign x y) (assign x (f x)) (assign (f x) y)... check if (Sp X) and (Sp Y) are in the alloc set
+
+            obligation = IsSubset(SetUnion(support(i[1]),support(i[2])),alloc_set)
+            if not(cl_check(np_solver,lemma_set,transform,obligation)) and (check_side_conditions == 1):
+                print(f'Assuming obligations: {i}')
+            to_append = interpret_assign(i)
+            if to_append == None:   #?!
+                pass
+            else:
+                transform.append(to_append)
+        elif tag == 'free':
+            obligation =  IsMember(interpret_ops(i[1:]), alloc_set) 
+            if not(cl_check(np_solver,lemma_set,transform,obligation)) and (check_side_conditions == 1):
+                print(f'Assuming in support: {i}')
+            interpret_free(i)
+        elif tag == 'alloc':
+            transform.append(interpret_alloc(i))
+        elif tag == 'call':
+            if len(i) == 3:
+                obligation = And(interpret_ops(i[1]), IsSubset(support(i[1]),alloc_set))
+            if not(cl_check(np_solver,lemma_set,transform, obligation)) and (check_side_conditions == 1):
+                print(f'Could not prove the preconditions for the function call: {i}')
+            
+            transform.append(function_call(i))
+        elif tag == ':side-conditions':
+            side_conditions_update(i)
+
+
+        else:        
+            raise Exception (f'Invalid tag in code {i}')
     print('done preprocessing')
-    mv = [*set(modified_vars)]
-    modif_set = fgsetsort.lattice_bottom
-    for i in mv:
-        modif_set = SetAdd(modif_set,i)
-    logging.info('Modified set is %s' %z3.simplify(modif_set))
-    for i in recdefdict:
-        if i[:2]=='SP':
-            pass
-        else:
-            # logging.info('Frame assumptions:')
+    statesdict['final'] = {'recdefs': {}}
+    for name, info in recdefdict.items():
+        statesdict['final']['recdefs'][name] = info['z3name']
 
-            fv_used = []
-            for j in range(recdefdict[i]['no_inputs']):
-                fv_used.append(freevardict[recdefdict[i]['input_type']][j])
-        
-            a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),recdefdict[i]['init'](*fv_used) == recdefdict[i]['z3name'](*fv_used))
-            # logging.info(z3.simplify(a))
-            AddAxiom((*fv_used,), a)
-            b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),recdefdict['SP'+i]['init'](*fv_used) == recdefdict['SP'+i]['z3name'](*fv_used))
-            # logging.info(z3.simplify(b))
-            AddAxiom((*fv_used,), b)
 
-            for version_in_function_call in recdefdict[i]['in_call']:
-                a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),version_in_function_call(*fv_used) == recdefdict[i]['z3name'](*fv_used))
+    if number_of_function_calls == 0:   # frame_rules are added when a call is seen
+        frame_rule('initial','final')
+    else:
 
-                AddAxiom((*fv_used,), a)
-            for version_in_function_call in recdefdict['SP'+i]['in_call']:            
-                b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['init'](*fv_used)), fgsetsort.lattice_bottom),version_in_function_call(*fv_used) == recdefdict['SP'+i]['z3name'](*fv_used))
-                AddAxiom((*fv_used,), b)
-            for j in range(len(recdefdict[i]['in_call'])):
-                a = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['in_call'][j](*fv_used)), fgsetsort.lattice_bottom),recdefdict[i]['in_call'][j](*fv_used) == recdefdict[i]['z3name'](*fv_used))
+        frame_rule('call_'+str(number_of_function_calls),'final')
                 
-                AddAxiom((*fv_used,), a)
-                b = Implies(IsSubset(SetIntersect(modif_set,recdefdict['SP'+i]['in_call'][j](*fv_used)), fgsetsort.lattice_bottom),recdefdict['SP'+i]['in_call'][j](*fv_used) == recdefdict['SP'+i]['z3name'](*fv_used))
-                AddAxiom((*fv_used,), b)
-
-
-
-
-
-    logging.info(f'Final alloc set: {z3.simplify(alloc_set)}')
-    logging.info(f'Sp of postcondition: {z3.simplify(sp_postcond)}')
-    # print('sp of postcond:', sp_postcond)
+    print('checking validity...')
     if rp == 0:
-        goal =  Implies(And(precond,*[t for t in transform]), And(postcond,sp_postcond == alloc_set))
-        # goal =  Implies(And(precond,*[t for t in transform]), postcond)
+        ret = cl_check(np_solver,lemma_set,transform,And(postcond,sp_postcond == alloc_set))
     elif rp == 1:
-        goal =  Implies(And(precond,*[t for t in transform]), And(postcond, IsSubset(sp_postcond,alloc_set)))
+        ret = cl_check(np_solver,lemma_set,transform, And(postcond, IsSubset(sp_postcond,alloc_set)))
     elif rp == 2:
-        goal =  Implies(And(precond,*[t for t in transform]), postcond)
+        ret = cl_check(np_solver,lemma_set,transform,postcond)
     else:
         raise Exception ('No postcondition given')
-    for i in lemma_set:
-        logging.info(f'Lemma : {i}')
-    logging.info(f'Goal: {goal}')
-    # print('goal:->',goal)
-    np_solver = NPSolver()
-    np_solver.options.depth = 1
-    print(np_solver.options.instantiation_mode)
-    print('checking validity...')
-    solution = np_solver.solve(goal,lemma_set)
-    if not solution.if_sat:
-        logging.info('goal is valid')
+    if ret == True:
         print('goal is valid')
     else:
-        logging.info('goal not proven')
         print('goal not proven')
+
+
+
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+# def interpret_lemma_alt(iplist):
+#     if len(iplist) == 5:
+#         args = []
+#         lemma_name, arg_list, state_list, the_lemma = iplist[1], iplist[2], iplist[3], iplist[4]
+    
+#         for i in arg_list:
+#             if not (len(i) == 2) or not (isinstance(i,list)):
+#                 raise Exception (f'Lemma variable input error {lemma_name}')
+            
+#             var_name, var_type = i
+#             if not (vardict[var_name]['type'] == var_type):
+#                 raise Exception (f'Lemma variable type mismatch in  {lemma_name}')
+#             args.append(vardict[var_name])              # do it only if type is 'Loc'?
+        
+#         for i in state_list:
+#             if not (isinstance(i,str)):
+#                 raise Exception (f'States should be strings represented as (s1 s2 s3 ...). {lemma_name}')
+        
+        
+
+
+

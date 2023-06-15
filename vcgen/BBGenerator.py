@@ -196,9 +196,6 @@ class BBGenerator:
         FreeStmt = LParen + pp.Literal("free") + Thing + RParen
         CallStmt = LParen + pp.Literal("call").suppress() + ProgName + Params + RParen
         ReturnStmt = LParen + pp.Literal("return").suppress() + RParen
-        # The fork tag marks forks above which both forks will share side condition checking
-        # We can eliminate these redundant obligations when generating bbs
-        ForkTag = pp.original_text_for(LParen + pp.Literal("fork") + RParen)
         ITEStmt = LParen + pp.Literal("If").suppress() + TextExpr + pp.Literal(
             "Then").suppress() + Program + pp.Literal("Else").suppress() + Program + RParen
         BasicStmt = SkipStmt ^ AssignStmt ^ AssumeStmt ^ AllocStmt ^ FreeStmt
@@ -207,6 +204,10 @@ class BBGenerator:
 
         ProgramBlock = ProgDeclBlock + Program
         FrontEnd = Decls_And_Lemmas + ProgramBlock[1, ...]
+
+        # The fork tag marks forks above which both forks will share side condition checking
+        # We can eliminate these redundant obligations when generating bbs
+        ForkTag = "(fork)"
 
         @BasicStmt.set_parse_action
         def parse_basic_stmt(string, loc, tokens):
@@ -302,7 +303,7 @@ class BBGenerator:
                 marked_bb = ['(:side-conditions true)' if idx == fork_tag_indices[-1] else (
                              '(:side-conditions false)' if idx == fork_tag_indices[0] else
                              command)
-                             for idx, command in enumerate(bb)]
+                             for idx, command in enumerate(bb) if idx not in fork_tag_indices[1:-1]]
             return marked_bb
 
         @FrontEnd.set_parse_action

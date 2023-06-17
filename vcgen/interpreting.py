@@ -42,6 +42,8 @@ modified_vars = fgsetsort.lattice_bottom
 transform = []
 check_side_conditions = 1                                           # default: check all obligations 
 
+np_solver = NPSolver()
+np_solver.options.depth = 2
 # -----------------------------------------------
 
 def type_parser(input_type):
@@ -286,15 +288,25 @@ def interpret_assume(iplist):
         return interpret_ops(operands[0])
     raise Exception(f'Assume takes only one argument: (assume (arg)). Given: {iplist}')
 
-def interpret_assign(iplist):
+def interpret_assign(iplist, check_obligations = 1):
     '''(assign X Y) where X can either be a variable or a mutation
         x:= Y will update x (increment counter to make an updated variable) to be Y
         (func x) := Y will update the function func' to say -> 
                         if arg is x then Y else (func arg) '''
     global number_of_function_calls
+    global np_solver
+    global lemma_set
+    global transform
+    global alloc_set
+    
     operands = iplist[1:]
     if len(operands)==2:
         lhs, rhs = operands
+
+        obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
+        if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
+            print(f'Assuming obligations: {iplist}')
+
         if (isinstance(lhs,str) and (lhs in vardict)) or (len(lhs)==1 and (lhs[0] in vardict)): #LHS is a variable
             interpreted_rhs = interpret_ops(rhs)
             var_update(lhs)
@@ -504,7 +516,7 @@ def interpret_int(iplist):
             raise Exception(f'Invalid integer declaration {iplist}')
     return int(operands)
 
-def function_call(iplist):  # add a var update somewhere here in case someone uses an allocated var in return?
+def function_call(iplist, check_obligations = 1):  # add a var update somewhere here in case someone uses an allocated var in return?
     global in_call
     in_call = 1
     operands = iplist[1:]
@@ -517,6 +529,11 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
 
         global lemma_description
 
+        global np_solver
+        global check_side_conditions
+
+        global transform
+
         number_of_function_calls = number_of_function_calls + 1
         op1, op2 = operands
 
@@ -526,15 +543,14 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
             if i[:2] != 'SP':
                 interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
 
-        global lemma_description
         for i in lemma_description:
             instantiate_lemma(i)
 
             
         snapshot('before_call_'+str(number_of_function_calls))
+
         sp_pre = support(op1)
-               
-        old_alloc_rem = SetDifference(alloc_set,sp_pre)
+        pre = interpret_ops(op1)
 
         if number_of_function_calls == 1:
             before = 'initial'
@@ -546,7 +562,15 @@ def function_call(iplist):  # add a var update somewhere here in case someone us
         global modified_vars
         frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
         modified_vars = fgsetsort.lattice_bottom    # reset modified locations to start tracking for the next call to call frame rules.
+
+        # obligation checking
+        obligation = And(pre, IsSubset(sp_pre,alloc_set))
+
+        if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform, obligation)):
+            print(f'Could not prove the preconditions for the function call: {iplist}')        
         
+        old_alloc_rem = SetDifference(alloc_set,sp_pre)
+
         for i,elt in funcdict.items():
             new_unint_fn = Function(i+'_unint_'+str(number_of_function_calls),*elt['z3type'])
             # free_var = freevardict[elt['input_type']][0]
@@ -600,15 +624,25 @@ def interpret_alloc(iplist):
     alloc_set = SetAdd(alloc_set, alloc_var)
     return And(*[to_return])
 
-def interpret_free(iplist):
+def interpret_free(iplist, check_obligations = 1):
     operands = iplist[1:]
+
+    global np_solver
+    global lemma_set
+    global transform
+    global alloc_set
+
+    obligation =  IsMember(interpret_ops(operands), alloc_set) 
+
+
+    if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
+        print(f'Assuming obligations: {iplist}')
     if len(operands) == 1:
         x = operands[0]
         if isinstance(x,str):
             pass
         else:
             x = x[0]
-    global alloc_set
     alloc_set = SetDel(alloc_set, vardict[x]['z3name'])
     
 
@@ -865,10 +899,9 @@ def vc(user_input):
     global lemma_set
     global check_side_conditions
     global modified_vars
-    np_solver = NPSolver()
-    np_solver.options.depth = 2
+    global np_solver
+    global transform
 
-    transform = []
     statesdict['initial']= {'funcs': {},'recdefs': {}}
 
 
@@ -921,36 +954,26 @@ def vc(user_input):
 
         elif tag == 'assume':
             transform.append(interpret_assume(i))  #remove tags inside interpretops
-        elif tag == 'assign':     #do case by case on (assign x y) (assign x (f x)) (assign (f x) y)... check if (Sp X) and (Sp Y) are in the alloc set
 
-            obligation = IsSubset(SetUnion(support(i[1]),support(i[2])),alloc_set)
-            if (check_side_conditions == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
-                print(f'Assuming obligations: {i}')
-            to_append = interpret_assign(i)
+        elif tag == 'assign':     #do case by case on (assign x y) (assign x (f x)) (assign (f x) y)... check if (Sp X) and (Sp Y) are in the alloc set
+            to_append = interpret_assign(i, check_side_conditions)
             if to_append == None:   #?!
                 pass
             else:
                 transform.append(to_append)
         elif tag == 'free':
-            obligation =  IsMember(interpret_ops(i[1:]), alloc_set) 
-            if (check_side_conditions == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
-                print(f'Assuming in support: {i}')
-            interpret_free(i)
+            interpret_free(i, check_side_conditions)
         elif tag == 'alloc':
             transform.append(interpret_alloc(i))
         elif tag == 'call':
-            if len(i) == 3:
-                obligation = And(interpret_ops(i[1]), IsSubset(support(i[1]),alloc_set))
-            if (check_side_conditions == 1) and not(cl_check(np_solver,lemma_set,transform, obligation)):
-                print(f'Could not prove the preconditions for the function call: {i}')
-            transform.append(function_call(i))
+            transform.append(function_call(i, check_side_conditions))
         elif tag == ':side-conditions':
             check_side_conditions = side_conditions_update(i)
 
 
         else:        
             raise Exception (f'Invalid tag in code {i}')
-    print('done preprocessing')
+    print('done preprocessing and checking side-conditions')
     statesdict['final'] = {'recdefs': {}}
     for name, info in recdefdict.items():
         statesdict['final']['recdefs'][name] = info['z3name']
@@ -999,7 +1022,5 @@ def vc(user_input):
 #             if not (isinstance(i,str)):
 #                 raise Exception (f'States should be strings represented as (s1 s2 s3 ...). {lemma_name}')
         
-        
-
 
 

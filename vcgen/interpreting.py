@@ -110,7 +110,7 @@ def func_parser(funcinfo):
     z3_type = [type_parser(x) for x in type_info]
     if tag == 'Function':
         z3_func = Function(name+'0', *z3_type)
-        funcdict[name] = {'macro': lambda free_var: z3_func(free_var), 'z3type': z3_type, 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
+        funcdict[name] = {'macro': lambda free_var, z3_func = z3_func: z3_func(free_var), 'z3type': z3_type, 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
         statesdict['initial']['funcs'][name] = funcdict[name]['macro']
 
     elif tag == 'RecFunction':
@@ -326,7 +326,7 @@ def interpret_assign(iplist, check_obligations = 1):
             # free_var = freevardict[funcdict[func]['input_type']][0]
             x = funcdict[func]['macro']
             y = interpret_ops(rhs)
-            new_macro = lambda free_var: If(free_var == argument, y, x(free_var))
+            new_macro = lambda free_var, argument = argument, y = y, x = x: If(free_var == argument, y, x(free_var))
             func_update(func)
             funcdict[func]['macro'] = new_macro
             logging.info('Mutation: %s = %s' %(func, new_macro))
@@ -552,6 +552,8 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         sp_pre = support(op1)
         pre = interpret_ops(op1)
 
+
+
         if number_of_function_calls == 1:
             before = 'initial'
             now = 'before_call_'+str(number_of_function_calls)
@@ -575,9 +577,12 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             new_unint_fn = Function(i+'_unint_'+str(number_of_function_calls),*elt['z3type'])
             # free_var = freevardict[elt['input_type']][0]
             x = elt['macro']
-            new_macro = lambda free_var: If(Not(IsMember(free_var,sp_pre)), x(free_var), new_unint_fn(free_var))
+
+            #changed fron not ismember and swapped the then else parts
+            new_macro = lambda free_var, sp_pre = sp_pre, x = x, new_unint_fn = new_unint_fn : If(IsMember(free_var,sp_pre), new_unint_fn(free_var), x(free_var))
             func_update(i)
             elt['macro'] = new_macro
+
         for i in recdefdict:
             func_update(i)
         for i in recdefdict:
@@ -594,13 +599,14 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         before = 'before_call_'+str(number_of_function_calls)
         now = 'after_call_'+str(number_of_function_calls)
             
-        frame_rule(before, now, use_alt = 1, alt_mod_set = old_alloc_rem)  # modified set is the retained heap
+        frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
 
         sp_post = support(op2)
 
         alloc_set = SetUnion(old_alloc_rem,sp_post)
 
         to_assume = interpret_ops(op2)   #dafdsfdsfdsfadsfdsfadfd
+
         in_call = 0  
         return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
     raise Exception('Bad function call')
@@ -863,10 +869,12 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
 
             recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
                         ,s1[name](*fv_used) == s2[name](*fv_used))
+            
 
             AddAxiom((*fv_used,), recdef_frame)
             support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
                         ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
+
             AddAxiom((*fv_used,), support_frame)
 
 
@@ -901,6 +909,7 @@ def vc(user_input):
     global modified_vars
     global np_solver
     global transform
+    global number_of_function_calls
 
     statesdict['initial']= {'funcs': {},'recdefs': {}}
 
@@ -973,7 +982,7 @@ def vc(user_input):
 
         else:        
             raise Exception (f'Invalid tag in code {i}')
-    print('done preprocessing and checking side-conditions')
+    
     statesdict['final'] = {'recdefs': {}}
     for name, info in recdefdict.items():
         statesdict['final']['recdefs'][name] = info['z3name']
@@ -984,7 +993,8 @@ def vc(user_input):
     else:
 
         frame_rule('after_call_'+str(number_of_function_calls),'final')
-                
+
+    print('done preprocessing and checking side-conditions')
     print('checking validity...')
     if rp == 0:
         ret = cl_check(np_solver,lemma_set,transform,And(postcond,sp_postcond == alloc_set))

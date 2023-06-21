@@ -8,6 +8,7 @@ from z3 import IsSubset, IsMember, SetIntersect, SetUnion, SetAdd, EmptySet, Int
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import Const, Var, Function, AddRecDefinition, AddAxiom
 from naturalproofs.prover import NPSolver
+from naturalproofs.pfp import make_pfp_formula
 
 from preprocessing import ml_to_sl, remove_comments, create_input
 
@@ -41,6 +42,15 @@ statesdict = {}
 modified_vars = fgsetsort.lattice_bottom
 transform = []
 check_side_conditions = 1                                           # default: check all obligations 
+
+inputvarset = set()                                                 # set of input variables to the program. Given as a set of strings.
+                                                                    # the user is not allowed to assign to this
+
+inputs_of_call = {}                                                   
+outputs_of_call = {}
+
+in_old = 0                                                          # all funcs, vars are of an earlier state ??
+old_ref = 'initial'                                                 # if in_old == 1, then reference the statesdict[old_ref]
 
 np_solver = NPSolver()
 np_solver.options.depth = 2
@@ -111,13 +121,13 @@ def func_parser(funcinfo):
     if tag == 'Function':
         z3_func = Function(name+'0', *z3_type)
         funcdict[name] = {'macro': lambda free_var, z3_func = z3_func: z3_func(free_var), 'z3type': z3_type, 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
-        statesdict['initial']['funcs'][name] = funcdict[name]['macro']
+        #+++ statesdict['initial']['funcs'][name] = funcdict[name]['macro']
 
     elif tag == 'RecFunction':
         z3_func = Function(name+'0', *z3_type)
         recdefdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'description': [],
                                 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
-        statesdict['initial']['recdefs'][name] = z3_func
+        #+++ statesdict['initial']['recdefs'][name] = z3_func
         #...............
         if name[:2]!= 'SP':
             typelist = [type_parser(i) for i in type_info[:-1]]
@@ -126,7 +136,7 @@ def func_parser(funcinfo):
             z3_spfunc = Function('SP'+name+'0',*z3_sptype)
             recdefdict['SP'+name] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
                                         'counter': 0,'input_type': type_of_inputs,'output_type': 'SetLoc','no_inputs': no_of_inputs}
-            statesdict['initial']['recdefs']['SP'+name] = z3_spfunc
+            #+++ statesdict['initial']['recdefs']['SP'+name] = z3_spfunc
         else:
             raise Exception('Functions not allowed to start with SP')
         #..............
@@ -222,6 +232,9 @@ def interpret_ops(iplist):
 #---------(1)--------------
 def interpret_basics(iplist):
     '''Interpret basic inputs'''
+
+    global in_call
+
     if isinstance(iplist, str): # if-else here since we allow users to say x as well as (x).
         x = iplist
     else:
@@ -235,7 +248,14 @@ def interpret_basics(iplist):
     if x == 'EmptySetInt':
         return intsetsort.lattice_bottom
     if x in vardict:
-        return vardict[x]['z3name']
+        if in_call == 1:
+            if x in inputs_of_call.keys():
+                        return inputs_of_call[x]
+            elif x in outputs_of_call.keys():
+                        return outputs_of_call[x]
+            raise Exception('Bad function call parameters')
+        else:
+            return vardict[x]['z3name']
 
     raise Exception(f' Undeclared/invalid constant/variable {iplist}')
 
@@ -365,10 +385,21 @@ def interpret_recdef(iplist):
 def interpret_func(iplist):
     '''(func args) -> func(args)
         Used for non recursive functions'''
+    
+    
+    global in_old
+    global old_ref
+    
+
+
     if len(iplist) != 2:
         raise Exception('Invalid number of arguments on function')
     operator, operands = iplist[0], iplist[1]
-    return funcdict[operator]['macro'](interpret_ops(operands))
+
+    if in_old == 0:
+        return funcdict[operator]['macro'](interpret_ops(operands))
+    else:
+        return statesdict[old_ref]['funcs'][operator](interpret_ops(operands))
 
 def interpret_recfunc(iplist):
     '''(recfunc args) -> recfunc(args)
@@ -445,14 +476,37 @@ def interpret_old(iplist):
     '''(Old (recfunc args)) -> apply the initial recfunc (before mutations) onto args'''
     global in_call
     global number_of_function_calls
+
+    #+++++
+    global in_old   
+    global old_ref    
+    
+    in_old = 1
+    #+++++
+
     operands = iplist[1:]
     if len(operands) == 1:
         func, arguments = operands[0][0], operands[0][1:]
         if func in recdefdict:
-            if in_call == 0:
-                return statesdict['initial']['recdefs'][func](*[interpret_ops(op) for op in arguments])
-            elif in_call ==1:
-                return statesdict['before_call_'+str(number_of_function_calls)]['recdefs'][func](*[interpret_ops(op) for op in arguments])
+            if in_call == 1:
+                old_ref = 'before_call_'+str(number_of_function_calls)
+
+            # if in_call == 0:
+            #     return statesdict['initial']['recdefs'][func](*[interpret_ops(op) for op in arguments])
+            # elif in_call ==1:
+            #     return statesdict['before_call_'+str(number_of_function_calls)]['recdefs'][func](*[interpret_ops(op) for op in arguments])
+
+            #+++++++++++++++++++++++++++
+                to_return =  statesdict[old_ref]['recdefs'][func](*[interpret_ops(op) for op in arguments])
+            # this should replace all redfuncs, funcs and  vars with those in beforecall            
+            
+                old_ref = 'initial'
+            else:
+                to_return = statesdict['initial']['recdefs'][func](*[interpret_ops(op) for op in arguments])
+            
+            in_old = 0
+
+            return to_return
         raise Exception(f'{func} is not a recursive function')
     raise Exception(f'Multiple arguments given to Old tag: {iplist}')
 
@@ -517,15 +571,18 @@ def interpret_int(iplist):
     return int(operands)
 
 def function_call(iplist, check_obligations = 1):  # add a var update somewhere here in case someone uses an allocated var in return?
+    '''
+    iplist = ['call', actual_input_vars, actual_output_vars, formal_input_vars, formal_output_vars, pre_call, post_call]
+    '''
     global in_call
     in_call = 1
     operands = iplist[1:]
-    if len(operands) == 2:
+    if len(operands) == 6:
+        
         global alloc_set
         global number_of_function_calls
 
         global has_mutated
-        has_mutated = 0
 
         global lemma_description
 
@@ -535,36 +592,83 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         global transform
 
         number_of_function_calls = number_of_function_calls + 1
-        op1, op2 = operands
-
-        for i in recdefdict:
-            func_update(i)
-        for i in recdefdict:
-            if i[:2] != 'SP':
-                interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
-
-        for i in lemma_description:
-            instantiate_lemma(i)
-
-            
-        snapshot('before_call_'+str(number_of_function_calls))
-
-        sp_pre = support(op1)
-        pre = interpret_ops(op1)
 
 
 
-        if number_of_function_calls == 1:
-            before = 'initial'
-            now = 'before_call_'+str(number_of_function_calls)
+        actual_ip, actual_op, formal_ip, formal_op, pre_call, post_call = operands
+
+        if not(len(actual_ip) == len(formal_ip)) or not(len(actual_op) == len(formal_op)):
+            raise Exception ('Bad function call')           # expand
+
+        global inputvarset
+
+        for elt in actual_op:   # enforce that input variables to the program are not in this as we do not allow assignments to those
+            if isinstance(elt, str):
+                if elt in inputvarset:
+                    raise Exception(f' Bad function call {iplist}.  Input variable {elt} of program is assigned to.')
+            elif len(elt) == 1:
+                if elt[0] in inputvarset:                        
+                    raise Exception(f' Bad function call {iplist}.  Input variable {elt} of program is assigned to.')
+            else:
+                raise Exception( f'Bad input {elt} in {iplist}')
+        
+        inputs_of_call = {}
+        outputs_of_call = {}
+
+        for i in len(actual_ip):
+            ac_elt = actual_ip[i]
+            fm_elt = formal_ip[i]
+
+            z3_ac_elt = vardict[ac_elt]['z3name']
+
+            inputs_of_call[fm_elt] = z3_ac_elt
+        
+        for i in len(actual_op):
+            ac_elt = actual_op[i]
+            fm_elt = formal_op[i]
+
+            var_update(ac_elt)
+            z3_ac_elt = vardict[ac_elt]['z3name']
+
+            outputs_of_call[fm_elt] = z3_ac_elt
+
+
+
+        if has_mutated == 1:
+
+            for i in recdefdict:
+                func_update(i)
+            for i in recdefdict:
+                if i[:2] != 'SP':
+                    interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
+
+            for i in lemma_description:
+                instantiate_lemma(i)
+
+            has_mutated = 0
+
+            snapshot('before_call_'+str(number_of_function_calls))
+
+            sp_pre = support(pre_call)
+            pre = interpret_ops(pre_call)
+
+
+
+            if number_of_function_calls == 1:
+                before = 'initial'
+                now = 'before_call_'+str(number_of_function_calls)
+            else:
+                before = 'after_call_'+str(number_of_function_calls-1)
+                now = 'before_call_'+str(number_of_function_calls)
+
+            global modified_vars
+            frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
+            modified_vars = fgsetsort.lattice_bottom    # reset modified locations to start tracking for the next call to call frame rules.
+
         else:
-            before = 'after_call_'+str(number_of_function_calls-1)
-            now = 'before_call_'+str(number_of_function_calls)
-
-        global modified_vars
-        frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
-        modified_vars = fgsetsort.lattice_bottom    # reset modified locations to start tracking for the next call to call frame rules.
-
+            snapshot('before_call_'+str(number_of_function_calls))
+            sp_pre = support(pre_call)
+            pre = interpret_ops(pre_call)            
         # obligation checking
         obligation = And(pre, IsSubset(sp_pre,alloc_set))
 
@@ -601,11 +705,13 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             
         frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
 
-        sp_post = support(op2)
-
+        sp_post = support(post_call)
+        # print('incall alloc rem:--------->', old_alloc_rem)
+        # print('incall sp_post:~~~~~~~~~~~~~~~~~', sp_post)
         alloc_set = SetUnion(old_alloc_rem,sp_post)
-
-        to_assume = interpret_ops(op2)   #dafdsfdsfdsfadsfdsfadfd
+        # print('in call alloc set:@@@@@@@@@@@@@@@', alloc_set)
+        to_assume = interpret_ops(post_call)   #dafdsfdsfdsfadsfdsfadfd
+        print('in call psot:', to_assume)
 
         in_call = 0  
         return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
@@ -654,11 +760,17 @@ def interpret_free(iplist, check_obligations = 1):
 
 
 
-def interpret_lemma(iplist):
+def interpret_lemma(iplist):            # added lemma proof check
     global lemma_description
+    global np_solver
     operands = iplist[1:]
-    lemma_description.append(operands)
-    instantiate_lemma(operands)
+    if len(operands) == 2:
+
+        lemma_description.append(operands)
+        # prove_lemma(np_solver, operands[1])
+        instantiate_lemma(operands)
+    else:
+        raise Exception(f' Wrong number of arguments for lemma {iplist}')
 
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -830,7 +942,11 @@ def snapshot(state):
     for name, elt in recdefdict.items():
         recdefs[name] = elt['z3name']
 
-    statesdict[state] = {'funcs': funcs, 'recdefs': recdefs}
+    vars = {}                               # vars also stored for use in 'Old'
+    for name, elt in vardict.items():
+        vars[name] = elt['z3name']
+
+    statesdict[state] = {'funcs': funcs, 'recdefs': recdefs, 'vars': vars}
 
 
 def cl_check(solver,lemmas,assumptions, obligation):
@@ -839,6 +955,16 @@ def cl_check(solver,lemmas,assumptions, obligation):
     if not solution.if_sat:
         return True
     return False
+
+def prove_lemma( solver, body):
+    '''Prove lemma
+    body:   [=>, A, B]  A=>B
+    '''
+    solution = np_solver.solve(make_pfp_formula(interpret_ops(body)))
+    if not solution.if_sat:
+        print(f'lemma {body} is valid')
+    else:
+        print('lemma is {body} invalid')
 
 def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
     '''
@@ -896,6 +1022,31 @@ def replace_var(the_map, iplist ):
             new_list.append(replace_var(the_map, elt))
     return new_list
 # ----------------------------------------------
+def update_vars_in_list(iplist):        # not yet implanted into function call; What to do with old(?)
+    '''
+    Use this to update vars (just the ) to make the post of the function call into SSA form.
+    '''
+    def vars_to_update(iplist):
+        the_set = set()
+        for elt in iplist:
+            if isinstance(elt, str):
+                if elt in vardict.keys():
+                    the_set.add(elt)
+            else:
+                the_set = the_set.union(vars_to_update(elt))
+        return the_set
+    
+    the_vars = vars_to_update(iplist)
+    for i in the_vars:
+        var_update(i)
+
+
+
+
+
+
+
+
 
 
 def vc(user_input):
@@ -911,7 +1062,7 @@ def vc(user_input):
     global transform
     global number_of_function_calls
 
-    statesdict['initial']= {'funcs': {},'recdefs': {}}
+    #+++++ statesdict['initial']= {'funcs': {},'recdefs': {}}
 
 
     for i in code_line:
@@ -921,21 +1072,40 @@ def vc(user_input):
         elif tag == 'Function' or tag == 'RecFunction':
             func_parser(i)
         elif tag == 'Pre':
+            #+++++++
+            snapshot('initial')
+
             precond = interpret_ops(i[1])
             alloc_set = support(i[1])
             transform.append(precond)
+
         elif tag == 'Post':
+
+
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
             rp = 0
+            #+++++++
+            snapshot('final')
+            
         elif tag == 'RelaxedPost':
+
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
             rp = 1
+            #+++++++
+            snapshot('final')
         elif tag == 'SupportlessPost':
+
+
             postcond = interpret_ops(i[1])
             sp_postcond = support(i[1])
             rp = 2
+
+             #+++++++
+            snapshot('final')
+            #$$$$$$$$$$$$$$$$$$$$$$$
+            print('postcond:', postcond)
 
         elif tag == 'RecDef':
             name = i[1][0]
@@ -983,9 +1153,10 @@ def vc(user_input):
         else:        
             raise Exception (f'Invalid tag in code {i}')
     
-    statesdict['final'] = {'recdefs': {}}
-    for name, info in recdefdict.items():
-        statesdict['final']['recdefs'][name] = info['z3name']
+    #++++++++++++++++++++
+    # statesdict['final'] = {'recdefs': {}}
+    # for name, info in recdefdict.items():
+    #     statesdict['final']['recdefs'][name] = info['z3name']
 
 
     if number_of_function_calls == 0:   # frame_rules are added when a call is seen

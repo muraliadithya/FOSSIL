@@ -9,8 +9,10 @@ Decls := Expr^+
 Lemmas := Expr^*
 
 Params := (Thing^+)
+InParams := Params
+OutParams := Params
 ProgName := Thing
-ProgDecl := (Program ProgName Params)
+ProgDecl := (Program ProgName InParams OutParams)
 
 PreCondition := (Pre SubstitutableExpr)
 PostCcondition := (Post SubstitutableExpr)
@@ -20,7 +22,7 @@ AssignStmt := (assign Expr Expr)
 AssumeStmt := (assume Expr)
 AllocStmt := (alloc Expr)
 FreeStmt := (free Expr)
-CallStmt := (call ProgName Params)
+CallStmt := (call ProgName InParams OutParams)
 ReturnStmt := (return)
 Statement := SkipStmt | AssignStmt | AssumeStmt | AllocStmt |
              FreeStmt | CallStmt | Return Stmt | (If Expr Then Program Else Program)
@@ -160,7 +162,7 @@ class BBGenerator:
 
         # performs simultaneous substitution, where the substitution is given as a list of pairs of (pattern, replacement)
         def substitute_expr(expr_as_list, replacement_scheme):
-            if type(expr_as_list) != list:
+            if type(expr_as_list) == str:
                 for pattern, replacement in replacement_scheme:
                     if expr_as_list == pattern:
                         return replacement
@@ -169,7 +171,7 @@ class BBGenerator:
                 return [substitute_expr(e, replacement_scheme) for e in expr_as_list]
 
         def expr_to_str(expr_as_list):
-            if type(expr_as_list) != list:
+            if type(expr_as_list) == str:
                 return expr_as_list
             else:
                 return '(' + ' '.join([expr_to_str(e) for e in expr_as_list]) + ')'
@@ -183,10 +185,11 @@ class BBGenerator:
             return [tokens]
 
         ProgName = Thing.copy()
-        ProgDecl = LParen + pp.Literal("Program").suppress() + ProgName + Params + RParen
+        ProgDecl = LParen + pp.Literal("Program").suppress() + ProgName + Params + Params + RParen
         PreCondition = LParen + pp.Literal("Pre").suppress() + SubstitutableExpr + RParen
         PostCondition = LParen + pp.Literal("Post").suppress() + SubstitutableExpr + RParen
-        ProgDeclBlock = ProgDecl + PreCondition + PostCondition
+        # The pre and postconditions are not going to be used in this parser. Suppress.
+        ProgDeclBlock = ProgDecl + PreCondition.suppress() + PostCondition.suppress()
 
         Program = pp.Forward()
         Statement = pp.Forward()
@@ -270,7 +273,7 @@ class BBGenerator:
 
         @ProgDeclBlock.set_parse_action
         def parse_prog_decl_block(string, loc, tokens):
-            prog_name, _ = tokens
+            prog_name, _, _ = tokens
             # Commented out functionality is handled in ProgDeclParser
             # self.contracts[prog_name] = {'params': params, 'pre': precondition, 'post': postcondition}
             return prog_name

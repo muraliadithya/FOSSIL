@@ -81,15 +81,16 @@ class _ProgDeclParser:
             return [tokens]
 
         ProgName = Thing.copy()
-        ProgDecl = LParen + pp.Literal("Program").suppress() + ProgName + Params + RParen
+        ProgDecl = LParen + pp.Literal("Program").suppress() + ProgName + Params + Params + RParen
         PreCondition = LParen + pp.Literal("Pre").suppress() + SubstitutableExpr + RParen
         PostCondition = LParen + pp.Literal("Post").suppress() + SubstitutableExpr + RParen
         ProgDeclBlock = ProgDecl + PreCondition + PostCondition
 
         @ProgDeclBlock.set_parse_action
         def parse_prog_decl_block(string, loc, tokens):
-            prog_name, params, precondition, postcondition = tokens
-            self.contracts[prog_name] = {'params': params, 'pre': precondition, 'post': postcondition}
+            prog_name, in_params, out_params, precondition, postcondition = tokens
+            self.contracts[prog_name] = {'invars': in_params, 'outvars': out_params,
+                                         'pre': precondition, 'post': postcondition}
             # return prog_name
 
         ProgDeclFormat = TextExpr[1, ...] + (ProgDeclBlock + TextExpr[1, ...])[1, ...]
@@ -194,7 +195,7 @@ class BBGenerator:
         AssumeStmt = LParen + pp.Literal("assume") + TextExpr + RParen
         AllocStmt = LParen + pp.Literal("alloc") + Thing + RParen
         FreeStmt = LParen + pp.Literal("free") + Thing + RParen
-        CallStmt = LParen + pp.Literal("call").suppress() + ProgName + Params + RParen
+        CallStmt = LParen + pp.Literal("call").suppress() + ProgName + Params + Params + RParen
         ReturnStmt = LParen + pp.Literal("return").suppress() + RParen
         ITEStmt = LParen + pp.Literal("If").suppress() + TextExpr + pp.Literal(
             "Then").suppress() + Program + pp.Literal("Else").suppress() + Program + RParen
@@ -215,15 +216,19 @@ class BBGenerator:
 
         @CallStmt.set_parse_action
         def parse_call_stmt(string, loc, tokens):
-            prog_name, actual_params = tokens
-            formal_params = self.contracts[prog_name]['params']
+            prog_name, actual_invars, actual_outvars = tokens
+            formal_invars = self.contracts[prog_name]['invars']
+            formal_outvars = self.contracts[prog_name]['outvars']
             formal_pre = self.contracts[prog_name]['pre']
             formal_post = self.contracts[prog_name]['post']
-            assert len(formal_params) == len(actual_params)
-            replacement_scheme = [(formal_params[i], actual_params[i]) for i in range(len(formal_params))]
-            actual_pre = expr_to_str(substitute_expr(formal_pre, replacement_scheme))
-            actual_post = expr_to_str(substitute_expr(formal_post, replacement_scheme))
-            return _BBWrapper([[f'(call {actual_pre} {actual_post})']])
+            assert len(formal_invars) == len(actual_invars)
+            assert len(formal_outvars) == len(actual_outvars)
+            # replacement_scheme = [(formal_params[i], actual_params[i]) for i in range(len(formal_params))]
+            # actual_pre = expr_to_str(substitute_expr(formal_pre, replacement_scheme))
+            # actual_post = expr_to_str(substitute_expr(formal_post, replacement_scheme))
+            return _BBWrapper([[f'(call {expr_to_str(actual_invars)} {expr_to_str(actual_outvars)} '
+                                f'{expr_to_str(formal_invars)} {expr_to_str(formal_outvars)} '
+                                f'{expr_to_str(formal_pre)} {expr_to_str(formal_post)})']])
             # Commenting out path with checking precondition of call since it is handled downstream
             # return _BBWrapper([[f'(RelaxedPost {actual_pre})', '<!END!>'], [f'(call {actual_pre} {actual_post})']])
 
@@ -265,10 +270,9 @@ class BBGenerator:
 
         @ProgDeclBlock.set_parse_action
         def parse_prog_decl_block(string, loc, tokens):
+            prog_name, _ = tokens
             # Commented out functionality is handled in ProgDeclParser
-            # prog_name, params, precondition, postcondition = tokens
             # self.contracts[prog_name] = {'params': params, 'pre': precondition, 'post': postcondition}
-            prog_name = tokens[0]
             return prog_name
 
         @ProgramBlock.set_parse_action
@@ -277,9 +281,10 @@ class BBGenerator:
             bbs = wrapped_bbs.to_bbs()
             # Remove <!END!> tag from the end of bbs
             bbs = [bb[:-1] for bb in bbs]
+            progdecl = f"(Program {expr_to_str(self.contracts[prog_name]['invars'])} {expr_to_str(self.contracts[prog_name]['outvars'])})"
             precondition = f"(Pre {expr_to_str(self.contracts[prog_name]['pre'])})"
             postcondition = f"(Post {expr_to_str(self.contracts[prog_name]['post'])})"
-            bbs = [[precondition, ForkTag] + bb for bb in bbs]
+            bbs = [[progdecl, precondition, ForkTag] + bb for bb in bbs]
             bbs = [bb[:-1] + [postcondition] if bb[-1] == '<!RETURN!>' else bb for bb in bbs]
             self.basic_blocks += bbs
 

@@ -26,12 +26,12 @@
 ->(alloc x)								Adds a new location x into the heap. (Feature not complete yet)
 ->(free x)								Frees x from the part of the heap being kept track of.
 
-->(call P (x1 x2 .. xn)) 					Function call. P, along with its Precondition, Postcondition and some program associated with it 
-									has to be defined. If P's precondition is satisfied before the call (and the locations associated 
-									are in the current heap), the function is called (for the vc this means just assuming the 											postcondition to P is now satisfied). In terms of heaps, the locations mentioned earlier are
-									discarded and the locations after the function is called are added (Support of the postcondition of 										P(x1 x2.. xn). 
-									x1,x2...xn must be defined variables. (call P ((f x) x2 ... x)) will give an error. For this,
-									just assign (f x) to a variable beforehand.
+->(call P (x1 x2 .. xn) (y1 y2 ... yk))   Function call. P, along with its Precondition, Postcondition and some program associated with it
+									      has to be defined. If P's precondition is satisfied before the call (and the locations associated
+									      are in the current heap), the function is called (for the vc this means just assuming the 											postcondition to P is now satisfied). In terms of heaps, the locations mentioned earlier are
+									      discarded and the locations after the function is called are added (Support of the postcondition of 										P(x1 x2.. xn).
+									      x1,x2...xn, y1, y2 ... yk must be defined variables.
+									      (call P ((f x) x2 ... x) (...)) will give an error. For this, just assign (f x) to a variable beforehand.
 
 Here, 
 X := x | (not X) | (= X X)| (or X ..  X)|(and X .. X) | (=> X X)| |(IsMember x Y)| (IsSubSet Y Y) | (< A A) | (<= A A) | (> A A) | (>= A A) | (= A A)
@@ -39,11 +39,11 @@ X := x | (not X) | (= X X)| (or X ..  X)|(and X .. X) | (=> X X)| |(IsMember x Y
 Y : = EmptySetInt| EmptySetLoc|(SetAdd Y x)| (SetDel Y x)| (SetIntersect Y Y)| (SetUnion Y Y)
 A := a | (IntCont n)| (+ A A)| (- A A)
 
-(Sp X) finds the support of X. (antiSp X) acts as a tag that says to not check the support of X, i.e (Sp (antiSp X)) = EmptySetLoc. Otherwise, (antiSp X) does nothing ((antiSp X) = X). Note this only applies one way (antiSp (Sp X)) =/= EmptySetLoc.
+(Sp X) finds the support of4:30pm X. (antiSp X) acts as a tag that says to not check the support of X, i.e (Sp (antiSp X)) = EmptySetLoc. Otherwise, (antiSp X) does nothing ((antiSp X) = X). Note this only applies one way (antiSp (Sp X)) =/= EmptySetLoc.
 
 
 A file should start with variable, constant and function declarations, definitions for Recursive funtions, and lemmas. Programs are writte as:
-(Program P (x1 x2 .. xn))
+(Program P (in1 in2 ... ink) (out1 out2 ... outm))
 (Pre precondtion of P)
 (Post postconditon of P)
 	|

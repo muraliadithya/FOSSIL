@@ -781,7 +781,7 @@ def interpret_lemma(iplist):            # added lemma proof check
     if len(operands) == 2:
 
         lemma_description.append(operands)
-        # prove_lemma(np_solver, operands[1])
+        prove_lemma(np_solver, operands[1])
         instantiate_lemma(operands)
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')
@@ -978,7 +978,7 @@ def prove_lemma( solver, body):
     if not solution.if_sat:
         print(f'lemma {body} is valid')
     else:
-        print('lemma is {body} invalid')
+        print(f'lemma is {body} invalid')
 
 def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
     '''

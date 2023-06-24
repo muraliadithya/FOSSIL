@@ -41,9 +41,9 @@ def transform_expression(expression, transformations):
     transformed_args = tuple([transform_expression(arg, transformations) for arg in args])
     transformed_expr_rec = None
     try:
-        transformed_expr_rec = declaration(*transformed_args)
+        # transformed_expr_rec = declaration(*transformed_args)
         # More expensive but reliable method using substitute. Commented out for now.
-        # transformed_expr_rec = z3.substitute(expression, list(zip(args, transformed_args)))
+        transformed_expr_rec = z3.substitute(expression, list(zip(args, transformed_args)))
     except Exception:
         exit('Something has gone wrong with formula substitution.')
     if isinstance(transformations, tuple):

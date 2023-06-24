@@ -251,11 +251,12 @@ def interpret_basics(iplist):
         return intsetsort.lattice_bottom
     if x in vardict:
         if in_call == 1:
+            print(x)
             if x in inputs_of_call.keys():
                         return inputs_of_call[x]
             elif x in outputs_of_call.keys():
                         return outputs_of_call[x]
-            raise Exception('Bad function call parameters')
+            raise Exception(f'Bad function call parameters {x}')
         else:
             return vardict[x]['z3name']
 
@@ -613,11 +614,14 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
                     raise Exception(f' Bad function call {iplist}.  Input variable {elt} of program is assigned to.')
             else:
                 raise Exception( f'Bad input {elt} in {iplist}')
-        
+
+
+        global inputs_of_call
         inputs_of_call = {}
+        global outputs_of_call
         outputs_of_call = {}
 
-        for i in len(actual_ip):
+        for i in range(len(actual_ip)):
             ac_elt = actual_ip[i]
             fm_elt = formal_ip[i]
 
@@ -625,7 +629,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
             inputs_of_call[fm_elt] = z3_ac_elt
         
-        for i in len(actual_op):
+        for i in range(len(actual_op)):
             ac_elt = actual_op[i]
             fm_elt = formal_op[i]
 
@@ -635,8 +639,9 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             outputs_of_call[fm_elt] = z3_ac_elt
 
 
-
         if has_mutated == 1:
+
+            in_call = 0
 
             for i in recdefdict:
                 func_update(i)
@@ -646,6 +651,8 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
             for i in lemma_description:
                 instantiate_lemma(i)
+
+            in_call = 1
 
             has_mutated = 0
 
@@ -689,17 +696,22 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             func_update(i)
             elt['macro'] = new_macro
 
+
+        in_call = 0
         for i in recdefdict:
             func_update(i)
         for i in recdefdict:
             if i[:2] != 'SP':
                 interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
 
-        
+
+
         for i in lemma_description:
             instantiate_lemma(i)
 
-            
+        in_call = 1
+
+
         snapshot('after_call_'+str(number_of_function_calls))
 
         before = 'before_call_'+str(number_of_function_calls)
@@ -769,8 +781,7 @@ def interpret_lemma(iplist):            # added lemma proof check
     if len(operands) == 2:
 
         lemma_description.append(operands)
-        print(operands[1])
-        prove_lemma(np_solver, operands[1])
+        # prove_lemma(np_solver, operands[1])
         instantiate_lemma(operands)
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')

@@ -146,7 +146,9 @@ def func_parser(funcinfo):
 
 def var_update(name):
     '''Update variables and counters'''
-    if name in vardict:
+    if (name in vardict):
+        if (name in inputvarset):
+            raise Exception(f' Input variable to the program is assigned to / allocd to ')
         counter, z3_type = vardict[name]['counter'], vardict[name]['z3type']
         counter_new = counter+1
         var_new = Var(name+str(counter_new), z3_type)
@@ -603,7 +605,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         global inputvarset
 
         for elt in actual_op:   # enforce that input variables to the program are not in this as we do not allow assignments to those
-            if isinstance(elt, str):
+            if isinstance(elt, str):            # if inputvarset elt is in actual_ip - heap whatfdafafwefewfa
                 if elt in inputvarset:
                     raise Exception(f' Bad function call {iplist}.  Input variable {elt} of program is assigned to.')
             elif len(elt) == 1:
@@ -767,7 +769,8 @@ def interpret_lemma(iplist):            # added lemma proof check
     if len(operands) == 2:
 
         lemma_description.append(operands)
-        # prove_lemma(np_solver, operands[1])
+        print(operands[1])
+        prove_lemma(np_solver, operands[1])
         instantiate_lemma(operands)
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')
@@ -960,7 +963,7 @@ def prove_lemma( solver, body):
     '''Prove lemma
     body:   [=>, A, B]  A=>B
     '''
-    solution = np_solver.solve(make_pfp_formula(interpret_ops(body)))
+    solution = solver.solve(make_pfp_formula(interpret_ops(body)))
     if not solution.if_sat:
         print(f'lemma {body} is valid')
     else:
@@ -1022,30 +1025,34 @@ def replace_var(the_map, iplist ):
             new_list.append(replace_var(the_map, elt))
     return new_list
 # ----------------------------------------------
-def update_vars_in_list(iplist):        # not yet implanted into function call; What to do with old(?)
-    '''
-    Use this to update vars (just the ) to make the post of the function call into SSA form.
-    '''
-    def vars_to_update(iplist):
-        the_set = set()
-        for elt in iplist:
-            if isinstance(elt, str):
-                if elt in vardict.keys():
-                    the_set.add(elt)
-            else:
-                the_set = the_set.union(vars_to_update(elt))
-        return the_set
+# def update_vars_in_list(iplist):        # not yet implanted into function call; What to do with old(?)
+#     '''
+#     Use this to update vars (just the ) to make the post of the function call into SSA form.
+#     '''
+#     def vars_to_update(iplist):
+#         the_set = set()
+#         for elt in iplist:
+#             if isinstance(elt, str):
+#                 if elt in vardict.keys():
+#                     the_set.add(elt)
+#             else:
+#                 the_set = the_set.union(vars_to_update(elt))
+#         return the_set
     
-    the_vars = vars_to_update(iplist)
-    for i in the_vars:
-        var_update(i)
+#     the_vars = vars_to_update(iplist)
+#     for i in the_vars:
+#         var_update(i)
 
 
 
+def store_inputvars(iplist):
+    '''
+    iplist = [Program, [inputvars], [outputvars]]
 
-
-
-
+    '''    
+    if len(iplist) == 3:
+        for i in iplist[1]:
+            inputvarset.add(i)
 
 
 
@@ -1071,6 +1078,10 @@ def vc(user_input):
             var_parser(i)
         elif tag == 'Function' or tag == 'RecFunction':
             func_parser(i)
+
+        elif tag == 'Program':
+            store_inputvars(i)
+            
         elif tag == 'Pre':
             #+++++++
             snapshot('initial')

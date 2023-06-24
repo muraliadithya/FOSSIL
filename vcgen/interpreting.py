@@ -251,7 +251,6 @@ def interpret_basics(iplist):
         return intsetsort.lattice_bottom
     if x in vardict:
         if in_call == 1:
-            print(x)
             if x in inputs_of_call.keys():
                         return inputs_of_call[x]
             elif x in outputs_of_call.keys():
@@ -449,7 +448,10 @@ def interpret_setdel(iplist):
 def interpret_setunion(iplist):
     '''(SetUnion X1 X2 X3...) -> Union of X1 X2 X3...'''
     operands = iplist[1:]
-    return SetUnion(*[interpret_ops(op) for op in operands])
+    if len(operands) == 1:
+        return interpret_ops(operands[0])                   #           union
+    else:
+        return SetUnion(*[interpret_ops(op) for op in operands])
 
 def interpret_setintersect(iplist):
     '''(SetIntersect X1 X2 X3...) -> Intersection of X1 X2 X3...'''
@@ -725,7 +727,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         alloc_set = SetUnion(old_alloc_rem,sp_post)
         # print('in call alloc set:@@@@@@@@@@@@@@@', alloc_set)
         to_assume = interpret_ops(post_call)   #dafdsfdsfdsfadsfdsfadfd
-        print('in call psot:', to_assume)
+        # print('in call post:', to_assume)
 
         in_call = 0  
         return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
@@ -867,8 +869,10 @@ def support_func(iplist):
     '''Say func dict is just mutable functions.'''
     operands = iplist[1:]
 
-
-    sp_terms = SetUnion(*[support(t) for t in operands])
+    if len(operands) == 1:
+        sp_terms = support(operands[0])                         #           union
+    else:
+        sp_terms = SetUnion(*[support(t) for t in operands])
 
     if iplist[0] in funcdict:
         terms = fgsetsort.lattice_bottom
@@ -888,7 +892,7 @@ def support_func(iplist):
             pp = ['SP'+iplist[0]]+operands
             ipp = interpret_ops(pp)
         return SetUnion(sp_terms, ipp)
-    raise Exception(f'Invalid support on functionos in {iplist}')
+    raise Exception(f'Invalid support on functions in {iplist}')
 
 
 def support_immut(iplist):
@@ -1126,8 +1130,7 @@ def vc(user_input):
 
              #+++++++
             snapshot('final')
-            #$$$$$$$$$$$$$$$$$$$$$$$
-            print('postcond:', postcond)
+            #$$$$$$$$$$$$$$$$$$$$$$
 
         elif tag == 'RecDef':
             name = i[1][0]

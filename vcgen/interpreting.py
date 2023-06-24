@@ -53,7 +53,7 @@ in_old = 0                                                          # all funcs,
 old_ref = 'initial'                                                 # if in_old == 1, then reference the statesdict[old_ref]
 
 np_solver = NPSolver()
-np_solver.options.depth = 2
+np_solver.options.depth = 1
 # -----------------------------------------------
 
 def type_parser(input_type):
@@ -1140,9 +1140,8 @@ def vc(user_input):
 
 
             postcond = interpret_ops(i[1])
-            sp_postcond = support(i[1])
+            sp_postcond = support(i[1]) # ?
             rp = 2
-
              #+++++++
             snapshot('final')
             #$$$$$$$$$$$$$$$$$$$$$$

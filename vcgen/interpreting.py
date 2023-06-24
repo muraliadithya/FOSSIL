@@ -250,14 +250,13 @@ def interpret_basics(iplist):
     if x == 'EmptySetInt':
         return intsetsort.lattice_bottom
     if x in vardict:
-        if in_call == 1:
+        if in_call == 1:    # By construction, all variables in the call must be in one of the two ifs; 
             if x in inputs_of_call.keys():
                         return inputs_of_call[x]
             elif x in outputs_of_call.keys():
-                        return outputs_of_call[x]
-            raise Exception(f'Bad function call parameters {x}')
-        else:
-            return vardict[x]['z3name']
+                        return outputs_of_call[x]       
+            # if you raise exception here, remeber to change the in_call stuff in def func call
+        return vardict[x]['z3name']
 
     raise Exception(f' Undeclared/invalid constant/variable {iplist}')
 
@@ -448,10 +447,8 @@ def interpret_setdel(iplist):
 def interpret_setunion(iplist):
     '''(SetUnion X1 X2 X3...) -> Union of X1 X2 X3...'''
     operands = iplist[1:]
-    if len(operands) == 1:
-        return interpret_ops(operands[0])                   #           union
-    else:
-        return SetUnion(*[interpret_ops(op) for op in operands])
+
+    return emptyless_union([interpret_ops(op) for op in operands])
 
 def interpret_setintersect(iplist):
     '''(SetIntersect X1 X2 X3...) -> Intersection of X1 X2 X3...'''
@@ -643,7 +640,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
         if has_mutated == 1:
 
-            in_call = 0
+            # in_call = 0
 
             for i in recdefdict:
                 func_update(i)
@@ -654,7 +651,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             for i in lemma_description:
                 instantiate_lemma(i)
 
-            in_call = 1
+            # in_call = 1
 
             has_mutated = 0
 
@@ -699,7 +696,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             elt['macro'] = new_macro
 
 
-        in_call = 0
+        # in_call = 0
         for i in recdefdict:
             func_update(i)
         for i in recdefdict:
@@ -711,7 +708,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         for i in lemma_description:
             instantiate_lemma(i)
 
-        in_call = 1
+        # in_call = 1
 
 
         snapshot('after_call_'+str(number_of_function_calls))
@@ -869,17 +866,16 @@ def support_func(iplist):
     '''Say func dict is just mutable functions.'''
     operands = iplist[1:]
 
-    if len(operands) == 1:
-        sp_terms = support(operands[0])                         #           union
-    else:
-        sp_terms = SetUnion(*[support(t) for t in operands])
+    list_of_sets = [support(t) for t in operands]
+    sp_terms = emptyless_union(list_of_sets)
 
     if iplist[0] in funcdict:
         terms = fgsetsort.lattice_bottom
         term_list = [interpret_ops(t) for t in operands]
         for i in term_list:
             terms = SetAdd(terms, i)
-        return SetUnion(terms,sp_terms)
+        
+        return emptyless_union([terms,sp_terms])
     if iplist[0] in recdefdict:
         # if iplist[0][:2] == 'SP':
         #     return interpret_ops(iplist)
@@ -891,21 +887,21 @@ def support_func(iplist):
         else:
             pp = ['SP'+iplist[0]]+operands
             ipp = interpret_ops(pp)
-        return SetUnion(sp_terms, ipp)
+        return emptyless_union([sp_terms, ipp])
     raise Exception(f'Invalid support on functions in {iplist}')
 
 
 def support_immut(iplist):
     '''Support of immutables (see beginning of the file to see the immutables)'''
     operands = iplist[1:]
-    return SetUnion(*[support(t) for t in operands ])
+    return emptyless_union([support(t) for t in operands ])
 
 def support_ite(iplist):
     '''Support of if then else'''
     operator, operands = iplist[0], iplist[1:]
     if operator == 'ite' and len(operands) == 3:
         op1, op2, op3 = operands
-        x = If(interpret_ops(op1), SetUnion(support(op1),support(op2)), SetUnion(support(op1),support(op3)))
+        x = If(interpret_ops(op1), emptyless_union([support(op1),support(op2)]), emptyless_union([support(op1),support(op3)]))
         return x      #?!
     raise Exception(f'Invalid if-then-else support given in {iplist}')
 
@@ -978,7 +974,9 @@ def prove_lemma( solver, body):
     '''Prove lemma
     body:   [=>, A, B]  A=>B
     '''
-    solution = solver.solve(make_pfp_formula(interpret_ops(body)))
+    lem = interpret_ops(body)
+    print('this is the lemma:', lem)
+    solution = solver.solve(make_pfp_formula(lem))
     if not solution.if_sat:
         print(f'lemma {body} is valid')
     else:
@@ -1068,6 +1066,23 @@ def store_inputvars(iplist):
     if len(iplist) == 3:
         for i in iplist[1]:
             inputvarset.add(i)
+
+
+def emptyless_union(list_of_sets):
+    '''
+    Return the union of the sets
+    '''
+    ret = []
+    for i in list_of_sets:
+        if i ==  fgsetsort.lattice_bottom:
+            pass
+        else:
+            ret.append(i)
+    if len(ret) == 0:
+        return fgsetsort.lattice_bottom
+    elif len(ret) == 1:
+        return ret[0]
+    return SetUnion(*ret)
 
 
 

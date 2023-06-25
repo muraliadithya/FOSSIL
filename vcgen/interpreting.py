@@ -56,7 +56,7 @@ in_old = 0                                                          # all funcs,
 old_ref = 'initial'                                                 # if in_old == 1, then reference the statesdict[old_ref]
 
 np_solver = NPSolver()
-depth = 1
+depth = 2
 np_solver.options.depth = depth
 # -----------------------------------------------
 

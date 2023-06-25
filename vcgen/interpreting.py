@@ -14,6 +14,9 @@ from preprocessing import ml_to_sl, remove_comments, create_input
 
 import z3 #debug
 
+
+import time
+
 immutables = ['=', 'not', 'or', 'and', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'SetDel','SetIntersect', 'SetUnion', '<', '>', '>=', '<=', '+', '-']
 supportTag = 'Sp'
 
@@ -53,7 +56,8 @@ in_old = 0                                                          # all funcs,
 old_ref = 'initial'                                                 # if in_old == 1, then reference the statesdict[old_ref]
 
 np_solver = NPSolver()
-np_solver.options.depth = 1
+depth = 1
+np_solver.options.depth = depth
 # -----------------------------------------------
 
 def type_parser(input_type):
@@ -778,7 +782,7 @@ def interpret_lemma(iplist):            # added lemma proof check
     global np_solver
     operands = iplist[1:]
     if len(operands) == 2:
-
+        
         lemma_description.append(operands)
         prove_lemma(np_solver, operands[1])
         instantiate_lemma(operands)
@@ -974,13 +978,16 @@ def prove_lemma( solver, body):
     '''Prove lemma
     body:   [=>, A, B]  A=>B
     '''
+    global depth
     lem = interpret_ops(body)
     print('this is the lemma:', lem)
+    solver.options.depth = 1
     solution = solver.solve(make_pfp_formula(lem))
     if not solution.if_sat:
         print(f'lemma {body} is valid')
     else:
         print(f'lemma is {body} invalid')
+    solver.options.depth = depth
 
 def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
     '''
@@ -1088,6 +1095,9 @@ def emptyless_union(list_of_sets):
 
 def vc(user_input):
     '''VC generation'''
+
+    start = time.time()
+
     nc_uip = ml_to_sl(remove_comments(user_input))
     code_line = [create_input(i) for i in nc_uip]
     print('done creating input list')
@@ -1143,6 +1153,7 @@ def vc(user_input):
             sp_postcond = support(i[1]) # ?
             rp = 2
              #+++++++
+            print(postcond)
             snapshot('final')
             #$$$$$$$$$$$$$$$$$$$$$$
 
@@ -1218,7 +1229,8 @@ def vc(user_input):
         print('goal is valid')
     else:
         print('goal not proven')
-
+    end = time.time()
+    print('Time elasped:', end-start)
 
 
 #------------------------------------------------------------------------------

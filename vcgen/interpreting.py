@@ -780,11 +780,12 @@ def interpret_free(iplist, check_obligations = 1):
 def interpret_lemma(iplist):            # added lemma proof check
     global lemma_description
     global np_solver
+    global lemma_set
     operands = iplist[1:]
     if len(operands) == 2:
         
         lemma_description.append(operands)
-        prove_lemma(np_solver, operands[1])
+        prove_lemma(np_solver, operands[1],lemma_set)
         instantiate_lemma(operands)
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')
@@ -974,7 +975,7 @@ def cl_check(solver,lemmas,assumptions, obligation):
         return True
     return False
 
-def prove_lemma( solver, body):
+def prove_lemma( solver, body, lemmas):
     '''Prove lemma
     body:   [=>, A, B]  A=>B
     '''
@@ -982,7 +983,7 @@ def prove_lemma( solver, body):
     lem = interpret_ops(body)
     print('this is the lemma:', lem)
     solver.options.depth = 1
-    solution = solver.solve(make_pfp_formula(lem))
+    solution = solver.solve(make_pfp_formula(lem), lemmas)
     if not solution.if_sat:
         print(f'lemma {body} is valid')
     else:

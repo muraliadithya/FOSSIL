@@ -730,7 +730,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         to_assume = interpret_ops(post_call)   #dafdsfdsfdsfadsfdsfadfd
         # print('in call post:', to_assume)
 
-        in_call = 0  
+        in_call = 0 
         return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
     raise Exception('Bad function call')
     
@@ -774,7 +774,17 @@ def interpret_free(iplist, check_obligations = 1):
             x = x[0]
     alloc_set = SetDel(alloc_set, vardict[x]['z3name'])
     
+#--------------------------------------------------------------------------
+#--------------------------------------------------------------------------
+def interpret_antisp(iplist):
+    '''(antiSp X) -> X '''
+    operands = iplist[1:]
+    if len(operands) != 1:
+        raise Exception(f'not operator is unary. Given {iplist}')
+    return interpret_ops(operands[0])
+#---------------------------------------------------------------------------
 
+#---------------------------------------------------------------------------
 
 
 def interpret_lemma(iplist):            # added lemma proof check
@@ -790,17 +800,7 @@ def interpret_lemma(iplist):            # added lemma proof check
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')
 
-#--------------------------------------------------------------------------
-#--------------------------------------------------------------------------
-def interpret_antisp(iplist):
-    '''(antiSp X) -> X '''
-    operands = iplist[1:]
-    if len(operands) != 1:
-        raise Exception(f'not operator is unary. Given {iplist}')
-    return interpret_ops(operands[0])
-#---------------------------------------------------------------------------
 
-#---------------------------------------------------------------------------
 def instantiate_lemma(operands):        #this 'instantiates' a lemma
     
     global lemma_set                    # (lemma (args) (body) )
@@ -808,14 +808,7 @@ def instantiate_lemma(operands):        #this 'instantiates' a lemma
         argop, bodyop   = operands
         arglist = []
         for i in argop:
-            if isinstance(i,str):
-                if i in vardict:
-                    arglist.append(vardict[i]['z3name'])
-            elif len(i)==1:
-                if i[0] in vardict:
-                    arglist.append(vardict[i[0]]['z3name'])
-            else:
-                raise Exception(f'Invalid arguments in {operands}')
+            arglist.append(interpret_basics(i))
 
         argtuple = tuple(arglist)
         body = interpret_ops(bodyop)

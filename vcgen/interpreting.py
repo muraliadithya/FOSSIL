@@ -9,6 +9,7 @@ from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import Const, Var, Function, AddRecDefinition, AddAxiom
 from naturalproofs.prover import NPSolver
 from naturalproofs.pfp import make_pfp_formula
+import naturalproofs.proveroptions as proveroptions
 
 from preprocessing import ml_to_sl, remove_comments, create_input
 
@@ -56,9 +57,15 @@ in_old = 0                                                          # all funcs,
 old_ref = 'initial'                                                 # if in_old == 1, then reference the statesdict[old_ref]
 
 np_solver = NPSolver()
-depth = 2
+depth = 1
 np_solver.options.depth = depth
+np_solver.options.instantiation_mode = proveroptions.lean_instantiation_with_lemmas
 # -----------------------------------------------
+# For testing alt frame rules
+typevardict = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }   # stores the variables/consts of each type
+pointerlist = []
+frame_rules = []
+#------------------------------------------------
 
 def type_parser(input_type):
     '''Going from strings to types:'''
@@ -84,9 +91,11 @@ def var_parser(varinfo):
     if tag == 'Var':
         z3_var = Var(name+'0', z3_type)
         vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'type': input_type,'counter': 0}
+        typevardict[input_type].add(name)
     elif tag == 'Const':
         z3_var = Const(name, z3_type)
         vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'type': input_type, 'counter': None}
+        typevardict[input_type].add(name)
     else:
         raise Exception(f'Invalid Var/Const tag {varinfo}')
 
@@ -126,6 +135,11 @@ def func_parser(funcinfo):
         z3_func = Function(name+'0', *z3_type)
         funcdict[name] = {'macro': lambda free_var, z3_func = z3_func: z3_func(free_var), 'z3type': z3_type, 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
         #+++ statesdict['initial']['funcs'][name] = funcdict[name]['macro']
+
+        global pointerlist
+        if type_of_inputs == type_of_output:
+            if type_of_output == 'Loc':
+                pointerlist.append(name)
 
     elif tag == 'RecFunction':
         z3_func = Function(name+'0', *z3_type)
@@ -584,7 +598,9 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
     in_call = 1
     operands = iplist[1:]
     if len(operands) == 6:
-        
+        # frame_rules
+        global frame_rules
+
         global alloc_set
         global number_of_function_calls
 
@@ -674,7 +690,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
                 now = 'before_call_'+str(number_of_function_calls)
 
             global modified_vars
-            frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
+            local_frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
             modified_vars = fgsetsort.lattice_bottom    # reset modified locations to start tracking for the next call to call frame rules.
 
         else:
@@ -720,7 +736,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         before = 'before_call_'+str(number_of_function_calls)
         now = 'after_call_'+str(number_of_function_calls)
             
-        frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
+        local_frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
 
         sp_post = support(post_call)
         # print('incall alloc rem:--------->', old_alloc_rem)
@@ -795,11 +811,8 @@ def interpret_lemma(iplist):            # added lemma proof check
     if len(operands) == 2:
         
         lemma_description.append(operands)
-        isproven = prove_lemma(np_solver, operands[1],lemma_set)
-        if isproven:
-            instantiate_lemma(operands)
-        else:
-            print('Lemma not instantiated')
+        # prove_lemma(np_solver, operands[1],lemma_set)
+        instantiate_lemma(operands)
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')
 
@@ -966,7 +979,8 @@ def snapshot(state):
 
 def cl_check(solver,lemmas,assumptions, obligation):
     '''Return true if the solver can prove the obligation with the set of assumptions and lemmas'''
-    solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
+    global frame_rules
+    solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation),lemmas)
     if not solution.if_sat:
         return True
     return False
@@ -982,12 +996,9 @@ def prove_lemma( solver, body, lemmas):
     solution = solver.solve(make_pfp_formula(lem), lemmas)
     if not solution.if_sat:
         print('lemma is valid')
-        solver.options.depth = depth
-        return True
-    
-    print('lemma is invalid')
+    else:
+        print('lemma is invalid')
     solver.options.depth = depth
-    return False
 
 def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
     '''
@@ -1045,23 +1056,6 @@ def replace_var(the_map, iplist ):
             new_list.append(replace_var(the_map, elt))
     return new_list
 # ----------------------------------------------
-# def update_vars_in_list(iplist):        # not yet implanted into function call; What to do with old(?)
-#     '''
-#     Use this to update vars (just the ) to make the post of the function call into SSA form.
-#     '''
-#     def vars_to_update(iplist):
-#         the_set = set()
-#         for elt in iplist:
-#             if isinstance(elt, str):
-#                 if elt in vardict.keys():
-#                     the_set.add(elt)
-#             else:
-#                 the_set = the_set.union(vars_to_update(elt))
-#         return the_set
-    
-#     the_vars = vars_to_update(iplist)
-#     for i in the_vars:
-#         var_update(i)
 
 
 
@@ -1095,6 +1089,9 @@ def emptyless_union(list_of_sets):
 
 def vc(user_input):
     '''VC generation'''
+
+    #.
+    global frame_rules
 
     start = time.time()
 
@@ -1209,10 +1206,10 @@ def vc(user_input):
     #     statesdict['final']['recdefs'][name] = info['z3name']
 
     if number_of_function_calls == 0:   # frame_rules are added when a call is seen
-        frame_rule('initial','final')
+        local_frame_rule('initial','final')
     else:
 
-        frame_rule('after_call_'+str(number_of_function_calls),'final')
+        local_frame_rule('after_call_'+str(number_of_function_calls),'final')
 
     print('done preprocessing and checking side-conditions')
     print('checking validity...')
@@ -1255,3 +1252,78 @@ def vc(user_input):
         
 
 
+def ntuple(ipset,n):    # all tuples of n elements from set ipset
+    def nlist(ipset, n):
+        thelist = []
+        if n == 0:
+            for i in range(len(ipset)):
+                thelist.append([])
+        else:
+            for elt in ipset:
+                small_list = nlist(ipset, n-1)
+                for i in small_list:
+                    i.append(elt)
+                    thelist.append(i)
+        return thelist
+    
+    tuples = []
+    lists = nlist(ipset, n)
+    for i in lists:
+        tuples.append(tuple(i))
+    return tuples
+
+
+
+def local_frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
+    '''
+    Adds frame rules between state1 and state2 (assumed to be consecutive)
+    For each recursive function F: If x not in modified_set Intersection Support_of_F1(x), then F1(x) = F2(x).
+
+    x is the variables currently in vardict as well as their pointers. The idea being that any useful frame rules
+    will be 'local'.
+    '''
+    global pointerlist
+    global frame_rules
+    if use_alt == 0:
+        global modified_vars
+        modified_set = modified_vars
+    else:
+        modified_set = alt_mod_set
+
+    # vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
+    # for vartype, varset in typevardict.items():
+    #     for i in varset:
+    #         vars_to_consider[vartype].add(statesdict[state1]['vars'][i])
+
+    vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
+    for vartype, varset in typevardict.items():
+        for i in varset:
+            vars_to_consider[vartype].add(statesdict[state2]['vars'][i])
+            if vartype == 'Loc':
+                for fn in pointerlist:
+                    vars_to_consider[vartype].add(statesdict[state2]['funcs'][fn](statesdict[state2]['vars'][i]))
+
+    s1 = statesdict[state1]['recdefs']
+    s2 = statesdict[state2]['recdefs']
+
+
+    for name in s1.keys():
+        if name[:2] == 'SP':
+            pass
+        else:
+
+            no_inputs = recdefdict[name]['no_inputs']
+            input_type = recdefdict[name]['input_type']
+
+            vars_to_frame = ntuple( vars_to_consider[input_type], no_inputs)
+
+            for tup in vars_to_frame:
+                recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
+                            ,s1[name](*tup) == s2[name](*tup))               
+                frame_rules.append(recdef_frame)
+
+                support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
+                            ,s1['SP'+name](*tup) == s2['SP'+name](*tup))
+                frame_rules.append(support_frame)
+                
+                

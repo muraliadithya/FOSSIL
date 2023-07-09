@@ -795,8 +795,11 @@ def interpret_lemma(iplist):            # added lemma proof check
     if len(operands) == 2:
         
         lemma_description.append(operands)
-        prove_lemma(np_solver, operands[1],lemma_set)
-        instantiate_lemma(operands)
+        isproven = prove_lemma(np_solver, operands[1],lemma_set)
+        if isproven:
+            instantiate_lemma(operands)
+        else:
+            print('Lemma not instantiated')
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')
 
@@ -978,10 +981,13 @@ def prove_lemma( solver, body, lemmas):
     solver.options.depth = 1
     solution = solver.solve(make_pfp_formula(lem), lemmas)
     if not solution.if_sat:
-        print(f'lemma {body} is valid')
-    else:
-        print(f'lemma is {body} invalid')
+        print('lemma is valid')
+        solver.options.depth = depth
+        return True
+    
+    print('lemma is invalid')
     solver.options.depth = depth
+    return False
 
 def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
     '''
@@ -1201,7 +1207,6 @@ def vc(user_input):
     # statesdict['final'] = {'recdefs': {}}
     # for name, info in recdefdict.items():
     #     statesdict['final']['recdefs'][name] = info['z3name']
-
 
     if number_of_function_calls == 0:   # frame_rules are added when a call is seen
         frame_rule('initial','final')

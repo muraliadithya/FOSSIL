@@ -10,6 +10,8 @@ from naturalproofs.utils import Implies_as_FuncDeclRef
 import naturalproofs.proveroptions as proveroptions
 from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate, get_recdef_applications
 
+import random
+import os
 
 class NPSolution:
     """
@@ -94,6 +96,9 @@ class NPSolver:
         else:
             # If the instantiation isn't the 'lean' kind then all defs are going to be instantiated with all terms
             fo_abstractions = axioms | untagged_unfoldings | lemmas
+        print(f'\naxioms: {len(axioms)}  recdefs: {len(untagged_unfoldings)} lemmas: {len(lemmas)}')
+        print(f"{', '.join([recdef[0].name() for recdef in recdefs])}")
+        #print(f'fo_abstractions: {len(fo_abstractions)}')
 
         # All parameters have been set appropriately. Begin constructing instantiations
         # Negate the goal
@@ -117,7 +122,7 @@ class NPSolver:
             z3solver.add(instantiations)
             if_sat = _solver_check(z3solver)
             model = z3solver.model() if if_sat else None
-            return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms, 
+            return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
                               instantiation_terms=instantiation_terms, options=options)
         # Automatic instantiation modes
         # stratified instantiation strategy
@@ -139,7 +144,7 @@ class NPSolver:
             z3solver.add(other_instantiations)
             if_sat = _solver_check(z3solver)
             model = z3solver.model() if if_sat else None
-            return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms, 
+            return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
                               instantiation_terms=instantiation_terms, options=options)
         # Set up initial values of variables
         depth_counter = 0
@@ -152,6 +157,13 @@ class NPSolver:
             z3solver.add(instantiations)
             # If the instantiation mode is fixed depth we can continue instantiating until we get to that depth
             if options.instantiation_mode != proveroptions.fixed_depth:
+                print(f'Num_terms: {len(instantiation_terms)}')
+                print(f'Num instantiations: {len(instantiations)}')
+                # dump_name = f'./.tmp/state@{random.random()}'
+                # dump_file = os.path.abspath(dump_name)
+                # with open(dump_file, 'w') as ww:
+                #     ww.write(z3solver.sexpr())
+                # print('Solver state dumped to ' + str(dump_file))
                 # Otherwise check satisfiability with current state of instantiations
                 if_sat = _solver_check(z3solver)
                 # If unsat, stop and return NPSolution instance
@@ -188,7 +200,14 @@ class NPSolver:
             extraction_terms = extraction_terms.union(new_terms)
         # Reach this case when depth_counter = target depth, either in fixed_depth or bounded_depth mode.
         # Final attempt at proving goal
+        print(f'Num_terms: {len(instantiation_terms)}')
+        print(f'Num instantiations: {len(instantiations)}')
         z3solver.add(instantiations)
+        # dump_name = f'./.tmp/state@{random.random()}'
+        # dump_file = os.path.abspath(dump_name)
+        # with open(dump_file, 'w') as ww:
+        #     ww.write(z3solver.sexpr())
+        # print('Solver state dumped to ' + str(dump_file))
         if_sat = _solver_check(z3solver)
         model = z3solver.model() if if_sat else None
         return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms, 

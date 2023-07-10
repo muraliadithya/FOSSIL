@@ -11,7 +11,7 @@ from naturalproofs.prover import NPSolver
 from naturalproofs.pfp import make_pfp_formula
 import naturalproofs.proveroptions as proveroptions
 
-from preprocessing import ml_to_sl, remove_comments, create_input
+from preprocessing import ml_to_sl, remove_comments, create_input, ntuple
 
 import z3 #debug
 
@@ -56,16 +56,22 @@ outputs_of_call = {}
 in_old = 0                                                          # all funcs, vars are of an earlier state ??
 old_ref = 'initial'                                                 # if in_old == 1, then reference the statesdict[old_ref]
 
+
+
 np_solver = NPSolver()
 depth = 1
 np_solver.options.depth = depth
 np_solver.options.instantiation_mode = proveroptions.lean_instantiation_with_lemmas
 # -----------------------------------------------
-# For testing alt frame rules
+# For alt frame rules
 typevardict = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }   # stores the variables/consts of each type
 pointerlist = []
 frame_rules = []
 #------------------------------------------------
+support_mapping = 0
+support_map = {}
+single_support = 0
+
 
 def type_parser(input_type):
     '''Going from strings to types:'''
@@ -127,14 +133,14 @@ def func_parser(funcinfo):
                                                       'z3type': type_parser(type_of_inputs), 'type': type_of_inputs,'counter': 0}
         freevardict[type_of_inputs] = no_of_inputs
 
-    # assuming only one imput per function for now. Will expand later
+    # assuming only one input type per function.
 
 
     z3_type = [type_parser(x) for x in type_info]
     if tag == 'Function':
         z3_func = Function(name+'0', *z3_type)
         funcdict[name] = {'macro': lambda free_var, z3_func = z3_func: z3_func(free_var), 'z3type': z3_type, 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
-        #+++ statesdict['initial']['funcs'][name] = funcdict[name]['macro']
+
 
         global pointerlist
         if type_of_inputs == type_of_output:
@@ -145,19 +151,39 @@ def func_parser(funcinfo):
         z3_func = Function(name+'0', *z3_type)
         recdefdict[name] = {'z3name': z3_func, 'z3type': z3_type, 'description': [],
                                 'counter': 0, 'input_type': type_of_inputs, 'output_type': type_of_output, 'no_inputs': no_of_inputs}
-        #+++ statesdict['initial']['recdefs'][name] = z3_func
-        #...............
-        if name[:2]!= 'SP':
-            typelist = [type_parser(i) for i in type_info[:-1]]
-            z3_sptype = [*typelist,fgsetsort]       #Only really makes sense in (F name type1 type2)
-            
-            z3_spfunc = Function('SP'+name+'0',*z3_sptype)
-            recdefdict['SP'+name] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
-                                        'counter': 0,'input_type': type_of_inputs,'output_type': 'SetLoc','no_inputs': no_of_inputs}
-            #+++ statesdict['initial']['recdefs']['SP'+name] = z3_spfunc
+        
+        # the following is handling implicitly defined recdefs
+        global support_mapping
+        if support_mapping == 0:
+            if name[:2]== 'SP':
+                raise Exception('Prohibited recursive function name')
+            else:
+                typelist = [type_parser(i) for i in type_info[:-1]]
+                z3_sptype = [*typelist,fgsetsort]       #Only really makes sense in (F name type1 type2)
+                
+                z3_spfunc = Function('SP'+name+'0',*z3_sptype)
+                recdefdict['SP'+name] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
+                                            'counter': 0,'input_type': type_of_inputs,'output_type': 'SetLoc','no_inputs': no_of_inputs}
         else:
-            raise Exception('Functions not allowed to start with SP')
-        #..............
+            if name[:2]== 'SP':
+                pass
+            else:            
+                spname = 'SP'+name
+                if spname in support_map.values():    #support_map = { 'SPKeys': 'SPA', 'SPList': 'SPA', 'SPBST': 'SPB' ...}
+                    pass
+                else:
+                    if spname in support_map.keys():
+                        recdefdict[spname] = recdefdict[support_map[spname]]
+
+                    else:
+                        typelist = [type_parser(i) for i in type_info[:-1]]
+                        z3_sptype = [*typelist,fgsetsort]
+                        
+                        z3_spfunc = Function(spname+'0',*z3_sptype)
+                        recdefdict[spname] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
+                                                    'counter': 0,'input_type': type_of_inputs,'output_type': 'SetLoc','no_inputs': no_of_inputs}
+                    
+
     else:
         raise Exception(f'Tag error. Given: {tag} in {funcinfo}')
 
@@ -180,13 +206,28 @@ def func_update(name):
         counter =  funcdict[name]['counter']
         counter_new = counter+1
         funcdict[name]['counter'] =  counter_new
-    elif name in recdefdict:
-        z3_type, counter = recdefdict[name]['z3type'], recdefdict[name]['counter']
-        counter_new = counter+1
-        func_new = Function(name+str(counter_new), *z3_type)
-        recdefdict[name]['z3name'], recdefdict[name]['counter'] = func_new, counter_new
     else:
         raise Exception(f' Undeclared function {name}')
+
+def recfunc_update():
+    for name in recdefdict:
+        if name in support_map.keys():
+            pass
+        else:
+            z3_type, counter = recdefdict[name]['z3type'], recdefdict[name]['counter']
+            counter_new = counter+1
+            func_new = Function(name+str(counter_new), *z3_type)
+            recdefdict[name]['z3name'], recdefdict[name]['counter'] = func_new, counter_new
+
+    for name in support_map.keys():
+        recdefdict[name] = recdefdict[support_map[name]]
+
+    for name in recdefdict:
+        if name in support_map:
+            pass
+        else:
+            interpret_recdef(recdefdict[name]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
+
 
 
 def interpret_ops(iplist):
@@ -362,7 +403,6 @@ def interpret_assign(iplist, check_obligations = 1):
                     state = 'after_call_'+str(number_of_function_calls)
                 modified_vars = SetAdd(modified_vars, argument)
 
-            # free_var = freevardict[funcdict[func]['input_type']][0]
             x = funcdict[func]['macro']
             y = interpret_ops(rhs)
             new_macro = lambda free_var, argument = argument, y = y, x = x: If(free_var == argument, y, x(free_var))
@@ -389,17 +429,14 @@ def interpret_recdef(iplist):
     func_info, func_definition = operands
     if func_info[0] in recdefdict:
         func, spfunc, args = func_info[0], 'SP'+func_info[0], func_info[1:]
-        if func_info[0][:2]!= 'SP':
-            s1 = recdefdict[spfunc]['z3name']
-            s2 = [interpret_ops(v) for v in args]
-            s3 = support(func_definition)
-            logging.info('Adding support of recdef: (%s, %s, %s )' %(s1,s2,z3.simplify(s3)))
-            AddRecDefinition(s1,tuple(s2),s3)
-        a1 =recdefdict[func]['z3name']
-        a2 = [interpret_ops(v) for v in args]
-        a3 = interpret_ops(func_definition)
-        logging.info('Adding recdef: (%s, %s,%s )' %(a1,a2,z3.simplify(a3)))
-        AddRecDefinition(a1,tuple(a2),a3)
+        if func_info[0] in support_map.keys():
+            pass
+        else:
+            a1 =recdefdict[func]['z3name']
+            a2 = [interpret_ops(v) for v in args]
+            a3 = interpret_ops(func_definition)
+            logging.info('Adding recdef: (%s, %s,%s )' %(a1,a2,z3.simplify(a3)))
+            AddRecDefinition(a1,tuple(a2),a3)
 
 def interpret_func(iplist):
     '''(func args) -> func(args)
@@ -429,12 +466,8 @@ def interpret_recfunc(iplist):
     global lemma_description
     if has_mutated == 1:        # if a function has been changed and we see a recfunc called, we update the defn, then apply the recfn.
         has_mutated = 0
-        for i in recdefdict:
-            func_update(i)
-        for i in recdefdict:
-            if i[:2] != 'SP':
-                interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
-        
+        recfunc_update()
+
         for i in lemma_description:
             instantiate_lemma(i)
 
@@ -661,12 +694,9 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         if has_mutated == 1:
 
             # in_call = 0
+            recfunc_update()
 
-            for i in recdefdict:
-                func_update(i)
-            for i in recdefdict:
-                if i[:2] != 'SP':
-                    interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
+
 
             for i in lemma_description:
                 instantiate_lemma(i)
@@ -690,7 +720,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
                 now = 'before_call_'+str(number_of_function_calls)
 
             global modified_vars
-            local_frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
+            frame_rule(before, now)                     # frame rules between the previous call and the beginning of the new one. incorportates the modified set between
             modified_vars = fgsetsort.lattice_bottom    # reset modified locations to start tracking for the next call to call frame rules.
 
         else:
@@ -717,13 +747,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
 
         # in_call = 0
-        for i in recdefdict:
-            func_update(i)
-        for i in recdefdict:
-            if i[:2] != 'SP':
-                interpret_recdef(recdefdict[i]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
-
-
+        recfunc_update()
 
         for i in lemma_description:
             instantiate_lemma(i)
@@ -736,18 +760,16 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         before = 'before_call_'+str(number_of_function_calls)
         now = 'after_call_'+str(number_of_function_calls)
             
-        local_frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
+        frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
 
         sp_post = support(post_call)
-        # print('incall alloc rem:--------->', old_alloc_rem)
-        # print('incall sp_post:~~~~~~~~~~~~~~~~~', sp_post)
+
         alloc_set = SetUnion(old_alloc_rem,sp_post)
-        # print('in call alloc set:@@@@@@@@@@@@@@@', alloc_set)
-        to_assume = interpret_ops(post_call)   #dafdsfdsfdsfadsfdsfadfd
-        # print('in call post:', to_assume)
+
+        to_assume = interpret_ops(post_call) 
 
         in_call = 0 
-        return And(to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
+        return And(pre, to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
     raise Exception('Bad function call')
     
 def interpret_alloc(iplist):
@@ -811,8 +833,11 @@ def interpret_lemma(iplist):            # added lemma proof check
     if len(operands) == 2:
         
         lemma_description.append(operands)
-        # prove_lemma(np_solver, operands[1],lemma_set)
-        instantiate_lemma(operands)
+        isproven =  prove_lemma(np_solver, operands[1],lemma_set)
+        if isproven:
+            instantiate_lemma(operands)
+        else:
+            print('Lemma not instantiated')
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')
 
@@ -980,7 +1005,11 @@ def snapshot(state):
 def cl_check(solver,lemmas,assumptions, obligation):
     '''Return true if the solver can prove the obligation with the set of assumptions and lemmas'''
     global frame_rules
-    solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation),lemmas)
+    if len(frame_rules) == 0:
+       solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
+    else: 
+        solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation),lemmas)
+
     if not solution.if_sat:
         return True
     return False
@@ -996,11 +1025,14 @@ def prove_lemma( solver, body, lemmas):
     solution = solver.solve(make_pfp_formula(lem), lemmas)
     if not solution.if_sat:
         print('lemma is valid')
-    else:
-        print('lemma is invalid')
+        solver.options.depth = depth
+        return True
+    
+    print('lemma not proven')
     solver.options.depth = depth
+    return False
 
-def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
+def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom, use_local = 1):
     '''
     Adds frame rules between state1 and state2 (assumed to be consecutive)
     For each recursive function F: If x not in modified_set Intersection Support_of_F1(x), then F1(x) = F2(x).
@@ -1008,34 +1040,71 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
     s1 = statesdict[state1]['recdefs']
     s2 = statesdict[state2]['recdefs']
     if use_alt == 0:
-        # modified_vars = statesdict[state1]['modified_vars'] #extend this to be more general? i.e when 1 and 2 are not consecutive
-        # mv = [*set(modified_vars)]
-        # modified_set = fgsetsort.lattice_bottom
-        # for i in mv:
-        #     modified_set = SetAdd(modified_set,i)
         global modified_vars
         modified_set = modified_vars
     else:
         modified_set = alt_mod_set
 
-    for name in s1.keys():
-        if name[:2] == 'SP':
-            pass
-        else:
 
-            fv_used = []
-            for j in range(recdefdict[name]['no_inputs']):
-                fv_used.append(vardict['free_' + recdefdict[name]['input_type'] + str(j)]['z3name'])
 
-            recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
-                        ,s1[name](*fv_used) == s2[name](*fv_used))
-            
 
-            AddAxiom((*fv_used,), recdef_frame)
-            support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
-                        ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
+    if use_local == 1:
+        global frame_rules
 
-            AddAxiom((*fv_used,), support_frame)
+        vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
+        for vartype, varset in typevardict.items():
+            for i in varset:
+                vars_to_consider[vartype].add(statesdict[state1]['vars'][i])
+
+        # global pointerlist
+        # vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
+        # for vartype, varset in typevardict.items():
+        #     for i in varset:
+        #         vars_to_consider[vartype].add(statesdict[state2]['vars'][i])
+        #         if vartype == 'Loc':
+        #             for fn in pointerlist:
+        #                 vars_to_consider[vartype].add(statesdict[state2]['funcs'][fn](statesdict[state2]['vars'][i]))
+
+        for name in s1.keys():
+            if name[:2] == 'SP':
+                pass
+            else:
+
+                no_inputs = recdefdict[name]['no_inputs']
+                input_type = recdefdict[name]['input_type']
+
+                vars_to_frame = ntuple( vars_to_consider[input_type], no_inputs)
+
+                for tup in vars_to_frame:
+                    recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
+                                ,s1[name](*tup) == s2[name](*tup))               
+                    frame_rules.append(recdef_frame)
+
+                    support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
+                                ,s1['SP'+name](*tup) == s2['SP'+name](*tup))
+                    frame_rules.append(support_frame)
+                
+
+
+    else:
+        for name in s1.keys():
+            if name[:2] == 'SP':
+                pass
+            else:
+
+                fv_used = []
+                for j in range(recdefdict[name]['no_inputs']):
+                    fv_used.append(vardict['free_' + recdefdict[name]['input_type'] + str(j)]['z3name'])
+
+                recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                            ,s1[name](*fv_used) == s2[name](*fv_used))
+                
+
+                AddAxiom((*fv_used,), recdef_frame)
+                support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                            ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
+
+                AddAxiom((*fv_used,), support_frame)
 
 
 # ------------------------------------------
@@ -1105,15 +1174,34 @@ def vc(user_input):
     global np_solver
     global transform
     global number_of_function_calls
+    global support_mapping
+    global single_support
+
+    support_mapping = 1
+    single_support = 1
+    spa = 'SPA'    
 
     #+++++ statesdict['initial']= {'funcs': {},'recdefs': {}}
-
 
     for i in code_line:
         tag = i[0]
         if tag =='Var' or tag == 'Const':
             var_parser(i)
-        elif tag == 'Function' or tag == 'RecFunction':
+
+        elif tag == 'single-support':       # comes before defining any recdefs for now
+            support_mapping = 1
+            single_support = 1
+            spa = i[1]
+
+        elif tag == 'Function': 
+            func_parser(i)
+
+        elif tag == 'RecFunction':
+            if single_support == 1:
+                if i[1] == spa:
+                    pass
+                else:
+                    support_map['SP'+i[1]] = spa
             func_parser(i)
 
         elif tag == 'Program':
@@ -1155,8 +1243,9 @@ def vc(user_input):
             #$$$$$$$$$$$$$$$$$$$$$$
 
         elif tag == 'RecDef':
+            if not(len(i) == 3): 
+                raise Exception('Invalid number of arguments to RecDef')
             name = i[1][0]
-            spname = 'SP'+i[1][0]
             if name in recdefdict:
                 type_of_inputs = recdefdict[name]['input_type']
                 no_of_inputs = recdefdict[name]['no_inputs']
@@ -1168,7 +1257,18 @@ def vc(user_input):
                         x = i[1][j][0]
                     the_map[x] = 'free_'+type_of_inputs+str(j-1)
                 recdefdict[name]['description']  = replace_var(the_map, i)
+
                 interpret_recdef(recdefdict[name]['description'])
+                if i[1][0][:2] == 'SP' or single_support == 1:
+                    pass
+                else:
+                    spname = 'SP'+i[1][0]
+                    inputs = i[1][1:]
+                    spbody = ['Sp', i[2]]
+                    sp_description = [tag, [spname]+inputs, spbody]
+                    recdefdict[spname]['description'] = sp_description
+                    interpret_recdef(recdefdict[spname]['description'])
+
                 
             else:
                 raise Exception('Bad RecDef %s' %name)
@@ -1194,22 +1294,18 @@ def vc(user_input):
         elif tag == 'call':
             transform.append(function_call(i, check_side_conditions))
         elif tag == ':side-conditions':
-            check_side_conditions = side_conditions_update(i)
-
+            check_side_conditions = 0
 
         else:        
             raise Exception (f'Invalid tag in code {i}')
     
-    #++++++++++++++++++++
-    # statesdict['final'] = {'recdefs': {}}
-    # for name, info in recdefdict.items():
-    #     statesdict['final']['recdefs'][name] = info['z3name']
+
 
     if number_of_function_calls == 0:   # frame_rules are added when a call is seen
-        local_frame_rule('initial','final')
+        frame_rule('initial','final')
     else:
 
-        local_frame_rule('after_call_'+str(number_of_function_calls),'final')
+        frame_rule('after_call_'+str(number_of_function_calls),'final')
 
     print('done preprocessing and checking side-conditions')
     print('checking validity...')
@@ -1227,103 +1323,6 @@ def vc(user_input):
         print('goal not proven')
     end = time.time()
     print('Time elasped:', end-start)
-
-
-#------------------------------------------------------------------------------
-#------------------------------------------------------------------------------
-
-# def interpret_lemma_alt(iplist):
-#     if len(iplist) == 5:
-#         args = []
-#         lemma_name, arg_list, state_list, the_lemma = iplist[1], iplist[2], iplist[3], iplist[4]
-    
-#         for i in arg_list:
-#             if not (len(i) == 2) or not (isinstance(i,list)):
-#                 raise Exception (f'Lemma variable input error {lemma_name}')
-            
-#             var_name, var_type = i
-#             if not (vardict[var_name]['type'] == var_type):
-#                 raise Exception (f'Lemma variable type mismatch in  {lemma_name}')
-#             args.append(vardict[var_name])              # do it only if type is 'Loc'?
-        
-#         for i in state_list:
-#             if not (isinstance(i,str)):
-#                 raise Exception (f'States should be strings represented as (s1 s2 s3 ...). {lemma_name}')
         
 
 
-def ntuple(ipset,n):    # all tuples of n elements from set ipset
-    def nlist(ipset, n):
-        thelist = []
-        if n == 0:
-            for i in range(len(ipset)):
-                thelist.append([])
-        else:
-            for elt in ipset:
-                small_list = nlist(ipset, n-1)
-                for i in small_list:
-                    i.append(elt)
-                    thelist.append(i)
-        return thelist
-    
-    tuples = []
-    lists = nlist(ipset, n)
-    for i in lists:
-        tuples.append(tuple(i))
-    return tuples
-
-
-
-def local_frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom):
-    '''
-    Adds frame rules between state1 and state2 (assumed to be consecutive)
-    For each recursive function F: If x not in modified_set Intersection Support_of_F1(x), then F1(x) = F2(x).
-
-    x is the variables currently in vardict as well as their pointers. The idea being that any useful frame rules
-    will be 'local'.
-    '''
-    global pointerlist
-    global frame_rules
-    if use_alt == 0:
-        global modified_vars
-        modified_set = modified_vars
-    else:
-        modified_set = alt_mod_set
-
-    # vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
-    # for vartype, varset in typevardict.items():
-    #     for i in varset:
-    #         vars_to_consider[vartype].add(statesdict[state1]['vars'][i])
-
-    vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
-    for vartype, varset in typevardict.items():
-        for i in varset:
-            vars_to_consider[vartype].add(statesdict[state2]['vars'][i])
-            if vartype == 'Loc':
-                for fn in pointerlist:
-                    vars_to_consider[vartype].add(statesdict[state2]['funcs'][fn](statesdict[state2]['vars'][i]))
-
-    s1 = statesdict[state1]['recdefs']
-    s2 = statesdict[state2]['recdefs']
-
-
-    for name in s1.keys():
-        if name[:2] == 'SP':
-            pass
-        else:
-
-            no_inputs = recdefdict[name]['no_inputs']
-            input_type = recdefdict[name]['input_type']
-
-            vars_to_frame = ntuple( vars_to_consider[input_type], no_inputs)
-
-            for tup in vars_to_frame:
-                recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
-                            ,s1[name](*tup) == s2[name](*tup))               
-                frame_rules.append(recdef_frame)
-
-                support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
-                            ,s1['SP'+name](*tup) == s2['SP'+name](*tup))
-                frame_rules.append(support_frame)
-                
-                

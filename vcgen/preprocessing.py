@@ -186,6 +186,7 @@ def make_list(semip_list): #elements can be strings or lists
         else:
             newlist.append(make_list(i))
     return newlist
+                
 
 
 def create_input(input_string):
@@ -194,3 +195,29 @@ def create_input(input_string):
 
 
 # To complete preprocessing, read the text file-> remove comments -> multiline to singleline -> create input for each element in the resulting list. 
+
+
+
+
+def ntuple(ipset,n):    # Used in making inputs to local frame rules 
+    '''
+    List N-tuples of elements of the set ipset
+    '''
+    def nlist(ipset, n):
+        thelist = []
+        if n == 0:
+            for i in range(len(ipset)):
+                thelist.append([])
+        else:
+            for elt in ipset:
+                small_list = nlist(ipset, n-1)
+                for i in small_list:
+                    i.append(elt)
+                    thelist.append(i)
+        return thelist
+    
+    tuples = []
+    lists = nlist(ipset, n)
+    for i in lists:
+        tuples.append(tuple(i))
+    return tuples

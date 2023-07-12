@@ -13,8 +13,6 @@ import naturalproofs.proveroptions as proveroptions
 
 from preprocessing import ml_to_sl, remove_comments, create_input, ntuple
 
-import z3 #debug
-
 
 import time
 
@@ -59,18 +57,23 @@ old_ref = 'initial'                                                 # if in_old 
 
 
 np_solver = NPSolver()
-depth = 1
+depth = 2
 np_solver.options.depth = depth
-np_solver.options.instantiation_mode = proveroptions.lean_instantiation_with_lemmas
+# np_solver.options.instantiation_mode = proveroptions.lean_instantiation_with_lemmas
 # -----------------------------------------------
 # For alt frame rules
 typevardict = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }   # stores the variables/consts of each type
 pointerlist = []
 frame_rules = []
 #------------------------------------------------
-support_mapping = 0
-support_map = {}
+
 single_support = 0
+support_mapping = 0
+# support_map = {}
+support_map = {'SPMin': 'SPA', 'SPMax': 'SPA', 'SPAVL': 'SPA', 
+               'SPKeys': 'SPA', 'SPHeight': 'SPA'}
+
+number_of_vcs = 0
 
 
 def type_parser(input_type):
@@ -222,12 +225,22 @@ def recfunc_update():
     for name in support_map.keys():
         recdefdict[name] = recdefdict[support_map[name]]
 
+    global has_mutated
+    has_mutated = 0 
+    if counter_new == 1:
+        pass
+    print('~~~~~~~')
+    for i, elt in recdefdict.items():
+        print(i,'-->',elt['z3name'], elt['counter'])
+
     for name in recdefdict:
         if name in support_map:
             pass
         else:
             interpret_recdef(recdefdict[name]['description'])# interpret_recdef will make a defn for our recfunction, as well as its support
-
+    print('============s')
+    for i, elt in recdefdict.items():
+        print(i,'-->',elt['z3name'], elt['counter'])
 
 
 def interpret_ops(iplist):
@@ -383,9 +396,12 @@ def interpret_assign(iplist, check_obligations = 1):
     if len(operands)==2:
         lhs, rhs = operands
 
-        obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
-        if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
-            print(f'Assuming obligations: {iplist}')
+        if isinstance(lhs,str) and isinstance(rhs,str):    
+            pass
+        else:                                                   # => lhs or rhs is y.f
+            obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
+            if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
+                print(f'Assuming obligations: {iplist}')
 
         if (isinstance(lhs,str) and (lhs in vardict)) or (len(lhs)==1 and (lhs[0] in vardict)): #LHS is a variable
             interpreted_rhs = interpret_ops(rhs)
@@ -428,14 +444,14 @@ def interpret_recdef(iplist):
         raise Exception('Invalid arguments on RecDef')
     func_info, func_definition = operands
     if func_info[0] in recdefdict:
-        func, spfunc, args = func_info[0], 'SP'+func_info[0], func_info[1:]
+        func, args = func_info[0], func_info[1:]
         if func_info[0] in support_map.keys():
             pass
         else:
             a1 =recdefdict[func]['z3name']
             a2 = [interpret_ops(v) for v in args]
             a3 = interpret_ops(func_definition)
-            logging.info('Adding recdef: (%s, %s,%s )' %(a1,a2,z3.simplify(a3)))
+            # logging.info('Adding recdef: (%s, %s,%s )' %(a1,a2,z3.simplify(a3)))
             AddRecDefinition(a1,tuple(a2),a3)
 
 def interpret_func(iplist):
@@ -465,7 +481,6 @@ def interpret_recfunc(iplist):
     global has_mutated
     global lemma_description
     if has_mutated == 1:        # if a function has been changed and we see a recfunc called, we update the defn, then apply the recfn.
-        has_mutated = 0
         recfunc_update()
 
         for i in lemma_description:
@@ -694,16 +709,18 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         if has_mutated == 1:
 
             # in_call = 0
+            for i, elt in recdefdict.items():
+                print(i,'-->',elt['z3name'], elt['counter'])
             recfunc_update()
-
+            print('--------------------------')
+            for i, elt in recdefdict.items():
+                print(i,'-->',elt['z3name'], elt['counter'])
 
 
             for i in lemma_description:
                 instantiate_lemma(i)
 
             # in_call = 1
-
-            has_mutated = 0
 
             snapshot('before_call_'+str(number_of_function_calls))
 
@@ -837,7 +854,7 @@ def interpret_lemma(iplist):            # added lemma proof check
         if isproven:
             instantiate_lemma(operands)
         else:
-            print('Lemma not instantiated')
+           print('Lemma not instantiated')
     else:
         raise Exception(f' Wrong number of arguments for lemma {iplist}')
 
@@ -1004,6 +1021,10 @@ def snapshot(state):
 
 def cl_check(solver,lemmas,assumptions, obligation):
     '''Return true if the solver can prove the obligation with the set of assumptions and lemmas'''
+    global number_of_vcs
+    number_of_vcs = number_of_vcs +1
+
+
     global frame_rules
     if len(frame_rules) == 0:
        solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
@@ -1032,7 +1053,7 @@ def prove_lemma( solver, body, lemmas):
     solver.options.depth = depth
     return False
 
-def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom, use_local = 1):
+def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom, use_local = 0):
     '''
     Adds frame rules between state1 and state2 (assumed to be consecutive)
     For each recursive function F: If x not in modified_set Intersection Support_of_F1(x), then F1(x) = F2(x).
@@ -1180,7 +1201,7 @@ def vc(user_input):
     support_mapping = 1
     single_support = 1
     spa = 'SPA'    
-
+    spb = 'SPB'
     #+++++ statesdict['initial']= {'funcs': {},'recdefs': {}}
 
     for i in code_line:
@@ -1197,11 +1218,11 @@ def vc(user_input):
             func_parser(i)
 
         elif tag == 'RecFunction':
-            if single_support == 1:
-                if i[1] == spa:
-                    pass
-                else:
-                    support_map['SP'+i[1]] = spa
+            # if single_support == 1:
+            #     if i[1] == spa:
+            #         pass
+            #     else:
+            #         support_map['SP'+i[1]] = spa
             func_parser(i)
 
         elif tag == 'Program':
@@ -1294,7 +1315,7 @@ def vc(user_input):
         elif tag == 'call':
             transform.append(function_call(i, check_side_conditions))
         elif tag == ':side-conditions':
-            check_side_conditions = 0
+            check_side_conditions = side_conditions_update(i)
 
         else:        
             raise Exception (f'Invalid tag in code {i}')
@@ -1317,6 +1338,10 @@ def vc(user_input):
         ret = cl_check(np_solver,lemma_set,transform,postcond)
     else:
         raise Exception ('No postcondition given')
+    global number_of_vcs
+    print('---------------')
+    print('Number of VCs generated for BB:', number_of_vcs)
+    print('---------------')
     if ret == True:
         print('goal is valid')
     else:

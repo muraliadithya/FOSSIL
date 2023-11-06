@@ -1,7 +1,9 @@
 import argparse
 import os
+import sys
 
-from vcgen.BBGenerator import BBGenerator
+# from vcgen.BBGenerator import BBGenerator
+from BBGenerator import BBGenerator
 
 
 argparser = argparse.ArgumentParser()

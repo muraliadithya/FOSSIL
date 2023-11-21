@@ -11,6 +11,7 @@ from naturalproofs.prover import NPSolver, get_foreground_terms
 from naturalproofs.pfp import make_pfp_formula
 import naturalproofs.proveroptions as proveroptions
 from naturalproofs.AnnotatedContext import default_annctx
+from naturalproofs.prover_utils import instantiate, make_recdef_unfoldings
 
 from preprocessing import ml_to_sl, remove_comments, create_input, ntuple
 
@@ -83,6 +84,19 @@ frame_rules = []
 # AUTO
 support_map = {}
 
+# MODES
+footprint = {}
+extended_footprint = {}
+fo_abstractions = set()
+frame_abstractions = set()
+all_instantiations = []
+pre_tag = 0
+
+footprint_mode = 0
+depth1_mode = 1
+depth2_mode = 2
+manual_mode = 3
+mode = depth2_mode
 
 # # BST_DEL
 # support_map = {'SPMin': 'SPA', 'SPMax': 'SPA', 'SPKeys': 'SPA',
@@ -290,7 +304,6 @@ def recfunc_update():
         if (name in support_map.values()) or (not (name in support_map.keys()) ):
             interpret_recdef(recdefdict[name]['description'])
 
-
 def interpret_ops(iplist):
     '''Takes an input and interprets into usable format for the nat proof solver'''
     if isinstance(iplist,str) or len(iplist) == 1:
@@ -357,6 +370,9 @@ def interpret_basics(iplist):
 
     global in_call
 
+    #MODES don't need to use global if we don't modify a variable?
+    # global mode
+
     if isinstance(iplist, str): # if-else here since we allow users to say x as well as (x).
         x = iplist
     else:
@@ -376,6 +392,12 @@ def interpret_basics(iplist):
             elif x in outputs_of_call.keys():
                         return outputs_of_call[x]       
             # if you raise exception here, remeber to change the in_call stuff in def func call
+        # return vardict[x]['z3name']
+
+        # MODES
+        if mode == footprint_mode:
+                if (pre_tag == 1) and is_loc_var(x):
+                        add_to_footprint(x)
         return vardict[x]['z3name']
 
     raise Exception(f' Undeclared/invalid constant/variable {iplist}')
@@ -440,23 +462,43 @@ def interpret_assign(iplist, check_obligations = 1):
     global transform
     global alloc_set
     
+    # MODES
+    # global mode
+
     operands = iplist[1:]
     if len(operands)==2:
         lhs, rhs = operands
 
-        if isinstance(lhs,str) and isinstance(rhs,str):    
-            pass
-        else:                                                   # => lhs or rhs is y.f
-            obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
-            if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
-                print(f'Assuming obligations: {iplist}')
 
-        if (isinstance(lhs,str) and (lhs in vardict)):
-            #or (len(lhs)==1 and (lhs[0] in vardict)): #LHS is a variable
+        # MODES
+        if mode == footprint_mode:
+            if isinstance(lhs,str):
+                if len(rhs) == 2:
+                    # MODES ?check_obligations?
+                    if rhs[0] in funcdict.keys() and (funcdict[rhs[0]]['input_type'] == 'Loc'):
+                        add_to_footprint(rhs[1])
+            else:
+                add_to_footprint(lhs[1], extend = 1)
+                obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
+                if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
+                    print(f'Assuming obligations: {iplist}')
+        else:
+            if isinstance(lhs,str) and isinstance(rhs,str):    
+                pass
+            else:                                                   # => lhs or rhs is y.f
+                obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
+                if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
+                    print(f'Assuming obligations: {iplist}')
+
+
+        # if (isinstance(lhs,str) and (lhs in vardict)):    # MODE - changed if statement
+        if (isinstance(lhs,str) and (lhs in vardict)) or (len(lhs)==1 and (lhs[0] in vardict)): # LHS is a variable
             interpreted_rhs = interpret_ops(rhs)
             var_update(lhs)
-            if vardict[lhs]['type'] == 'Loc':
-                pointer_closure(vardict[lhs]['z3name'])        # put this into var_update? Because you'd want to update pointer_closure whenever a variable is updated..right?
+
+            if mode == manual_mode: # MODES
+                if vardict[lhs]['type'] == 'Loc':
+                    pointer_closure(vardict[lhs]['z3name'])        # put this into var_update? Because you'd want to update pointer_closure whenever a variable is updated..right?
 
             interpreted_lhs = interpret_ops(lhs)
             return interpreted_lhs==interpreted_rhs
@@ -511,10 +553,21 @@ def interpret_recdef(iplist):
             a2 = [interpret_ops(v) for v in args]
             a3 = interpret_ops(func_definition)
 
-            # logging.info('Adding recdef: (%s, %s,%s )' %(a1,a2,z3.simplify(a3)))
+            # MODES
+            if mode == footprint_mode:
+                global fo_abstractions
+                z = set()
+                z.add((a1, tuple(a2), a3))
+                y =  make_recdef_unfoldings(z)
+                for yval in y.values():
+                    add_fo_abstraction(yval)
+            else:
+                # logging.info('Adding recdef: (%s, %s,%s )' %(a1,a2,z3.simplify(a3)))
 
-            # print('-----------------\n', a1,'(,', a2, ') := \n', a3, '\n----------------------------\n' )
-            AddRecDefinition(a1,tuple(a2),a3)
+                # print('-----------------\n', a1,'(,', a2, ') := \n', a3, '\n----------------------------\n' )
+                AddRecDefinition(a1,tuple(a2),a3)
+
+
 
 def interpret_func(iplist):
     '''(func args) -> func(args)
@@ -722,6 +775,8 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         global check_side_conditions
 
         global transform
+        # MODES
+        global fo_abstractions
 
         number_of_function_calls = number_of_function_calls + 1
 
@@ -735,7 +790,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         global inputvarset
 
         for elt in actual_op:   # enforce that input variables to the program are not in this as we do not allow assignments to those
-            if isinstance(elt, str):            # if inputvarset elt is in actual_ip - heap whatfdafafwefewfa
+            if isinstance(elt, str):            # if inputvarset elt is in actual_ip - heap
                 if elt in inputvarset:
                     raise Exception(f' Bad function call {iplist}.  Input variable {elt} of program is assigned to.')
             elif len(elt) == 1:
@@ -756,6 +811,12 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
             z3_ac_elt = vardict[ac_elt]['z3name']
 
+            # MODES
+            if mode == footprint_mode:
+                if is_loc_var(elt):
+                    add_to_footprint(ac_elt)
+                    # footprint[ac_elt] = z3_ac_elt
+
             inputs_of_call[fm_elt] = z3_ac_elt
         
         for i in range(len(actual_op)):
@@ -764,6 +825,12 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
             var_update(ac_elt)
             z3_ac_elt = vardict[ac_elt]['z3name']
+
+            # MODES
+            if mode == footprint_mode:
+                if is_loc_var(ac_elt):
+                    add_to_footprint(ac_elt)
+                    # footprint[ac_elt] = z3_ac_elt
 
             outputs_of_call[fm_elt] = z3_ac_elt
 
@@ -806,6 +873,13 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             snapshot('before_call_'+str(number_of_function_calls))
             sp_pre = support(pre_call)
             pre = interpret_ops(pre_call)            
+
+        # MODES
+        if mode == footprint_mode:
+            instantiate_footprint(use_extended=1)
+
+            fo_abstractions = set() 
+
         # obligation checking
         obligation = And(pre, IsSubset(sp_pre,alloc_set))
 
@@ -824,15 +898,19 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             func_update(i)
 
             elt['macro'] = new_macro
-            if elt['output_type'] == 'Loc':
-                pointerdict[i] = elt['macro']
+
+            # MODES
+            if mode == manual_mode:
+                if elt['output_type'] == 'Loc':
+                    pointerdict[i] = elt['macro']
 
     
         # 1)OPT:
         # print('incall----', len(all_locs))
         # print(all_locs,'\n\n\n')
-        for i in all_locs:
-            pointer_closure(i)
+        if mode == manual_mode: # MODES
+            for i in all_locs:
+                pointer_closure(i)
         # for i in trace:
         #     print(i,'\n\n')
         # for i in all_locs:
@@ -852,24 +930,37 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
         before = 'before_call_'+str(number_of_function_calls)
         now = 'after_call_'+str(number_of_function_calls)
-            
-        frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
 
-        sp_post = support(post_call)
 
-        # 2)OPT:
-        global trace
-        for fgelt in get_foreground_terms(sp_post, default_annctx):
-            # print('fgelt----', fgelt)
-            if str(fgelt) == 'nil':
-               pass 
-            else:
-                # pointer_closure(fgelt)
-                trace.append(fgelt)
-                
-        alloc_set = SetUnion(old_alloc_rem,sp_post)
+        # MODES
+        if mode == footprint_mode:
+            global pre_tag
+            sp_post = support(post_call)
+            instantiate_footprint()
+            frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
+            alloc_set = SetUnion(old_alloc_rem,sp_post)
+            to_assume = interpret_ops(post_call)     
+            fo_abstractions = set()
 
-        to_assume = interpret_ops(post_call) 
+        elif mode == manual_mode:          
+            frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
+            sp_post = support(post_call)
+            # 2)OPT:
+            global trace
+            for fgelt in get_foreground_terms(sp_post, default_annctx):
+                if str(fgelt) == 'nil':
+                    pass 
+                else:
+                    # pointer_closure(fgelt)
+                    trace.append(fgelt)   
+            alloc_set = SetUnion(old_alloc_rem,sp_post)
+            to_assume = interpret_ops(post_call)
+
+        else:
+            frame_rule(before, now, 1, sp_pre)  # modified set is the retained heap
+            sp_post = support(post_call)                    
+            alloc_set = SetUnion(old_alloc_rem,sp_post)
+            to_assume = interpret_ops(post_call) 
 
         in_call = 0 
         return And(pre, to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
@@ -885,8 +976,12 @@ def interpret_alloc(iplist):
             x = x[0]
     global alloc_set
     var_update(x)
-    if vardict[x]['type'] == 'Loc':
-        pointer_closure(vardict[x]['z3name'])
+
+    # MODES
+    if mode == manual_mode:
+        if vardict[x]['type'] == 'Loc':
+            pointer_closure(vardict[x]['z3name'])
+
     alloc_var = vardict[x]['z3name']
     to_return = []
     to_return.append(Not(IsMember(alloc_var, alloc_set)))
@@ -894,6 +989,11 @@ def interpret_alloc(iplist):
         to_return.append(elt['macro'](alloc_var) == defaultdict[elt['output_type']])
 
     alloc_set = SetAdd(alloc_set, alloc_var)
+
+    # MODES
+    if mode == footprint_mode:
+        add_to_footprint(x)
+
     return And(*[to_return])
 
 def interpret_free(iplist, check_obligations = 1):
@@ -916,6 +1016,10 @@ def interpret_free(iplist, check_obligations = 1):
         else:
             x = x[0]
     alloc_set = SetDel(alloc_set, vardict[x]['z3name'])
+
+    # MODES
+    if mode == footprint_mode:
+        remove_from_footprint(x, extend = 1)
     
 #--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
@@ -968,7 +1072,12 @@ def instantiate_lemma(operands):        #this 'instantiates' a lemma
 
         argtuple = tuple(arglist)
         body = interpret_ops(bodyop)
-        lemma_set.add((argtuple,body))
+        
+        # MODES
+        if mode == footprint_mode:
+            add_fo_abstraction((argtuple, body))
+        else:
+            lemma_set.add((argtuple,body))
     else:
         raise Exception(f'lemma format (args) (body). Given {operands}')
 #---------------------------------------------------------------------------------
@@ -1122,19 +1231,39 @@ def cl_check(solver,lemmas,assumptions, obligation):
     global number_of_vcs
     global trace
     number_of_vcs = number_of_vcs +1
-    # trace1 = trace+[statesdict['initial']['vars']['x']]
-    # trace1.append(   statesdict['initial']['funcs']['left'](statesdict['initial']['vars']['x']))
-    # trace = list(set(trace1))
+    global frame_rules  
 
-    # print('cl-->', len(trace))
-    np_solver.options.terms_to_instantiate = trace
+    # MODES
+    if mode == footprint_mode:
+        np_solver.options.terms_to_instantiate = set()
+        # $$
+        # Removing lemmas from the calls to the NPSolver for instantiating over the footprint
+        # eg: solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
+
+        global all_instantiations
+
+        # print('---------------------')
+        # print(all_instantiations)
+        # print('==========Printed all instantiations============')
+
+        if len(frame_rules) == 0:
+            solution = solver.solve(Implies(And(*all_instantiations), Implies(And(*assumptions), obligation)))
+        else: 
+            solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation))
+
+    else:
+        # trace1 = trace+[statesdict['initial']['vars']['x']]
+        # trace1.append(   statesdict['initial']['funcs']['left'](statesdict['initial']['vars']['x']))
+        # trace = list(set(trace1))
+        # print('cl-->', len(trace))
+        if mode == manual_mode:
+            np_solver.options.terms_to_instantiate = trace
 
 
-    global frame_rules
-    if len(frame_rules) == 0:
-       solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
-    else: 
-        solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation),lemmas)
+        if len(frame_rules) == 0:
+            solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
+        else: 
+            solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation),lemmas)
 
     if not solution.if_sat:
         return True
@@ -1172,50 +1301,76 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
         modified_set = alt_mod_set
 
 
-
-
-    if use_local == 1:
-        global frame_rules
-
-        vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
-        for vartype, varset in typevardict.items():
-            for i in varset:
-                vars_to_consider[vartype].add(statesdict[state1]['vars'][i])
-
-        # global pointerlist
-        # vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
-        # for vartype, varset in typevardict.items():
-        #     for i in varset:
-        #         vars_to_consider[vartype].add(statesdict[state2]['vars'][i])
-        #         if vartype == 'Loc':
-        #             for fn in pointerlist:
-        #                 vars_to_consider[vartype].add(statesdict[state2]['funcs'][fn](statesdict[state2]['vars'][i]))
-
+    # MODES
+    if mode == footprint_mode:
         for name in s1.keys():
             if name[:2] == 'SP':
                 pass
             else:
 
-                no_inputs = recdefdict[name]['no_inputs']
-                input_type = recdefdict[name]['input_type']
+                fv_used = []
+                for j in range(recdefdict[name]['no_inputs']):
+                    fv_used.append(vardict['free_' + recdefdict[name]['input_type'] + str(j)]['z3name'])
 
-                vars_to_frame = ntuple( vars_to_consider[input_type], no_inputs)
-
-                for tup in vars_to_frame:
-                    # recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
-                    #             ,s1[name](*tup) == s2[name](*tup)) 
-                    recdef_frame = Implies( Not(Or(*[IsMember(melt, s1['SP'+name](*tup)) for melt in modified_set])), s1[name](*tup) == s2[name](*tup))               
-                    frame_rules.append(recdef_frame)
-
-                    # support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
-                    #             ,s1['SP'+name](*tup) == s2['SP'+name](*tup))
-                    support_frame = Implies( Not(Or(*[IsMember(melt, s1['SP'+name](*tup)) for melt in modified_set]))
-                                ,s1['SP'+name](*tup) == s2['SP'+name](*tup))
-                    frame_rules.append(support_frame)
+                recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                            ,s1[name](*fv_used) == s2[name](*fv_used))
                 
 
+                # AddAxiom((*fv_used,), recdef_frame)
+                support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                            ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))            # repeats...
+
+                # AddAxiom((*fv_used,), support_frame)
+
+                # $$
+                global frame_abstractions
+                add_fo_abstraction(((*fv_used,), recdef_frame), in_frame = 1)
+                add_fo_abstraction(((*fv_used,), support_frame), in_frame = 1)
+        instantiate_footprint(use_extended = 1, in_frame= 1)
 
     else:
+        # if use_local == 1:
+        #     global frame_rules
+
+        #     vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
+        #     for vartype, varset in typevardict.items():
+        #         for i in varset:
+        #             vars_to_consider[vartype].add(statesdict[state1]['vars'][i])
+
+        #     # global pointerlist
+        #     # vars_to_consider = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }
+        #     # for vartype, varset in typevardict.items():
+        #     #     for i in varset:
+        #     #         vars_to_consider[vartype].add(statesdict[state2]['vars'][i])
+        #     #         if vartype == 'Loc':
+        #     #             for fn in pointerlist:
+        #     #                 vars_to_consider[vartype].add(statesdict[state2]['funcs'][fn](statesdict[state2]['vars'][i]))
+
+        #     for name in s1.keys():
+        #         if name[:2] == 'SP':
+        #             pass
+        #         else:
+
+        #             no_inputs = recdefdict[name]['no_inputs']
+        #             input_type = recdefdict[name]['input_type']
+
+        #             vars_to_frame = ntuple( vars_to_consider[input_type], no_inputs)
+
+        #             for tup in vars_to_frame:
+        #                 # recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
+        #                 #             ,s1[name](*tup) == s2[name](*tup)) 
+        #                 recdef_frame = Implies( Not(Or(*[IsMember(melt, s1['SP'+name](*tup)) for melt in modified_set])), s1[name](*tup) == s2[name](*tup))               
+        #                 frame_rules.append(recdef_frame)
+
+        #                 # support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*tup)), fgsetsort.lattice_bottom)
+        #                 #             ,s1['SP'+name](*tup) == s2['SP'+name](*tup))
+        #                 support_frame = Implies( Not(Or(*[IsMember(melt, s1['SP'+name](*tup)) for melt in modified_set]))
+        #                             ,s1['SP'+name](*tup) == s2['SP'+name](*tup))
+        #                 frame_rules.append(support_frame)
+                    
+
+
+        # else:
         for name in s1.keys():
             if name[:2] == 'SP':
                 pass
@@ -1295,13 +1450,30 @@ def pointer_closure(var):
     #     trace.append(f(var))
 
 
+def current_vars():
+    varset = ()
+    for i in vardict:
+        varset.add(vardict[i]['z3name'])
+    return varset
 
 
 
-def vc(user_input):
+def collect_terms_to_instantiate():
+    None
+
+
+
+
+
+def vc(user_input, aux_mode = depth2_mode):
     '''VC generation'''
 
     #.
+
+    # MODE Use variable 'mode' to switch between the modes
+    global mode
+    mode = aux_mode
+
     global frame_rules
 
     start = time.time()
@@ -1316,6 +1488,7 @@ def vc(user_input):
     global np_solver
     global transform
     global number_of_function_calls
+    global has_mutated
 
     # AUTO
     # global support_mapping
@@ -1376,46 +1549,63 @@ def vc(user_input):
             #+++++++
             snapshot('initial')
 
-            precond = interpret_ops(i[1])
+            # MODES
+            if mode == footprint_mode:
+                global pre_tag
+                pre_tag = 1
+                precond = interpret_ops(i[1])
+                alloc_set = support(i[1])
+                transform.append(precond)
+                manual_set = get_foreground_terms(precond,  default_annctx) # not needed?
+                instantiate_footprint()
+                pre_tag = 0
 
-            for fgelt in get_foreground_terms(precond, default_annctx):
-                if str(fgelt) == 'nil':
-                    pass
-                else:
-                    pointer_closure(fgelt)
+            else:
+                precond = interpret_ops(i[1])
 
-            # print('**********************')
+                if mode == manual_mode:
+                    for fgelt in get_foreground_terms(precond, default_annctx):
+                        if str(fgelt) == 'nil':
+                            pass
+                        else:
+                            pointer_closure(fgelt)
+                    # print('**********************')
 
-            alloc_set = support(i[1])
-            transform.append(precond)
-
-        elif tag == 'Post':
+                alloc_set = support(i[1])
+                transform.append(precond)
 
 
-            postcond = interpret_ops(i[1])
-
-            sp_postcond = support(i[1])
-            rp = 0
-            #+++++++
-            snapshot('final')
+        elif tag[-4:] == 'Post':
+            if len(tag[:-4]) == 0:
+                rp = 0
+            elif tag[:-4] == 'Relaxed':
+                rp = 1
+            elif tag[:-4] == 'Supportless':
+                rp = 2
+            else:
+                raise Exception ('Bad Post condition Tag')
             
-        elif tag == 'RelaxedPost':
+            # MODES
+            final_frame = has_mutated
+            if final_frame == 1:
+                recfunc_update()
+                for lem in lemma_description:
+                    instantiate_lemma(lem)
+                has_mutated = 0
+            if mode == footprint_mode:
+                pre_tag = 1 # TODO: go over what pre_tag is doing exactly
+                postcond = interpret_ops(i[1])
+                sp_postcond = support(i[1])
+                snapshot('final')
+                manual_set = get_foreground_terms(postcond, default_annctx)
+                # print(footprint,'\n -- ',extended_footprint)
+                instantiate_footprint()
+                pre_tag = 0 
 
-            postcond = interpret_ops(i[1])
-            sp_postcond = support(i[1])
-            rp = 1
-            #+++++++
-            snapshot('final')
-        elif tag == 'SupportlessPost':
-
-
-            postcond = interpret_ops(i[1])
-            sp_postcond = support(i[1]) # ?
-            rp = 2
-             #+++++++
-            # print(postcond)
-            snapshot('final')
-            #$$$$$$$$$$$$$$$$$$$$$$
+            else:
+                postcond = interpret_ops(i[1])
+                sp_postcond = support(i[1])
+                snapshot('final')         
 
         elif tag == 'RecDef':
             if not(len(i) == 3): 
@@ -1447,6 +1637,7 @@ def vc(user_input):
                 # Note: has_mutated is set to 1 only during assign statements.
                 # So, it SHOULD be safe to wait till 'Program' to interpret recdefs and their supports, and the order in which it happens doesn't
                 # matter, EXCEPT we should take care to not create recdefs for SPX where X is NOT a value in support_map and a key of support_map
+                # Fixed free variable issue with sp
 
                 new_i = recdefdict[name]['description']
                 spname = 'SP'+new_i[1][0]
@@ -1493,12 +1684,19 @@ def vc(user_input):
             raise Exception (f'Invalid tag in code {i}')
     
     
+    # MODES
+    # if number_of_function_calls == 0:   # frame_rules are added when a call is seen
+    #     frame_rule('initial','final')
+    # else:
 
-    if number_of_function_calls == 0:   # frame_rules are added when a call is seen
-        frame_rule('initial','final')
-    else:
+    #     frame_rule('after_call_'+str(number_of_function_calls),'final')
 
-        frame_rule('after_call_'+str(number_of_function_calls),'final')
+    if  final_frame == 1:
+        if number_of_function_calls == 0:   # frame_rules are added when a call is seen
+            frame_rule('initial','final')
+        else:
+
+            frame_rule('after_call_'+str(number_of_function_calls),'final')
 
     print('done preprocessing and checking side-conditions')
     end = time.time()
@@ -1507,26 +1705,28 @@ def vc(user_input):
 
 
 
-    for fgelt in get_foreground_terms(postcond, default_annctx):
-        # print('fgelt----', fgelt)
-        if str(fgelt) == 'nil':
-            pass 
-        else:
-            pointer_closure(fgelt)
+    if mode == manual_mode:
+        for fgelt in get_foreground_terms(postcond, default_annctx):
+            # print('fgelt----', fgelt)
+            if str(fgelt) == 'nil':
+                pass 
+            else:
+                pointer_closure(fgelt)
 
 
-    # AUTO
-    # trace1 = trace+[statesdict['initial']['vars']['x']]
-    # trace1.append(   statesdict['initial']['funcs']['left'](statesdict['initial']['vars']['x']))
-    # trace1.append(   statesdict['initial']['funcs']['right'](statesdict['initial']['vars']['x']))
-    # trace1.append(   statesdict['final']['funcs']['left'](statesdict['final']['vars']['x']))
-    # trace1.append(   statesdict['final']['funcs']['right'](statesdict['final']['vars']['x']))
-    # trace = list(set(trace1))
-    # np_solver.options.terms_to_instantiate = trace
-    # print(len(trace))
-    # # for i in trace:
-    # #     print(i,'\n\n')
-    # print(trace)
+        # AUTO
+        # trace1 = trace+[statesdict['initial']['vars']['x']]
+        # trace1.append(   statesdict['initial']['funcs']['left'](statesdict['initial']['vars']['x']))
+        # trace1.append(   statesdict['initial']['funcs']['right'](statesdict['initial']['vars']['x']))
+        # trace1.append(   statesdict['final']['funcs']['left'](statesdict['final']['vars']['x']))
+        # trace1.append(   statesdict['final']['funcs']['right'](statesdict['final']['vars']['x']))
+        # trace = list(set(trace1))
+        # np_solver.options.terms_to_instantiate = trace
+        # print(len(trace))
+        # # for i in trace:
+        # #     print(i,'\n\n')
+        # print(trace)
+
     if rp == 0:
         ret = cl_check(np_solver,lemma_set,transform,And(postcond,sp_postcond == alloc_set))
     elif rp == 1:
@@ -1573,3 +1773,100 @@ def make_support_map(iplist):
         for fn in related_fns:
             support_map['SP' + fn] = 'SP' + base_fn
     
+
+
+
+
+# MODES Functions for footprint mode
+def is_loc_var(x):
+    return ((not (vardict[x]['counter'] == None)) and (vardict[x]['type'] == 'Loc'))
+
+# footprint = {}
+# fo_abstractions = set()
+# all_instantiations = set()
+
+# def add_fo_abstraction(x, fo_abstractions = fo_abstractions):
+
+
+def add_fo_abstraction(x, in_frame = 0):
+    if in_frame == 0:
+        global fo_abstractions
+        fo_abstractions.add(x)      # x should be a tuple. Add recdefs, lemmas, axioms, and frame rules!
+    else:
+        global frame_abstractions
+        frame_abstractions.add(x)
+
+def add_to_footprint(x, extend = 1):
+    # if x in footprint.keys():
+    # extend = 0
+
+    footprint[x] = [vardict[x]['z3name']]
+    # extended_footprint[x] = [vardict[x]['z3name']]
+    if extend != 0:
+        extended_footprint[x] = []
+        for name in funcdict:
+            if funcdict[name]['input_type'] == 'Loc':
+                if funcdict[name]['output_type'] == 'Loc':
+                    extended_footprint[x].append(funcdict[name]['macro'](vardict[x]['z3name']))
+
+def remove_from_footprint(x, extend = 0):
+    if x in footprint.keys():
+        del footprint[x]
+    if extend != 0:
+        if x in extended_footprint.keys():
+            del extended_footprint[x]
+
+def instantiate_footprint(manual_set = None, use_extended = 0, in_frame = 0):
+    global fo_abstractions
+    if manual_set == None:
+        terms_to_instantiate = []
+
+        if use_extended == 0:
+            term_lists = footprint
+        else:
+            term_lists = extended_footprint
+            for loc_list in footprint.values():
+                if len(loc_list) != 0:
+                    for loc in loc_list:
+                        terms_to_instantiate.append(loc)
+
+        for loc_list in term_lists.values():
+            if len(loc_list) != 0:
+                for loc in loc_list:
+                    terms_to_instantiate.append(loc)
+    else:
+        terms_to_instantiate = manual_set
+
+    # extra_terms = set()
+    # for i in terms_to_instantiate:
+    #     extra_terms.add(i)
+    #     for name in funcdict:
+    #         if funcdict[name]['input_type'] == 'Loc':
+    #             # extra_terms.add(funcdict['next']['macro'](i))
+    #             extra_terms.add(funcdict[name]['macro'](i))
+    # instantiations = instantiate(fo_abstractions, set(extra_terms))
+
+    if in_frame == 0:
+        instantiations = instantiate(fo_abstractions, set(terms_to_instantiate))
+    else:
+        global frame_abstractions
+        instantiations = instantiate(frame_abstractions, set(terms_to_instantiate))
+
+    # for i in instantiations:
+    #     all_instantiations.add(i)
+
+    # if instantiations != set():
+    #     instantiation_terms = terms_to_instantiate
+    #     extraction_terms = extraction_terms.union(get_foreground_terms(instantiations, annctx=self.annctx))
+
+
+    # solver.add(instantiations)
+    global all_instantiations
+    for i in instantiations:
+        all_instantiations.append(i)
+
+    # fo_abstractions = set()
+    # if_sat = _solver_check(z3solver)
+    # model = solver.model() if if_sat else None
+    # return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
+    #                     instantiation_terms=instantiation_terms, options=options)

@@ -9,6 +9,10 @@ from BBGenerator import BBGenerator
 argparser = argparse.ArgumentParser()
 argparser.add_argument('program')
 
+
+argparser.add_argument('mode')
+
+
 args = argparser.parse_args()
 
 curr_path = os.path.abspath('.')
@@ -40,7 +44,7 @@ for prog in progfiles:
     # Run each bb
     for i in range(len(parsed_bbs)):
         bb_file = os.path.join(prog_folder,f'bb{str(i+1)}.fsl')
-        subprocess.run(['python','runbb.py', f'{bb_file}'])
+        subprocess.run(['python','runbb.py', f'{bb_file}', args.mode])
 
     end = time.time()
     time_taken = end-start

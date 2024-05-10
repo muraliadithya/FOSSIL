@@ -1,0 +1,74 @@
+(Var x Loc)
+(Var k Int)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(Var plus_infty Int)
+(RecFunction Min Loc Int)
+(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
+
+(RecFunction Keys   Loc SetInt)
+(RecFunction Sorted Loc Bool)
+(RecFunction List   Loc Bool)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                 (SetAdd (Keys (next x)) (key x))))
+(RecDef (Sorted x) (ite (= x nil) True
+                      (and (Sorted (next x))
+                           (not (IsMember x (Sp (Sorted (antiSp (next x))))))
+                           (<= (key x) (Min (next x))))))
+(RecDef (List x) (ite (= x nil) True
+                      (and (List (next x))
+                           (not (IsMember x (Sp (List (antiSp (next x)))))))))
+
+(lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
+(lemma (x) (=> (Sorted x) (= (Sp (List x)) (Sp (Sorted x)))))
+(lemma (x) (=> (Sorted x) (= (Sp (Min x)) (Sp (Sorted x)))))
+(lemma (x) (=> (List x) (= (Sp (Keys x)) (Sp (List x)))))
+(lemma (x) (=> (List x) (= (Sp (Min x)) (Sp (List x)))))
+(lemma (x) (=> (Sorted x) (List x)))
+
+(Var y Loc)
+(Var ret Loc)
+(Var nxt Loc)
+(Var tmp Loc)
+
+(Program sorted_insert (x) (ret))
+(Pre (and (not (= x nil)) (List x) (Sorted (next x)) ))
+(Post (and (Sorted ret) (= (Keys ret) (Old (Keys x)))
+           (= (Min ret) (Old (Min x))) ))
+
+(assign nxt (next x))
+(If (= nxt nil)
+ Then
+  (assume (<= (key x) plus_infty))
+  (assign ret x)
+  (return)
+ Else (If (> (key x) (key nxt))
+ Then
+  (assign (next x) (next nxt))
+  (call sorted_insert (x) (tmp))
+  (assign (next nxt) tmp)
+  (assign ret nxt)
+  (return)
+ Else
+  (assign ret x)
+  (return)
+))
+
+(Program insertion_sort (x) (ret))
+(Pre (List x))
+(Post (and (Sorted ret) (= (Keys ret) (Old (Keys x))) ))
+
+(If (= x nil)
+ Then
+  (assign ret x)
+  (return)
+ Else
+  (assign nxt (next x))
+  (call insertion_sort (nxt) (tmp))
+  (assign (next x) tmp)
+  (call sorted_insert (x) (ret))
+  (return)
+)

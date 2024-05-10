@@ -1,0 +1,87 @@
+(Var x Loc)
+
+(Function left   Loc Loc)
+(Function right  Loc Loc)
+(Function key    Loc Int)
+(Function height Loc Int)
+
+(RecFunction Min  Loc Int)
+(RecFunction Max  Loc Int)
+(Var plus_infty Int)
+(Var minus_infty Int)
+
+(RecDef (Min x) (ite (= x nil) plus_infty
+                (ite (<= (key x) (Min (left x)))
+                  (ite (<= (key x) (Min (right x)))
+                    (key x)
+                    (Min (right x))
+                  )
+                  (ite (<= (Min (left x)) (Min (right x)))
+                    (Min (left x))
+                    (Min (right x))
+                  )
+                )))
+(RecDef (Max x) (ite (= x nil) minus_infty
+                (ite (>= (key x) (Max (left x)))
+                  (ite (>= (key x) (Max (right x)))
+                    (key x)
+                    (Max (right x))
+                  )
+                  (ite (>= (Max (left x)) (Max (right x)))
+                    (Max (left x))
+                    (Max (right x))
+                  )
+                )))
+
+(RecFunction AVL    Loc Bool)
+(RecFunction Keys   Loc SetInt)
+(RecFunction Height Loc Int)
+
+(RecDef (AVL x) (ite (= x nil) True
+                     (and (AVL (left x))  (< (Max (left x)) (key x))
+                          (AVL (right x)) (< (key x) (Min (right x)))
+                          (not (IsMember x (Sp (AVL (left x)))))
+                          (not (IsMember x (Sp (AVL (right x)))))
+                          (= EmptySetLoc (SetIntersect (Sp (AVL (left x)))
+                                                       (Sp (AVL (right x)))))
+                          (or
+                            (and (= (Height (left x)) (Height (right x)))
+                                 (= (height x) (+ (Height (left x)) (IntConst 1))))
+                            (and (= (Height (left x)) (+ (Height (right x)) (IntConst 1)))
+                                 (= (height x) (+ (Height (right x)) (IntConst 2))))
+                            (and (= (Height (right x)) (+ (Height (left x)) (IntConst 1)))
+                                 (= (height x) (+ (Height (left x)) (IntConst 2))))))))
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                                (SetAdd
+                                  (SetUnion (Keys (left x)) (Keys (right x)))
+                                  (key x))))
+
+(RecDef (Height x) (ite (= x nil) (IntConst 0)
+                                  (ite (< (Height (left x)) (Height (right x)))
+                                       (+ (IntConst 1) (Height (right x)))
+                                       (+ (IntConst 1) (Height (left x))))))
+
+(lemma (x) (=> (AVL x) (= (Sp (AVL x)) (Sp (Keys   x)))))
+(lemma (x) (=> (AVL x) (= (Sp (AVL x)) (Sp (Min    x)))))
+(lemma (x) (=> (AVL x) (= (Sp (AVL x)) (Sp (Max    x)))))
+(lemma (x) (=> (AVL x) (= (Sp (AVL x)) (Sp (Height x)))))
+
+(Var tmp Loc)
+(Var ret Int)
+
+(Program avl_find_smallest (x) (ret))
+(Pre  (and (AVL x) (not (= x nil)) ))
+(Post (and (AVL x) (not (= x nil)) (= (Keys x) (Old (Keys x)))
+           (= (Min x) (Old (Min x))) (= (Max x) (Old (Max x)))
+           (= (Height x) (Old (Height x))) (= ret (Old (Min x))) ))
+
+(If (= (left x) nil)
+ Then
+  (assign ret (key x))
+  (return)
+ Else
+  (assign tmp (left x))
+  (call avl_find_smallest (tmp) (ret))
+  (return)
+)

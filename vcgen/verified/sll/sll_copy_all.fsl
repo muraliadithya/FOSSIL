@@ -1,0 +1,39 @@
+(Var x Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(RecFunction List Loc Bool)
+(RecFunction Keys Loc SetInt)
+
+(RecDef (List x) (ite (= x nil) True
+                      (and (List (next x))
+                           (not (IsMember x (Sp (List (antiSp (next x)))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (Keys (next x)) (key x))))
+
+(lemma (x) (=> (List x) (= (Sp (Keys x)) (Sp (List x)))))
+
+(Var ret Loc)
+(Var nxt Loc)
+(Var tmp Loc)
+
+(Program sll_copy_all (x) (ret))
+(Pre (List x))
+(Post (and (List x) (= (Keys x) (Old (Keys x)))
+           (List ret) (= (Keys ret) (Old (Keys x)))
+           (= EmptySetLoc (SetIntersect (Sp (List x)) (Sp (List ret)))) ))
+
+(If (= x nil)
+ Then
+  (assign ret x)
+  (return)
+ Else
+  (assign nxt (next x))
+  (call sll_copy_all (nxt) (tmp))
+  (alloc ret)
+  (assume (not (= ret nil)))
+  (assign (key ret) (key x))
+  (assign (next ret) tmp)
+  (return)
+)

@@ -1,0 +1,71 @@
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(RecFunction Lseg Loc Loc Bool)
+(RecFunction Circ Loc Bool)
+(RecFunction CKys Loc Loc SetInt)
+(RecFunction Keys Loc SetInt)
+
+(Var x Loc)
+(Var y Loc)
+
+(RecDef (Lseg x y) (ite (= x y) True
+                   (ite (= x nil) False
+                        (and (Lseg (next x) y)
+                             (not (IsMember x (Sp (Lseg (antiSp (next x)) y)))) ))))
+(RecDef (Circ x) (ite (= x nil) True
+                 (and (Lseg (next x) x)
+                      (not (IsMember x (Sp (Lseg (antiSp (next x)) (antiSp x))))) )))
+
+(RecDef (CKys x y) (ite (= x y) EmptySetInt
+                        (SetAdd (CKys (next x) y) (key x))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (CKys (next x) x) (key x))))
+
+(lemma (x y) (=> (Lseg x y) (= (Sp (Lseg x y)) (Sp (CKys x y)))))
+
+(Var k Int)
+(Var tmp Loc)
+(Var ret Bool)
+
+(Program cl_find_helper (x y k) (ret))
+(Pre (Lseg x y))
+(Post (and (Lseg x y) (= (CKys x y) (Old (CKys x y)))
+           (= ret (IsMember k (CKys x y))) ))
+
+(If (= x y)
+ Then
+  (assign ret False)
+  (return)
+ Else
+  (If (= k (key x))
+   Then
+    (assign ret True)
+    (return)
+   Else
+    (assign tmp (next x))
+    (call cl_find_helper (tmp y k) (ret))
+    (return)
+  )
+)
+
+(Program cl_find (x k) (ret))
+(Pre (Circ x))
+(Post (and (Circ x) (= (Keys x) (Old (Keys x)))
+           (= ret (IsMember k (Keys x))) ))
+
+(If (= x nil)
+ Then
+  (assign ret False)
+  (return)
+ Else
+  (If (= k (key x))
+   Then
+    (assign ret True)
+    (return)
+   Else
+    (assign tmp (next x))
+    (call cl_find_helper (tmp x k) (ret))
+    (return)
+  )
+)

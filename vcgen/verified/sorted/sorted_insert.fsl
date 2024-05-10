@@ -1,0 +1,53 @@
+(Var x Loc)
+(Var k Int)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(Var plus_infty Int)
+(RecFunction Min Loc Int)
+(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
+
+(RecFunction Keys   Loc SetInt)
+(RecFunction Sorted Loc Bool)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                 (SetAdd (Keys (next x)) (key x))))
+(RecDef (Sorted x) (ite (= x nil) True
+                      (and (Sorted (next x))
+                           (not (IsMember x (Sp (Sorted (antiSp (next x))))))
+                           (<= (key x) (Min (next x))))))
+
+(lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
+(lemma (x) (=> (Sorted x) (= (Sp (Min x)) (Sp (Sorted x)))))
+
+(Var ret Loc)
+(Var nxt Loc)
+(Var tmp Loc)
+
+(Program sorted_insert (x k) (ret))
+(Pre (and (Sorted x) (< k plus_infty) ))
+(Post (and (Sorted ret) (= (Keys ret) (SetAdd (Old (Keys x)) k))
+           (ite (< (Old (Min x)) k) (= (Min ret) (Old (Min x))) (= (Min ret) k)) ))
+
+(If (= x nil)
+ Then
+  (alloc ret)
+  (assume (not (= ret nil)))
+  (assign (key ret) k)
+  (assign (next ret) nil)
+  (return)
+ Else (If (> k (key x))
+ Then
+  (assign nxt (next x))
+  (call sorted_insert (nxt k) (tmp))
+  (assign (next x) tmp)
+  (assign ret x)
+  (return)
+ Else
+  (alloc ret)
+  (assume (not (= ret nil)))
+  (assign (key ret) k)
+  (assign (next ret) x)
+  (return)
+))

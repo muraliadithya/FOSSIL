@@ -1,0 +1,50 @@
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(RecFunction Lseg Loc Loc Bool)
+(RecFunction Circ Loc Bool)
+(RecFunction CKys Loc Loc SetInt)
+(RecFunction Keys Loc SetInt)
+
+(Var x Loc)
+(Var y Loc)
+
+(RecDef (Lseg x y) (ite (= x y) True
+                   (ite (= x nil) False
+                        (and (Lseg (next x) y)
+                             (not (IsMember x (Sp (Lseg (antiSp (next x)) y)))) ))))
+(RecDef (Circ x) (ite (= x nil) True
+                 (and (Lseg (next x) x)
+                      (not (IsMember x (Sp (Lseg (antiSp (next x)) (antiSp x))))) )))
+
+(RecDef (CKys x y) (ite (= x y) EmptySetInt
+                        (SetAdd (CKys (next x) y) (key x))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (CKys (next x) x) (key x))))
+
+(lemma (x y) (=> (Lseg x y) (= (Sp (Lseg x y)) (Sp (CKys x y)))))
+
+(Var k Int)
+(Var tmp Loc)
+(Var ret Loc)
+(Var n Loc)
+
+(Program cl_insert_front (x k) (ret))
+(Pre (Circ x))
+(Post (and (Circ ret) (= (Keys ret) (SetAdd (Old (Keys x)) k))
+           (ite True True (= (next (next ret)) (next (next ret)))) ))
+
+(alloc n)
+(assume (not (= n nil)))
+(assign (key n) k)
+(If (= x nil)
+ Then
+  (assign (next n) n)
+  (assign ret n)
+  (return)
+ Else
+  (assign (next n) (next x))
+  (assign (next x) n)
+  (assign ret x)
+  (return)
+)

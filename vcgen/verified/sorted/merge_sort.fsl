@@ -1,0 +1,122 @@
+(Var x   Loc)
+(Var y   Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(Var plus_infty Int)
+(RecFunction Min Loc Int)
+(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
+
+(RecFunction List   Loc Bool)
+(RecFunction Keys   Loc SetInt)
+(RecFunction Sorted Loc Bool)
+
+(RecDef (List x) (ite (= x nil) True
+                      (and (List (next x))
+                           (not (IsMember x (Sp (List (antiSp (next x)))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                 (SetAdd (Keys (next x)) (key x))))
+(RecDef (Sorted x) (ite (= x nil) True
+                      (and (Sorted (next x))
+                           (not (IsMember x (Sp (Sorted (antiSp (next x))))))
+                           (<= (key x) (Min (next x))))))
+
+(lemma (x) (=> (Sorted x) (<= (Min x) plus_infty)))
+(lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
+(lemma (x) (=> (List x)   (= (Sp (Keys x)) (Sp (List x)))))
+
+(Var fst Loc)
+(Var snd Loc)
+(Var aux Loc)
+(Var tmp Loc)
+(Var tm1 Loc)
+(Var tm2 Loc)
+(Var rt1 Loc)
+(Var rt2 Loc)
+(Var ret Loc)
+
+(Program sorted_merge (x y) (ret))
+(Pre (and (Sorted x) (Sorted y)
+          (= (SetIntersect (Sp (Sorted x)) (Sp (Sorted y))) EmptySetLoc) ))
+(Post (and (Sorted ret) (= (Keys ret) (SetUnion (Old (Keys x)) (Old (Keys y))))
+           (ite (<= (Old (Min x)) (Old (Min y)))
+                (= (Min ret) (Old (Min x)))
+                (= (Min ret) (Old (Min y)))) ))
+
+(If (= x nil)
+ Then
+  (assign ret y)
+  (return)
+ Else
+  (If (= y nil)
+   Then
+    (assign ret x)
+    (return)
+   Else
+    (If (<= (key x) (key y))
+     Then
+      (assign aux (next x))
+      (call sorted_merge (aux y) (tmp))
+      (assign (next x) tmp)
+      (assign ret x)
+      (return)
+     Else
+      (assign aux (next y))
+      (call sorted_merge (x aux) (tmp))
+      (assign (next y) tmp)
+      (assign ret y)
+      (return)
+    )
+  )
+)
+
+(Program sll_split (x) (fst snd))
+(Pre (List x))
+(Post (and (List fst) (List snd)
+           (= (SetUnion (Keys fst) (Keys snd)) (Old (Keys x)))
+           (= (SetIntersect (Sp (List fst)) (Sp (List snd))) EmptySetLoc) ))
+
+(If (= x nil)
+ Then
+  (assign fst x)
+  (assign snd x)
+  (return)
+ Else
+  (assign fst x)
+  (If (= (next x) nil)
+   Then
+    (assign snd (next x))
+    (return)
+   Else
+    (assign snd (next x))
+    (assign aux (next (next x)))
+    (call sll_split (aux) (rt1 rt2))
+    (assign (next fst) rt1)
+    (assign (next snd) rt2)
+    (return)
+  )
+)
+
+(Program sll_sort (x) (ret))
+(Pre (List x))
+(Post (and (Sorted ret) (= (Keys ret) (Old (Keys x))) ))
+
+(If (= x nil)
+ Then /* empty list */
+  (assign ret x)
+  (return)
+ Else
+  (If (= (next x) nil)
+   Then /* singleton list */
+    (assume (<= (key x) plus_infty))
+    (assign ret x)
+    (return)
+   Else /* List of length >= 2 */
+    (call sll_split (x) (rt1 rt2))
+    (call sll_sort (rt1) (tm1))
+    (call sll_sort (rt2) (tm2))
+    (call sorted_merge (tm1 tm2) (ret))
+    (return)
+  )
+)

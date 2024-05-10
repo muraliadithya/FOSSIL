@@ -1,0 +1,180 @@
+(Var x   Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(Var plus_infty Int)
+(RecFunction Min Loc Int)
+(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
+
+(Var minus_infty Int)
+(RecFunction Max Loc Int)
+(RecDef (Max x) (ite (= x nil) minus_infty (ite (> (key x) (Max (next x))) (key x) (Max (next x)))))
+
+(RecFunction List   Loc Bool)
+(RecFunction Keys   Loc SetInt)
+(RecFunction Sorted Loc Bool)
+
+(RecDef (List x) (ite (= x nil) True
+                      (and (List (next x))
+                           (not (IsMember x (Sp (List (antiSp (next x)))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                 (SetAdd (Keys (next x)) (key x))))
+(RecDef (Sorted x) (ite (= x nil) True
+                      (and (Sorted (next x))
+                           (not (IsMember x (Sp (Sorted (antiSp (next x))))))
+                           (<= (key x) (Min (next x))))))
+
+(RecFunction NonNil Loc Bool)
+(RecDef (NonNil x) (not (= x nil)))
+
+(lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
+(lemma (x) (=> (Sorted x) (= (Sp (Min x)) (Sp (Sorted x)))))
+(lemma (x) (=> (Sorted x) (= (Sp (Max x)) (Sp (Sorted x)))))
+
+(lemma (x) (=> (List x) (= (Sp (Keys x)) (Sp (List x)))))
+(lemma (x) (=> (List x) (= (Sp (Min x)) (Sp (List x)))))
+(lemma (x) (=> (List x) (= (Sp (Max x)) (Sp (List x)))))
+
+(lemma (x) (=> (Sorted x) (=> (not (= x nil)) (<= (key x) plus_infty))))
+
+(Var y Loc)
+(Var z Loc)
+(lemma (x y) (=> (NonNil x) (=> (<= (Max x) (Min y)) (<= (Min x) (Min y)))))
+
+(Var cur Loc)
+(Var pivot Int)
+(Var lpt Loc)
+(Var rpt Loc)
+(Var tmp Loc)
+(Var aux Loc)
+(Var t1 Loc)
+(Var t2 Loc)
+(Var ret Loc)
+(Var lres Loc)
+(Var rres Loc)
+(Var ltmp Loc)
+(Var rtmp Loc)
+
+(Program concat_sorted (t1 t2) (ret))
+(Pre (and (Sorted t1) (Sorted t2) 
+          (<= (Max t1) (Min t2))
+          (= EmptySetLoc (SetIntersect (Sp (Sorted t1)) (Sp (Sorted t2)))) ))
+(Post (and (Sorted ret)
+           (= (Keys ret) (SetUnion (Old (Keys t1)) (Old (Keys t2))))
+           (ite (= t1 nil) (= (Min ret) (Old (Min t2))) (= (Min ret) (Old (Min t1))))
+           (ite (= t2 nil) (= (Max ret) (Old (Max t1))) (= (Max ret) (Old (Max t2)))) ))
+
+(If (= t1 nil)
+ Then
+  (assign ret t2)
+  (return)
+ Else
+  (assign aux (next t1))
+  (call concat_sorted (aux t2) (tmp))
+  (assign (next t1) tmp)
+  (assign ret t1)
+  (return)
+)
+
+(Program partition_helper (cur pivot lpt rpt) (lres rres))
+(Pre (and (List cur) (List lpt) (List rpt)
+          (<= (Max lpt) pivot) (<= pivot (Min rpt))
+          (= EmptySetLoc (SetIntersect (Sp (List cur)) (Sp (List lpt))))
+          (= EmptySetLoc (SetIntersect (Sp (List cur)) (Sp (List rpt))))
+          (= EmptySetLoc (SetIntersect (Sp (List lpt)) (Sp (List rpt)))) ))
+(Post (and (List lres) (List rres) (<= (Max lres) pivot) (<= pivot (Min rres))
+           (= (SetAdd (SetUnion (Keys lres) (Keys rres)) pivot)
+              (SetAdd (SetUnion (Old (Keys cur))
+                        (SetUnion (Old (Keys lpt)) (Old (Keys rpt)))) pivot))
+           (= EmptySetLoc (SetIntersect (Sp (List lres)) (Sp (List rres))))
+
+           (ite (= lres nil)
+             (and (= lpt nil)
+                  (or (= (Min rres) (Old (Min rpt))) (= (Min rres) (Old (Min cur))))
+                  (<= (Min rres) (Old (Min rpt))) (<= (Min rres) (Old (Min cur))))
+             (and (or (= (Min lres) (Old (Min lpt))) (= (Min lres) (Old (Min cur))))
+                  (<= (Min lres) (Old (Min lpt))) (<= (Min lres) (Old (Min cur)))
+                  (or (<= (Old (Min cur)) (Min rres)) (<= (Old (Min rpt)) (Min rres)))))
+           (ite (= rres nil)
+             (and (= rpt nil)
+                  (or (= (Max lres) (Old (Max lpt))) (= (Max lres) (Old (Max cur))))
+                  (<= (Old (Max lpt)) (Max lres)) (<= (Old (Max cur)) (Max lres)))
+             (and (or (= (Max rres) (Old (Max rpt))) (= (Max rres) (Old (Max cur))))
+                  (<= (Old (Max rpt)) (Max rres)) (<= (Old (Max cur)) (Max rres))
+                  (or (<= (Max lres) (Old (Max cur))) (<= (Max lres) (Old (Max lpt)))))) ))
+
+(If (= cur nil)
+ Then
+  (assume (and (<= (Min lpt) plus_infty)  (<= (Min rpt) plus_infty)
+               (<= minus_infty (Max lpt)) (<= minus_infty (Max rpt)) ))
+
+  (assign lres lpt)
+  (assign rres rpt)
+  (return)
+ Else
+  (assign tmp (next cur))
+  (If (<= (key cur) pivot)
+   Then
+    (assign (next cur) lpt)
+    (assign ltmp cur)
+    (assign rtmp rpt)
+   Else
+    (assign (next cur) rpt)
+    (assign ltmp lpt)
+    (assign rtmp cur)
+  )
+  (call partition_helper (tmp pivot ltmp rtmp) (lres rres))
+  (return)
+)
+
+(Program partition (x pivot) (lres rres))
+(Pre (List x))
+(Post (and (List lres) (List rres) (<= (Max lres) pivot) (<= pivot (Min rres))
+           (= (SetAdd (SetUnion (Keys lres) (Keys rres)) pivot)
+              (SetAdd (Old (Keys x)) pivot))
+           (= EmptySetLoc (SetIntersect (Sp (List lres)) (Sp (List rres))))
+           
+           (<= (Old (Min x)) (Min lres)) (<= (Old (Min x)) (Min rres))
+           (<= (Max lres) (Old (Max x))) (<= (Max rres) (Old (Max x)))
+           (ite (= lres nil)
+              (= (Min rres) (Old (Min x))) (= (Min lres) (Old (Min x))))
+           (ite (= rres nil)
+              (= (Max lres) (Old (Max x))) (= (Max rres) (Old (Max x)))) ))
+
+(assign lpt nil)
+(assign rpt nil)
+
+(assume (and (<= minus_infty pivot) (<= pivot plus_infty)))
+(assume (and (<= (Min x) plus_infty) (<= minus_infty (Max x))))
+(call partition_helper (x pivot lpt rpt) (lres rres))
+(return)
+
+(Program quick_sort (x) (ret))
+(Pre (List x))
+(Post (and (Sorted ret) (= (Keys ret) (Old (Keys x)))
+           (= (Min ret) (Old (Min x))) (= (Max ret) (Old (Max x))) ))
+
+(If (= x nil)
+ Then
+  (assign ret x)
+  (return)
+ Else
+  (assign cur (next x))
+  (assign pivot (key x))
+
+  (call partition (cur pivot) (lres rres))
+
+  (call quick_sort (rres) (t2))
+  (assign (next x) t2)
+
+  (If (= lres nil)
+   Then
+    (assign ret x)
+    (return)
+   Else
+    (call quick_sort (lres) (t1))
+    (call concat_sorted (t1 x) (ret))
+    (return)
+  )
+)

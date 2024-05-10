@@ -1,0 +1,84 @@
+(Var x Loc)
+
+(Function key   Loc Int)
+(Function left  Loc Loc)
+(Function right Loc Loc)
+
+(RecFunction Tree   Loc Bool)
+(RecFunction InTree Loc Bool)
+(RecFunction Order  Loc Int)
+(RecFunction Size   Loc Int)
+(RecFunction LSize  Loc Int)
+(RecFunction RSize  Loc Int)
+
+(RecDef (Tree x) (ite (= x nil) True
+                      (and (Tree (left x)) (Tree (right x))
+                           (not (IsMember x (Sp (Tree (antiSp (left x))))))
+                           (not (IsMember x (Sp (Tree (antiSp (right x))))))
+                           (= EmptySetLoc (SetIntersect
+                                            (Sp (Tree (antiSp (left x))))
+                                            (Sp (Tree (antiSp (right x)))))))))
+
+(RecDef (InTree x) (ite (= x nil) True
+                        (and (InTree (left x)) (InTree (right x))
+                             (not (IsMember x (Sp (InTree (antiSp (left x))))))
+                             (not (IsMember x (Sp (InTree (antiSp (right x))))))
+                             (= EmptySetLoc (SetIntersect
+                                              (Sp (InTree (antiSp (left x))))
+                                              (Sp (InTree (antiSp (right x))))))
+                             (ite (= (left x) nil) True
+                                  (= (+ (+ (Order (left x)) (RSize (left x)))
+                                        (IntConst 1))
+                                     (key x)))
+                             (ite (= (right x) nil) True
+                                  (= (Order (right x))
+                                     (+ (+ (key x) (LSize (right x)))
+                                        (IntConst 1)))))))
+
+(RecDef (Order x) (ite (= x nil) (IntConst 0) (key x)))
+
+(RecDef (Size x) (ite (= x nil) (IntConst 0)
+                      (+ (IntConst 1)
+                         (+ (Size (left x)) (Size (right x))))))
+
+(RecDef (LSize x) (Size (left x)))
+(RecDef (RSize x) (Size (right x)))
+
+(lemma (x) (=> (Tree x) (IsSubset (Sp (Order x)) (Sp (Tree x)))))
+(lemma (x) (=> (Tree x) (IsSubset (Sp (Size x)) (Sp (Tree x)))))
+(lemma (x) (=> (InTree x) (IsSubset (Sp (Order x)) (Sp (InTree x)))))
+(lemma (x) (=> (InTree x) (IsSubset (Sp (Size x)) (Sp (InTree x)))))
+(lemma (x) (=> (InTree x) (=> (not (= x nil)) (IsSubset (Sp (LSize x)) (Sp (InTree x))))))
+(lemma (x) (=> (InTree x) (=> (not (= x nil)) (IsSubset (Sp (RSize x)) (Sp (InTree x))))))
+
+(Var n Int)
+(Var n1 Int)
+(Var n2 Int)
+(Var ret Int)
+
+(Var lft Loc)
+(Var rht Loc)
+
+(Program inorder (x n) (ret))
+(Pre (Tree x))
+(Post (and (InTree x) (= ret (+ n (Old (Size x))))
+           (= (Size x) (Old (Size x)))
+           (ite (= x nil) True
+              (and (= (Order x) (+ n (Old (LSize x))))
+                   (= (LSize x) (Old (LSize x))) (= (RSize x) (Old (RSize x))))) ))
+
+(If (= x nil)
+ Then
+  (assign ret n)
+  (return)
+ Else
+  (assign lft (left x))
+  (call inorder (lft n) (n1))
+
+  (assign (key x) n1)
+  (assign n2 (+ n1 (IntConst 1)))
+
+  (assign rht (right x))
+  (call inorder (rht n2) (ret))
+  (return)
+)

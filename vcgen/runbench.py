@@ -18,7 +18,13 @@ args = argparser.parse_args()
 curr_path = os.path.abspath('.')
 tmp_folder = os.path.join(curr_path, 'tmp')
 
-progfiles = [os.path.join(args.program,pf) for pf in os.listdir(args.program) if pf.endswith('.fsl') and os.path.isfile(os.path.join(args.program,pf))]
+if os.path.isfile(args.program):
+    if str(args.program).endswith('.fsl'):
+        progfiles = [args.program]
+    else:
+        raise Exception('First argument must be either a .fsl file or a folder with .fsl files')
+else:
+    progfiles = [os.path.join(args.program,pf) for pf in os.listdir(args.program) if pf.endswith('.fsl') and os.path.isfile(os.path.join(args.program,pf))]
 
 times = []
 

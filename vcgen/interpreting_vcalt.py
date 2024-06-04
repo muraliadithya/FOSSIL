@@ -13,7 +13,7 @@ import naturalproofs.proveroptions as proveroptions
 from naturalproofs.AnnotatedContext import default_annctx
 from naturalproofs.prover_utils import instantiate, make_recdef_unfoldings
 
-from preprocessing import ml_to_sl, remove_comments, create_input, ntuple
+from preprocessing import ml_to_sl, remove_comments, create_input, ntuple, sl_to_fl_commands
 
 
 import time
@@ -96,7 +96,7 @@ footprint_mode = 0
 depth1_mode = 1
 depth2_mode = 2
 manual_mode = 3
-mode = depth2_mode
+mode = 1
 
 # # BST_DEL
 # support_map = {'SPMin': 'SPA', 'SPMax': 'SPA', 'SPKeys': 'SPA',
@@ -287,7 +287,10 @@ def recfunc_update():
     # Can remove overhead . Essentially, we want to define new functions and eventally create definitions 
     # for the non support recdefs and the support recdefs in support_map values or support stuff that's not in support_map at all
     for name in recdefdict:
-        if (name in support_map.values()) or (not (name in support_map.keys()) ):
+        # if (name in support_map.values()) or (not (name in support_map.keys()) ):
+        if name in support_map2.keys():
+            pass
+        else:
             z3_type, counter = recdefdict[name]['z3type'], recdefdict[name]['counter']
             counter_new = counter+1
             func_new = Function(name+str(counter_new), *z3_type)
@@ -297,11 +300,20 @@ def recfunc_update():
     for name in support_map.keys():
         recdefdict[name] = recdefdict[support_map[name]]
 
+    for name in support_map2.keys():
+        recdefdict[name] = recdefdict[support_map2[name]]
+
     global has_mutated
     has_mutated = 0
 
+    # for name in recdefdict:
+    #     if (name in support_map.values()) or (not (name in support_map.keys()) ):
+    #         interpret_recdef(recdefdict[name]['description'])
+
     for name in recdefdict:
-        if (name in support_map.values()) or (not (name in support_map.keys()) ):
+        if name in support_map2.keys():
+            pass
+        else:
             interpret_recdef(recdefdict[name]['description'])
 
 def interpret_ops(iplist):
@@ -1218,6 +1230,8 @@ def snapshot(state):
     recdefs = {}
     for name, elt in recdefdict.items():
         recdefs[name] = elt['z3name']
+    for name in support_map2.keys():
+        recdefs[name] = (recdefdict[support_map2[name]])['z3name']
 
     vars = {}                               # vars also stored for use in 'Old'
     for name, elt in vardict.items():
@@ -1260,10 +1274,24 @@ def cl_check(solver,lemmas,assumptions, obligation):
             np_solver.options.terms_to_instantiate = trace
 
 
+        # if len(frame_rules) == 0:
+        #     solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
+        # else: 
+        #     solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation),lemmas)
+        
         if len(frame_rules) == 0:
-            solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
+            vc_formula = Implies(And(*assumptions), obligation)
         else: 
-            solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation),lemmas)
+            vc_formula =  Implies(And(*frame_rules,*assumptions), obligation)
+        
+        with open('bst_insert_vc', 'w+') as fh:
+            fh.write(str(vc_formula))
+            fh.write('\n\n')
+
+        # print(vc_formula)
+        # exit(0)
+        solution = solver.solve(vc_formula, lemmas)
+
 
     if not solution.if_sat:
         return True
@@ -1465,11 +1493,126 @@ def collect_terms_to_instantiate():
 
 
 
+#---------------------------------
+# AUTO
+def make_support_map(iplist):
+    '''
+    iplist = [EqSp, [A, [A1, A2...]] [B, [B1,...]] ... ]  
+    Update the support_map dictionary with key:values SPAi:SPA, SPBi:SPB, ...
+    '''
+    ops = iplist[1:]
+
+    for elt in ops:
+        base_fn, related_fns = elt
+        for fn in related_fns:
+            support_map['SP' + fn] = 'SP' + base_fn
+            support_map2['SP' + fn] = 'SP' + base_fn
+    
+
+
+
+
+# MODES Functions for footprint mode
+def is_loc_var(x):
+    return ((not (vardict[x]['counter'] == None)) and (vardict[x]['type'] == 'Loc'))
+
+# footprint = {}
+# fo_abstractions = set()
+# all_instantiations = set()
+
+# def add_fo_abstraction(x, fo_abstractions = fo_abstractions):
+
+
+def add_fo_abstraction(x, in_frame = 0):
+    if in_frame == 0:
+        global fo_abstractions
+        fo_abstractions.add(x)      # x should be a tuple. Add recdefs, lemmas, axioms, and frame rules!
+    else:
+        global frame_abstractions
+        frame_abstractions.add(x)
+
+def add_to_footprint(x, extend = 1):
+    # if x in footprint.keys():
+    # extend = 0
+
+    footprint[x] = [vardict[x]['z3name']]
+    # extended_footprint[x] = [vardict[x]['z3name']]
+    if extend != 0:
+        extended_footprint[x] = []
+        for name in funcdict:
+            if funcdict[name]['input_type'] == 'Loc':
+                if funcdict[name]['output_type'] == 'Loc':
+                    extended_footprint[x].append(funcdict[name]['macro'](vardict[x]['z3name']))
+
+def remove_from_footprint(x, extend = 0):
+    if x in footprint.keys():
+        del footprint[x]
+    if extend != 0:
+        if x in extended_footprint.keys():
+            del extended_footprint[x]
+
+def instantiate_footprint(manual_set = None, use_extended = 0, in_frame = 0):
+    global fo_abstractions
+    if manual_set == None:
+        terms_to_instantiate = []
+
+        if use_extended == 0:
+            term_lists = footprint
+        else:
+            term_lists = extended_footprint
+            for loc_list in footprint.values():
+                if len(loc_list) != 0:
+                    for loc in loc_list:
+                        terms_to_instantiate.append(loc)
+
+        for loc_list in term_lists.values():
+            if len(loc_list) != 0:
+                for loc in loc_list:
+                    terms_to_instantiate.append(loc)
+    else:
+        terms_to_instantiate = manual_set
+
+    # extra_terms = set()
+    # for i in terms_to_instantiate:
+    #     extra_terms.add(i)
+    #     for name in funcdict:
+    #         if funcdict[name]['input_type'] == 'Loc':
+    #             # extra_terms.add(funcdict['next']['macro'](i))
+    #             extra_terms.add(funcdict[name]['macro'](i))
+    # instantiations = instantiate(fo_abstractions, set(extra_terms))
+
+    if in_frame == 0:
+        instantiations = instantiate(fo_abstractions, set(terms_to_instantiate))
+    else:
+        global frame_abstractions
+        instantiations = instantiate(frame_abstractions, set(terms_to_instantiate))
+
+    # for i in instantiations:
+    #     all_instantiations.add(i)
+
+    # if instantiations != set():
+    #     instantiation_terms = terms_to_instantiate
+    #     extraction_terms = extraction_terms.union(get_foreground_terms(instantiations, annctx=self.annctx))
+
+
+    # solver.add(instantiations)
+    global all_instantiations
+    for i in instantiations:
+        all_instantiations.append(i)
+
+    # fo_abstractions = set()
+    # if_sat = _solver_check(z3solver)
+    # model = solver.model() if if_sat else None
+    # return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
+    #                     instantiation_terms=instantiation_terms, options=options)
+#------------------------------
+
+
+
+
+
 def vc(user_input, aux_mode = depth2_mode):
     '''VC generation'''
-
-    #.
-
     # MODE Use variable 'mode' to switch between the modes
     global mode
     mode = aux_mode
@@ -1477,9 +1620,12 @@ def vc(user_input, aux_mode = depth2_mode):
     global frame_rules
 
     start = time.time()
+    
 
+    # nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))
     nc_uip = ml_to_sl(remove_comments(user_input))
     code_line = [create_input(i) for i in nc_uip]
+
     print('done creating input list')
     global alloc_set
     global lemma_set
@@ -1489,6 +1635,12 @@ def vc(user_input, aux_mode = depth2_mode):
     global transform
     global number_of_function_calls
     global has_mutated
+    global support_map
+    global support_map2
+
+    # support_map2 = {'SPKeys': 'SPBST', 'SPMin': 'SPBST', 'SPMax': 'SPBST'}
+    # support_map2 = {'SPBST': 'SPKeys', 'SPMin': 'SPKeys', 'SPMax': 'SPKeys'}
+    support_map2 = {}
 
     # AUTO
     # global support_mapping
@@ -1528,6 +1680,7 @@ def vc(user_input, aux_mode = depth2_mode):
         # AUTO
         elif tag == 'EqSp':
             make_support_map(i)
+            # support_map = {'SPMin': 'SPKeys', 'SPMax': 'SPKeys','SPBST': 'SPKeys'}
 
 
 
@@ -1542,6 +1695,7 @@ def vc(user_input, aux_mode = depth2_mode):
 
             for lem in lemma_description:
                 instantiate_lemma(lem)
+                
                     
             store_inputvars(i)
             
@@ -1679,6 +1833,7 @@ def vc(user_input, aux_mode = depth2_mode):
             transform.append(function_call(i, check_side_conditions))
         elif tag == ':side-conditions':
             check_side_conditions = side_conditions_update(i)
+            # check_side_conditions = 0
 
         else:        
             raise Exception (f'Invalid tag in code {i}')
@@ -1700,7 +1855,7 @@ def vc(user_input, aux_mode = depth2_mode):
 
     print('done preprocessing and checking side-conditions')
     end = time.time()
-    print('Time elasped:', end-start)
+    print('Time elapsed:', end-start)
     print('checking validity...')
 
 
@@ -1727,6 +1882,8 @@ def vc(user_input, aux_mode = depth2_mode):
         # #     print(i,'\n\n')
         # print(trace)
 
+    # rp = 2
+ 
     if rp == 0:
         ret = cl_check(np_solver,lemma_set,transform,And(postcond,sp_postcond == alloc_set))
     elif rp == 1:
@@ -1744,129 +1901,11 @@ def vc(user_input, aux_mode = depth2_mode):
     else:
         print('goal not proven')
     end = time.time()
-    print('Time elasped:', end-start)
+    print('Time elapsed:', end-start)
 
 
 
 
-# pre codition - 
-
-# terms in the 27 second example and
 
 
 
-# current varibles
-
-
-
-
-# AUTO
-def make_support_map(iplist):
-    '''
-    iplist = [EqSp, [A, [A1, A2...]] [B, [B1,...]] ... ]  
-    Update the support_map dictionary with key:values SPAi:SPA, SPBi:SPB, ...
-    '''
-    ops = iplist[1:]
-
-    for elt in ops:
-        base_fn, related_fns = elt
-        for fn in related_fns:
-            support_map['SP' + fn] = 'SP' + base_fn
-    
-
-
-
-
-# MODES Functions for footprint mode
-def is_loc_var(x):
-    return ((not (vardict[x]['counter'] == None)) and (vardict[x]['type'] == 'Loc'))
-
-# footprint = {}
-# fo_abstractions = set()
-# all_instantiations = set()
-
-# def add_fo_abstraction(x, fo_abstractions = fo_abstractions):
-
-
-def add_fo_abstraction(x, in_frame = 0):
-    if in_frame == 0:
-        global fo_abstractions
-        fo_abstractions.add(x)      # x should be a tuple. Add recdefs, lemmas, axioms, and frame rules!
-    else:
-        global frame_abstractions
-        frame_abstractions.add(x)
-
-def add_to_footprint(x, extend = 1):
-    # if x in footprint.keys():
-    # extend = 0
-
-    footprint[x] = [vardict[x]['z3name']]
-    # extended_footprint[x] = [vardict[x]['z3name']]
-    if extend != 0:
-        extended_footprint[x] = []
-        for name in funcdict:
-            if funcdict[name]['input_type'] == 'Loc':
-                if funcdict[name]['output_type'] == 'Loc':
-                    extended_footprint[x].append(funcdict[name]['macro'](vardict[x]['z3name']))
-
-def remove_from_footprint(x, extend = 0):
-    if x in footprint.keys():
-        del footprint[x]
-    if extend != 0:
-        if x in extended_footprint.keys():
-            del extended_footprint[x]
-
-def instantiate_footprint(manual_set = None, use_extended = 0, in_frame = 0):
-    global fo_abstractions
-    if manual_set == None:
-        terms_to_instantiate = []
-
-        if use_extended == 0:
-            term_lists = footprint
-        else:
-            term_lists = extended_footprint
-            for loc_list in footprint.values():
-                if len(loc_list) != 0:
-                    for loc in loc_list:
-                        terms_to_instantiate.append(loc)
-
-        for loc_list in term_lists.values():
-            if len(loc_list) != 0:
-                for loc in loc_list:
-                    terms_to_instantiate.append(loc)
-    else:
-        terms_to_instantiate = manual_set
-
-    # extra_terms = set()
-    # for i in terms_to_instantiate:
-    #     extra_terms.add(i)
-    #     for name in funcdict:
-    #         if funcdict[name]['input_type'] == 'Loc':
-    #             # extra_terms.add(funcdict['next']['macro'](i))
-    #             extra_terms.add(funcdict[name]['macro'](i))
-    # instantiations = instantiate(fo_abstractions, set(extra_terms))
-
-    if in_frame == 0:
-        instantiations = instantiate(fo_abstractions, set(terms_to_instantiate))
-    else:
-        global frame_abstractions
-        instantiations = instantiate(frame_abstractions, set(terms_to_instantiate))
-
-    # for i in instantiations:
-    #     all_instantiations.add(i)
-
-    # if instantiations != set():
-    #     instantiation_terms = terms_to_instantiate
-    #     extraction_terms = extraction_terms.union(get_foreground_terms(instantiations, annctx=self.annctx))
-
-
-    # solver.add(instantiations)
-    global all_instantiations
-    for i in instantiations:
-        all_instantiations.append(i)
-
-    # fo_abstractions = set()
-    # if_sat = _solver_check(z3solver)
-    # model = solver.model() if if_sat else None
-    # return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
-    #                     instantiation_terms=instantiation_terms, options=options)

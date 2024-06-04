@@ -1,3 +1,6 @@
+import pyparsing as pp
+from sl2fl import sl_to_fl
+
 def remove_comments(user_input):
     '''Remove comments in the input file.
     Comments opened by /* and closed by */
@@ -221,3 +224,60 @@ def ntuple(ipset,n):    # Used in making inputs to local frame rules
     for i in lists:
         tuples.append(tuple(i))
     return tuples
+
+        
+
+
+def sl_to_fl_commands(list_of_commands):
+    ret = []
+
+    for command in list_of_commands:
+
+        if command.startswith('(RecDef'):
+            # (RecDef (Name v1 v2 ..) (definition))
+            c1 = command.split('(')
+            c2 = sl_to_fl( '(' + '('.join(c1[3:]) )
+            c3 = '('.join(c1[:3]) + c2 + ')'
+            ret.append(c3)
+        elif (command.startswith('(Pre') or command.startswith('(Post')):
+            c1 = command.split('(')
+            c2 = sl_to_fl( '(' + '('.join(c1[2:])[:-1] )
+            c3 = '('.join(c1[:2]) + c2 + ')'
+            ret.append(c3)
+        elif command.startswith('(call'):
+            c1 = command.split('(')
+            c2_1, c2_2 = fst_n_second('(' + '('.join(c1[6:])[:-1])
+            c2 = sl_to_fl(c2_1) + ' ' + sl_to_fl(c2_2)
+            c3 = '('.join(c1[:6]) + c2 + ')'
+            ret.append(c3)
+        else:
+            ret.append(command)
+    return(ret)
+            
+
+def fst_n_second(call_string):
+    # This is just for function calls. (call (ip_param) (op_param) (ip_real) (op_real) (pre) (post))
+    num_paren = 1
+    for i in range(1, len(call_string)):
+        if call_string[i] == '(':
+            num_paren += 1
+        elif call_string[i] == ')':
+            num_paren -= 1
+        if num_paren == 0:
+            return call_string[:i+1], call_string[i+1:]
+
+
+    # for command in list_of_commands:
+    #     convert_to_sl = False
+    #     for x in to_convert:
+    #         if command.startswith(x):
+    #             convert_to_sl = True
+    #             break
+        
+    #     if convert_to_sl:
+    #         ret.append(sl_to_fl(command))
+    #     else:
+    #         ret.append(command)
+    # return ret
+
+# nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))

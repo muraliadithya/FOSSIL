@@ -38,7 +38,8 @@
 (RecFunction Height Loc Int)
 
 (RecDef (AVL x) (ite (= x nil) True
-                     (and (AVL (left x))  (< (Max (left x)) (key x))
+                     (and (< minus_infty (key x)) (< (key x) plus_infty) 
+                     (AVL (left x))  (< (Max (left x)) (key x))
                           (AVL (right x)) (< (key x) (Min (right x)))
                           (not (IsMember x (Sp (AVL (left x)))))
                           (not (IsMember x (Sp (AVL (right x)))))

@@ -11,10 +11,6 @@
 (RecFunction Keys Loc SetInt)
 
 (Var x Loc)
-(RecFunction SPA  Loc SetLoc)
-(RecDef (SPA x)
-  (ite (= x nil) EmptySetLoc
-    (SetAdd (SetUnion (SPA (left x)) (SPA (right x)))  x)))
 
 
 (RecDef (Min x) (ite (= x nil) plus_infty
@@ -41,7 +37,8 @@
                 )))
 
 (RecDef (BST x) (ite (= x nil) True
-                     (and (BST (left x))  (< (Max (left x)) (key x))
+                     (and (< minus_infty (key x)) (< (key x) plus_infty)  
+                     (BST (left x))  (< (Max (left x)) (key x))
                           (BST (right x)) (< (key x) (Min (right x)))
                           (not (IsMember x (Sp (BST (antiSp (left x))))))
                           (not (IsMember x (Sp (BST (antiSp (right x))))))

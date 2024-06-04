@@ -36,7 +36,8 @@
                 )))
 
 (RecDef (BST x) (ite (= x nil) True
-                     (and (BST (left x))  (< (Max (left x)) (key x))
+                     (and (< minus_infty (key x)) (< (key x) plus_infty)  
+                          (BST (left x))  (< (Max (left x)) (key x))
                           (BST (right x)) (< (key x) (Min (right x)))
                           (not (IsMember x (Sp (BST (antiSp (left x))))))
                           (not (IsMember x (Sp (BST (antiSp (right x))))))

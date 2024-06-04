@@ -18,7 +18,7 @@
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                  (SetAdd (Keys (next x)) (key x))))
 (RecDef (Sorted x) (ite (= x nil) True
-                      (and (Sorted (next x))
+                      (and (< (key x) plus_infty) (Sorted (next x))
                            (not (IsMember x (Sp (Sorted (antiSp (next x))))))
                            (<= (key x) (Min (next x))))))
 

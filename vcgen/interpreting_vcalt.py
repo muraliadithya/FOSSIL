@@ -96,7 +96,7 @@ footprint_mode = 0
 depth1_mode = 1
 depth2_mode = 2
 manual_mode = 3
-mode = 1
+mode = 2
 
 # # BST_DEL
 # support_map = {'SPMin': 'SPA', 'SPMax': 'SPA', 'SPKeys': 'SPA',
@@ -241,15 +241,19 @@ def func_parser(funcinfo):
             # For recfunction A, if SPA is either in support_map.values() or not in support_map.keys(), define SPA.
             # else map SPA to its value in support_map
             spname = 'SP'+ name
-            if (spname in support_map.values()) or (not (spname in support_map.keys()) ):
+            # if (spname in support_map.values()) or (not (spname in support_map.keys()) ):
+            if spname in support_map2.keys():
+                recdefdict[spname] = recdefdict[support_map2[spname]]
+                # This forces us to write EqSp before any other RecFunc.
+            else:
                 typelist = [type_parser(i) for i in type_info[:-1]]
                 z3_sptype = [*typelist,fgsetsort]
                 
                 z3_spfunc = Function(spname+'0',*z3_sptype)
                 recdefdict[spname] = {'z3name': z3_spfunc, 'z3type': z3_sptype, 'description': [],
                                             'counter': 0,'input_type': type_of_inputs,'output_type': 'SetLoc','no_inputs': no_of_inputs}
-            else:
-                recdefdict[spname] = recdefdict[support_map[spname]]
+            # else:
+            #     recdefdict[spname] = recdefdict[support_map[spname]]
                     
 
     else:
@@ -297,8 +301,8 @@ def recfunc_update():
             recdefdict[name]['z3name'], recdefdict[name]['counter'] = func_new, counter_new
 
 
-    for name in support_map.keys():
-        recdefdict[name] = recdefdict[support_map[name]]
+    # for name in support_map.keys():
+    #     recdefdict[name] = recdefdict[support_map[name]]
 
     for name in support_map2.keys():
         recdefdict[name] = recdefdict[support_map2[name]]
@@ -1501,11 +1505,11 @@ def make_support_map(iplist):
     Update the support_map dictionary with key:values SPAi:SPA, SPBi:SPB, ...
     '''
     ops = iplist[1:]
-
+    
     for elt in ops:
         base_fn, related_fns = elt
         for fn in related_fns:
-            support_map['SP' + fn] = 'SP' + base_fn
+            # support_map['SP' + fn] = 'SP' + base_fn
             support_map2['SP' + fn] = 'SP' + base_fn
     
 
@@ -1689,8 +1693,15 @@ def vc(user_input, aux_mode = depth2_mode):
 
             # AUTO create recrsive definitions for the first time at this point
             # as well as instantiate lemmas for the first time
+
+            # for name in recdefdict:
+            #     if (name in support_map.values()) or (not (name in support_map.keys()) ):
+            #         interpret_recdef(recdefdict[name]['description'])
+
             for name in recdefdict:
-                if (name in support_map.values()) or (not (name in support_map.keys()) ):
+                if name in support_map2.keys():
+                    pass
+                else:
                     interpret_recdef(recdefdict[name]['description'])
 
             for lem in lemma_description:
@@ -1883,6 +1894,7 @@ def vc(user_input, aux_mode = depth2_mode):
         # print(trace)
 
     # rp = 2
+
  
     if rp == 0:
         ret = cl_check(np_solver,lemma_set,transform,And(postcond,sp_postcond == alloc_set))

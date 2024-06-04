@@ -13,7 +13,7 @@
 (RecFunction Sorted Loc Bool)
 
 (RecDef (List x) (ite (= x nil) True
-                      (and (List (next x))
+                      (and (< (key x) plus_infty) (List (next x))
                            (not (IsMember x (Sp (List (antiSp (next x)))))))))
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                  (SetAdd (Keys (next x)) (key x))))
@@ -109,7 +109,6 @@
  Else
   (If (= (next x) nil)
    Then /* singleton list */
-    (assume (<= (key x) plus_infty))
     (assign ret x)
     (return)
    Else /* List of length >= 2 */

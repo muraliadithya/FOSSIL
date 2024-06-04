@@ -16,7 +16,7 @@
 (RecFunction Sorted Loc Bool)
 
 (RecDef (List x) (ite (= x nil) True
-                      (and (List (next x))
+                      (and (< (key x) plus_infty) (< minus_infty (key x)) (List (next x))
                            (not (IsMember x (Sp (List (antiSp (next x)))))))))
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                  (SetAdd (Keys (next x)) (key x))))
@@ -36,7 +36,7 @@
 (lemma (x) (=> (List x) (= (Sp (Min x)) (Sp (List x)))))
 (lemma (x) (=> (List x) (= (Sp (Max x)) (Sp (List x)))))
 
-(lemma (x) (=> (Sorted x) (=> (not (= x nil)) (<= (key x) plus_infty))))
+(lemma (x) (=> (Sorted x) (=> (not (= x nil)) (< (key x) plus_infty))))
 
 (Var y Loc)
 (Var z Loc)

@@ -11,6 +11,7 @@
 (RecFunction LSize  Loc Int)
 (RecFunction RSize  Loc Int)
 
+
 (RecDef (Tree x) (ite (= x nil) True
                       (and (Tree (left x)) (Tree (right x))
                            (not (IsMember x (Sp (Tree (antiSp (left x))))))

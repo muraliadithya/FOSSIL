@@ -19,7 +19,7 @@
                            (not (IsMember x (Sp (Sorted (antiSp (next x))))))
                            (<= (key x) (Min (next x))))))
 (RecDef (List x) (ite (= x nil) True
-                      (and (List (next x))
+                      (and (< (key x) plus_infty) (List (next x))
                            (not (IsMember x (Sp (List (antiSp (next x)))))))))
 
 (lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
@@ -42,7 +42,6 @@
 (assign nxt (next x))
 (If (= nxt nil)
  Then
-  (assume (<= (key x) plus_infty))
   (assign ret x)
   (return)
  Else (If (> (key x) (key nxt))

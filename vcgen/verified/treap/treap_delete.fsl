@@ -11,6 +11,9 @@
 (RecFunction Keys       Loc SetInt)
 (RecFunction Priorities Loc SetInt)
 
+
+(EqSp (Keys (MinKey MaxKey MaxPrio Treap Priorities)))
+
 (Var x Loc)
 (Var plus_infty Int)
 (Var minus_infty Int)
@@ -49,7 +52,9 @@
 
 (RecDef (Treap x)
   (ite (= x nil) True
-    (and (Treap (left x))  (< (MaxKey (left x)) (key x))  (< (MaxPrio (left x)) (prio x))
+    (and (< minus_infty (key x)) (< (key x) plus_infty)
+    (< minus_infty (prio x)) (< (prio x) plus_infty)
+    (Treap (left x))  (< (MaxKey (left x)) (key x))  (< (MaxPrio (left x)) (prio x))
          (Treap (right x)) (< (key x) (MinKey (right x))) (< (MaxPrio (right x)) (prio x))
          (= EmptySetInt (SetIntersect (Priorities (left x)) (Priorities (right x))))
          (not (IsMember x (Sp (Treap (antiSp (left x))))))
@@ -80,11 +85,11 @@
 (Var xl Loc)
 (Var xr Loc)
 
-(lemma (x) (=> (Treap x) (IsSubset (Sp (Keys x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (IsSubset (Sp (Priorities x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (IsSubset (Sp (MinKey x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (IsSubset (Sp (MaxKey x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (IsSubset (Sp (MaxPrio x)) (Sp (Treap x)))))
+(lemma (x) (=> (Treap x) (= (Sp (Keys x)) (Sp (Treap x)))))
+(lemma (x) (=> (Treap x) (= (Sp (Priorities x)) (Sp (Treap x)))))
+(lemma (x) (=> (Treap x) (= (Sp (MinKey x)) (Sp (Treap x)))))
+(lemma (x) (=> (Treap x) (= (Sp (MaxKey x)) (Sp (Treap x)))))
+(lemma (x) (=> (Treap x) (= (Sp (MaxPrio x)) (Sp (Treap x)))))
 
 (lemma (x) (=> (Treap x) (=> (< k (MinKey x)) (not (IsMember k (Keys x))))))
 (lemma (x) (=> (Treap x) (=> (> k (MaxKey x)) (not (IsMember k (Keys x))))))
@@ -143,7 +148,7 @@
 )))
 
 (Program treap_delete (x k) (ret))
-(Pre (Treap x))
+(Pre (and (Treap x) (< minus_infty k) (< k plus_infty)) )
 (Post (and (Treap ret) (= (Keys ret) (SetDel (Old (Keys x)) k))
            (IsSubset (Priorities ret) (Old (Priorities x)))
            (<= (Old (MinKey x)) (MinKey ret)) (<= (MaxKey ret) (Old (MaxKey x)))

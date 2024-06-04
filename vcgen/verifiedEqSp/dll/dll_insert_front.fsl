@@ -1,0 +1,44 @@
+(Var x Loc)
+
+(Function next Loc Loc)
+(Function prev Loc Loc)
+(Function key  Loc Int)
+
+(EqSp (DLL (Keys)))
+
+(RecFunction DLL     Loc Bool)
+(RecFunction Keys    Loc SetInt)
+
+
+(RecDef (DLL  x) (ite (= x nil) True
+                 (ite (= (next x) nil) True
+                    (and (= x (prev (next x)))
+                         (DLL (next x))
+                         (not (IsMember x (Sp (DLL (antiSp (next x))))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                    (SetAdd (Keys (next x)) (key x))))
+
+(Var k Int)
+(Var ret Loc)
+
+(Program dll_mid_insert (x k) (ret))
+(Pre (DLL x))
+(Post (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys x)) k))
+           (ite True True (= (next (next ret)) (next (next ret)))) ))
+
+(If (= x nil)
+ Then
+  (alloc ret)
+  (assume (not (= ret nil)))
+  (assign (key ret) k)
+  (assign (next ret) nil)
+  (assign (prev ret) nil)
+  (return)
+ Else
+  (alloc ret)
+  (assume (not (= ret nil)))
+  (assign (key ret) k)
+  (assign (next ret) x)
+  (assign (prev x) ret)
+  (return)
+)

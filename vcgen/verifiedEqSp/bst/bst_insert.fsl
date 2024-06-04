@@ -1,0 +1,103 @@
+(Function key   Loc Int)
+(Function left  Loc Loc)
+(Function right Loc Loc)
+
+
+(EqSp (BST (Keys Min Max)))
+
+
+(RecFunction BST  Loc Bool)
+(RecFunction Keys Loc SetInt)
+(RecFunction Min  Loc Int)
+(RecFunction Max  Loc Int)
+(Var plus_infty Int)
+(Var minus_infty Int)
+
+
+
+(Var x Loc)
+
+
+
+(RecDef (Min x) (ite (= x nil) plus_infty
+                (ite (<= (key x) (Min (left x)))
+                  (ite (<= (key x) (Min (right x)))
+                    (key x)
+                    (Min (right x))
+                  )
+                  (ite (<= (Min (left x)) (Min (right x)))
+                    (Min (left x))
+                    (Min (right x))
+                  )
+                )))
+(RecDef (Max x) (ite (= x nil) minus_infty
+                (ite (>= (key x) (Max (left x)))
+                  (ite (>= (key x) (Max (right x)))
+                    (key x)
+                    (Max (right x))
+                  )
+                  (ite (>= (Max (left x)) (Max (right x)))
+                    (Max (left x))
+                    (Max (right x))
+                  )
+                )))
+
+(RecDef (BST x) (ite (= x nil) True
+                     (and (< minus_infty (key x)) (< (key x) plus_infty)  
+                     (BST (left x))  (< (Max (left x)) (key x))
+                          (BST (right x)) (< (key x) (Min (right x)))
+                          (not (IsMember x (Sp (BST (antiSp (left x))))))
+                          (not (IsMember x (Sp (BST (antiSp (right x))))))
+                          (= EmptySetLoc
+                            (SetIntersect (Sp (BST (antiSp (left x))))
+                                          (Sp (BST (antiSp (right x)))))) )))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
+                              (key x))))
+
+
+(Var k Int)
+(lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))))))
+(lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))))))
+
+(Var ret Loc)
+(Var tmp Loc)
+(Var aux Loc)
+
+(Program bst_insert (x k) (ret))
+(Pre (and (BST x) (< k plus_infty) (< minus_infty k)))
+(Post (and (BST ret) (= (Keys ret) (SetAdd (Old (Keys x)) k))
+           (ite (< k (Old (Min x))) (= (Min ret) k) (= (Min ret) (Old (Min x))))
+           (ite (> k (Old (Max x))) (= (Max ret) k) (= (Max ret) (Old (Max x)))) ))
+
+(If (= x nil)
+ Then
+  (alloc ret)
+  (assume (not (= ret nil)))
+  
+  (assign (key ret) k)
+  (assign (left ret) nil)
+  (assign (right ret) nil)
+  (return)
+ Else
+  (If (= k (key x))
+   Then
+    (assign ret x)
+    (return)
+   Else
+    (If (< k (key x))
+     Then
+      (assign aux (left x))
+      (call bst_insert (aux k) (tmp))
+      (assign (left x) tmp)
+      (assign ret x)
+      (return)
+     Else
+      (assign aux (right x))
+      (call bst_insert (aux k) (tmp))
+      (assign (right x) tmp)
+      (assign ret x)
+      (return)
+    )
+  )
+)

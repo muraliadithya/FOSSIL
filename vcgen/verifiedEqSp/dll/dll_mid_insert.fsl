@@ -1,0 +1,69 @@
+(Var x Loc)
+
+(Function next Loc Loc)
+(Function prev Loc Loc)
+(Function key  Loc Int)
+
+(EqSp (DLL (Keys)) (RevDLL (RevKeys)))
+
+(RecFunction DLL     Loc Bool)
+(RecFunction RevDLL  Loc Bool)
+(RecFunction Keys    Loc SetInt)
+(RecFunction RevKeys Loc SetInt)
+
+
+
+(RecDef (DLL  x) (ite (= x nil) True
+                 (ite (= (next x) nil) True
+                    (and (= x (prev (next x)))
+                         (DLL (next x))
+                         (not (IsMember x (Sp (DLL (antiSp (next x))))))))))
+(RecDef (RevDLL x) (ite (= x nil) True
+                   (ite (= (prev x) nil) True
+                    (and (= x (next (prev x)))
+                         (RevDLL (prev x))
+                         (not (IsMember x (Sp (RevDLL (antiSp (prev x))))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                    (SetAdd (Keys (next x)) (key x))))
+(RecDef (RevKeys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (RevKeys (prev x)) (key x))))
+
+
+(Var u Loc)
+(Var v Loc)
+(Var k Int)
+(Var ret Loc)
+
+(Program dll_mid_insert (u v k) (ret))
+(Pre (and (DLL v) (RevDLL u)
+          (= EmptySetLoc (SetIntersect (Sp (DLL v)) (Sp (RevDLL u))))
+          (ite (= u nil) True (= (next u) v))
+          (ite (= v nil) True (= (prev v) u)) ))
+(Post (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))
+           (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))
+           (= EmptySetLoc (SetIntersect (Sp (DLL ret)) (Sp (RevDLL u))))
+           (ite (= u nil) True (= (next u) ret)) (= (prev ret) u)
+           (ite True True (= (prev u) (prev u)))
+           (ite True True (= (next v) (next v))) ))
+
+(alloc ret)
+(assume (not (= ret nil)))
+
+(assign (key ret) k)
+(assign (prev ret) u)
+(assign (next ret) v)
+
+(If (not (= u nil))
+ Then
+  (assign (next u) ret)
+ Else
+  (assume True)
+)
+(If (not (= v nil))
+ Then
+  (assign (prev v) ret)
+ Else
+  (assume True)
+)
+
+(return)

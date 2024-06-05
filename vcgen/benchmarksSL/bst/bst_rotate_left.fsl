@@ -1,0 +1,72 @@
+(Function key   Loc Int)
+(Function left  Loc Loc)
+(Function right Loc Loc)
+
+(RecFunction Min  Loc Int)
+(RecFunction Max  Loc Int)
+(Var plus_infty Int)
+(Var minus_infty Int)
+
+(RecFunction BST  Loc Bool)
+(RecFunction Keys Loc SetInt)
+
+(Var x Loc)
+
+(RecDef (Min x) (ite (= x nil) plus_infty
+                (ite (<= (key x) (Min (left x)))
+                  (ite (<= (key x) (Min (right x)))
+                    (key x)
+                    (Min (right x))
+                  )
+                  (ite (<= (Min (left x)) (Min (right x)))
+                    (Min (left x))
+                    (Min (right x))
+                  )
+                )))
+(RecDef (Max x) (ite (= x nil) minus_infty
+                (ite (>= (key x) (Max (left x)))
+                  (ite (>= (key x) (Max (right x)))
+                    (key x)
+                    (Max (right x))
+                  )
+                  (ite (>= (Max (left x)) (Max (right x)))
+                    (Max (left x))
+                    (Max (right x))
+                  )
+                )))
+
+(RecDef (BST x) (ite (= x nil) True (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
+                                (* (* (= k (key x)) (and (BST y) (< (Max y) k))) (and (BST z) (< k (Min z))))
+                          )
+                        )
+                      )
+                ))
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
+                              (key x))))
+
+(lemma (x) (=> (BST x) (= (Sp (Min x)) (Sp (BST x)))))
+(lemma (x) (=> (BST x) (= (Sp (Max x)) (Sp (BST x)))))
+(lemma (x) (=> (BST x) (= (Sp (Keys x)) (Sp (BST x)))))
+
+(Var lft Loc)
+(Var ret Loc)
+(Var left_right Loc)
+
+(Program rotate_left (x) (ret))
+(Pre (* (not (= x nil)) (and (BST x) (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
+                                (* (* (not (= (left x) nil)) (and (BST y) (< (Max y) k))) (and (BST z) (< k (Min z))))
+                                    )))
+                        )
+))
+(Post (and (BST ret) (and (= (Keys ret) (Old (Keys x)))
+           (and (= (Min ret) (Old (Min x))) (= (Max ret) (Old (Max x)))
+      ))))
+
+(assign lft (left x))
+(assign left_right (right lft))
+(assign (left x) left_right)
+(assign (right lft) x)
+(assign ret lft)
+(return)

@@ -1,0 +1,68 @@
+(RecDef (Min x) (ite (= x nil) plus_infty
+                (ite (<= (key x) (Min (left x)))
+                  (ite (<= (key x) (Min (right x)))
+                    (key x)
+                    (Min (right x))
+                  )
+                  (ite (<= (Min (left x)) (Min (right x)))
+                    (Min (left x))
+                    (Min (right x))
+                  )
+                )))
+(RecDef (Max x) (ite (= x nil) minus_infty
+                (ite (>= (key x) (Max (left x)))
+                  (ite (>= (key x) (Max (right x)))
+                    (key x)
+                    (Max (right x))
+                  )
+                  (ite (>= (Max (left x)) (Max (right x)))
+                    (Max (left x))
+                    (Max (right x))
+                  )
+                )))
+
+(RecDef (Black x) (ite (= x nil) True (= (color x) (IntConst 1))))
+
+(RecDef (BH x) (ite (= x nil) (IntConst 1)
+               (ite (Black x)
+                    (+ (IntConst 1)
+                      (ite (< (BH (left x)) (BH (right x)))
+                        (BH (right x)) (BH (left x))))
+                    (ite (< (BH (left x)) (BH (right x)))
+                      (BH (right x)) (BH (left x))))))
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
+                              (key x))))
+
+
+(RecDef (BST x) (ite (= x nil) True (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
+                                (*  (and (< k plus_infty) (< minus_infty k))
+                                    (* (* (= (key x) (key x)) (and (BST y) (< (Max y) k))) (and (BST z) (< k (Min z)))))
+                          )
+                        )
+                      )
+                ))
+
+
+
+(RecDef (RBT x) (ite (= x nil) True
+                    (and (BST x) 
+                        (Exists (= lft (left x)) (Exists (= rht (right x)) 
+                            (ite (= (color x) (IntConst 1))
+                                (* (= lft (left x)) (and (= (BH lft) (BH rht)) (* (RBT lft) (RBT rht))) )
+                                (Exists (= cl (color lft)) (Exists (= cr (color rht))
+                                    (* (and (= cl (IntConst 1)) (= cr (IntConst 1)))
+                                        (* (= lft (left x)) (and (= (BH lft) (BH rht)) (* (RBT lft) (RBT rht))) )
+                                    )
+                                ))
+                            )
+                        ))  
+                )))
+
+
+(RecDef (RBT x) (ite (= x nil) True
+                     (and (BST x) (RBT (left x)) (RBT (right x))
+                          (= (BH (left x)) (BH (right x)))
+                          (ite (Black x) True
+                            (and (Black (left x)) (Black (right x)))) )))

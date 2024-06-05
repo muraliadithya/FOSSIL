@@ -1,0 +1,126 @@
+FL:
+(RecDef (List x) (ite (= x nil) True
+                      (and (List (next x))
+                           (not (IsMember x (Sp (List (antiSp (next x)))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (Keys (next x)) (key x))))
+
+(lemma (x) (=> (List x) (= (Sp (Keys x)) (Sp (List x)))))
+
+SL:
+(Var x Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(RecFunction List Loc Bool)
+(RecFunction Keys Loc SetInt)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (Keys (next x)) (key x))))
+
+(RecDef (List x) (ite (= x nil) True
+                    (Exists (= y (next x)) (* (= (next x) (next x)) (List y)))
+               ))
+
+
+Recdefs-
+Keys(x) := ite( x = nil, EmptySetInt, SetAdd( Keys(next(x)), key(x)) )
+List(x) := ite( x = nil, True, \Exists y: y = next(x).  (next(x) = next(x)) * List(y))
+
+\Exists y: y = next(x). A          iff           next(x) = next(x) and  A{y <- [next(x)]}
+
+Lemmas-
+ite(List(x), List(x) and (Keys(x) = Keys(x)), true)
+
+Contracts
+--------------------------------
+
+FL:
+(Var y Loc)
+(Var aux Loc)
+(Var tmp Loc)
+(Var ret Loc)
+
+(Program sll_append (x y) (ret))
+(Pre (and (List x) (List y) 
+          (= EmptySetLoc (SetIntersect (Sp (List x)) (Sp (List y)))) ))
+(Post (and (List ret) (= (Keys ret) (SetUnion (Old (Keys x)) (Old (Keys y)))) ))
+
+SL:
+(Program sll_append (x y) (ret))
+(Pre (* (List x) (List y)))
+(Post (and (List ret) (= (Keys ret) (SetUnion (Old (Keys x)) (Old (Keys y)))) ))
+
+
+
+Pre: List(x)*List(y)  
+Post: List(ret) and (Keys(ret) = SetUnion(Old(Keys(x)), Old(Keys(y))))
+
+//note:The heap of Old(X) for any X is empty. Eg: (s,h) |= Keys(ret) = Old(Keys(x)) when
+// dom(h) = supp(Keys(ret),s,h) U supp(Old(Keys(x)),s,h) = supp(Keys(ret),s,h) U \phi
+
+-------------
+FL:
+(Var ret Loc)
+(Var nxt Loc)
+(Var tmp Loc)
+
+(Program sll_copy_all (x) (ret))
+(Pre (List x))
+(Post (and (List x) (= (Keys x) (Old (Keys x)))
+           (List ret) (= (Keys ret) (Old (Keys x)))
+           (= EmptySetLoc (SetIntersect (Sp (List x)) (Sp (List ret)))) ))
+
+
+SL:
+(Program sll_copy_all (x) (ret))
+(Pre (List x))
+(Post (* (and (List x) (= (Keys x) (Old (Keys x))))
+          (and (List ret) (= (Keys ret) (Old (Keys x))))
+     )
+)
+
+Pre: List(x)
+Post: ( List(x) and (Key(x) = Old(Keys(x))) ) * ( List(ret) and ( Keys(ret) = Old(Keys(x)) ) )
+
+---------------
+FL:
+(Var k Int)
+(Var aux Loc)
+(Var tmp Loc)
+(Var ret Loc)
+
+(Program sll_delete (x k) (ret))
+(Pre (List x))
+(Post (and (List ret) (= (Keys ret) (SetDel (Old (Keys x)) k)) ))
+
+SL:
+(Program sll_delete (x k) (ret))
+(Pre (List x))
+(Post (and (List ret) (= (Keys ret) (SetDel (Old (Keys x)) k)) ))
+
+
+Pre: List(x)
+Post: List(ret) and (Keys(rey) = SetDel(Old(Keys(x)), k))
+
+------------------
+FL:
+(Var ret Bool)
+(Var aux Loc)
+(Var auxkeys SetInt)
+
+(Program sll_find (x k) (ret))
+(Pre (List x))
+(Post (and (List x) (= (Keys x) (Old (Keys x))) 
+           (= ret (IsMember k (Keys x))) ))
+
+SL:
+(Program sll_find (x k) (ret))
+(Pre (List x))
+(Post (and (List x) (= (Keys x) (Old (Keys x))) 
+           (= ret (IsMember k (Keys x))) ))
+
+           
+Pre: List(x)
+Post: List(x) and (Keys(x) = Old(Keys(x))) and ret = (IsMember(k, Keys(x)))

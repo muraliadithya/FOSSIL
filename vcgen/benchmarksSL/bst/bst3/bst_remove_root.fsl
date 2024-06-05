@@ -1,0 +1,99 @@
+(Function key   Loc Int)
+(Function left  Loc Loc)
+(Function right Loc Loc)
+
+(RecFunction Min  Loc Int)
+(RecFunction Max  Loc Int)
+(Var plus_infty Int)
+(Var minus_infty Int)
+
+(RecFunction BST  Loc Bool)
+(RecFunction Keys Loc SetInt)
+
+(Var x Loc)
+
+(EqSp (Keys (Min Max BST)))
+
+(RecDef (Min x) (ite (= x nil) plus_infty
+                (ite (<= (key x) (Min (left x)))
+                  (ite (<= (key x) (Min (right x)))
+                    (key x)
+                    (Min (right x))
+                  )
+                  (ite (<= (Min (left x)) (Min (right x)))
+                    (Min (left x))
+                    (Min (right x))
+                  )
+                )))
+(RecDef (Max x) (ite (= x nil) minus_infty
+                (ite (>= (key x) (Max (left x)))
+                  (ite (>= (key x) (Max (right x)))
+                    (key x)
+                    (Max (right x))
+                  )
+                  (ite (>= (Max (left x)) (Max (right x)))
+                    (Max (left x))
+                    (Max (right x))
+                  )
+                )))
+
+(RecDef (BST x) (ite (= x nil) True (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
+                                (* (* (= k (key x)) (and (BST y) (< (Max y) k))) (and (BST z) (< k (Min z))))
+                          )
+                        )
+                      )
+                ))
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
+                              (key x))))
+
+
+
+(Var k Int)
+(lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))))))
+(lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))))))
+
+(Var lft Loc)
+(Var rht Loc)
+(Var right_left Loc)
+(Var tmp Loc)
+(Var ret Loc)
+
+(Var xl Loc)
+(Var xr Loc)
+
+(Program bst_remove_root (x k) (ret))
+(Pre (* (not (= x nil)) (and (BST x) (Exists (= lft (left x)) (Exists (= rht (right x)) 
+                            (* (* (= k (key x)) (and (BST lft) (< (Max lft) k))) (and (BST rht) (< k (Min rht))))
+                          ))
+                        )
+      )
+)
+(Post (BST ret))
+
+(If (and (= (left x) nil) (= (right x) nil))
+ Then
+  (free x)
+  (assign ret nil)
+  (return)
+ Else (If (= (left x) nil)
+ Then
+  (assign ret (right x))
+  (free x)
+  (return)
+ Else (If (= (right x) nil)
+ Then
+  (assign ret (left x))
+  (free x)
+  (return)
+ Else
+  (assign rht (right x))
+  (assign right_left (left rht))
+
+  (assign (right x) right_left)
+  (call bst_remove_root (x k) (tmp))
+  (assign (left rht) tmp)
+  (assign ret rht)
+  (return)
+)))

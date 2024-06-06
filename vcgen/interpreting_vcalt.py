@@ -493,6 +493,7 @@ def interpret_assign(iplist, check_obligations = 1):
                     # MODES ?check_obligations?
                     if rhs[0] in funcdict.keys() and (funcdict[rhs[0]]['input_type'] == 'Loc'):
                         add_to_footprint(rhs[1])
+
             else:
                 add_to_footprint(lhs[1], extend = 1)
                 obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
@@ -514,7 +515,7 @@ def interpret_assign(iplist, check_obligations = 1):
 
             if mode == manual_mode: # MODES
                 if vardict[lhs]['type'] == 'Loc':
-                    pointer_closure(vardict[lhs]['z3name'])        # put this into var_update? Because you'd want to update pointer_closure whenever a variable is updated..right?
+                    pointer_closure(vardict[lhs]['z3name'])        
 
             interpreted_lhs = interpret_ops(lhs)
             return interpreted_lhs==interpreted_rhs
@@ -829,9 +830,11 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
             # MODES
             if mode == footprint_mode:
-                if is_loc_var(elt):
-                    add_to_footprint(ac_elt)
+                # if is_loc_var(elt): # ????
+                #     add_to_footprint(ac_elt)    # ???
                     # footprint[ac_elt] = z3_ac_elt
+                if is_loc_var(ac_elt):
+                    add_to_footprint(ac_elt)
 
             inputs_of_call[fm_elt] = z3_ac_elt
         
@@ -900,8 +903,8 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         obligation = And(pre, IsSubset(sp_pre,alloc_set))
 
         if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform, obligation)):
-            print(f'Could not prove the preconditions for the function call: {iplist}')        
-        
+            print(f'Could not prove the preconditions for the function call: {iplist}')
+            exit(0)
         old_alloc_rem = SetDifference(alloc_set,sp_pre)
 
         for i,elt in funcdict.items():
@@ -1288,9 +1291,9 @@ def cl_check(solver,lemmas,assumptions, obligation):
         else: 
             vc_formula =  Implies(And(*frame_rules,*assumptions), obligation)
         
-        with open('bst_insert_vc', 'w+') as fh:
-            fh.write(str(vc_formula))
-            fh.write('\n\n')
+        # with open('bst_insert_vc', 'w+') as fh:
+        #     fh.write(str(vc_formula))
+        #     fh.write('\n\n')
 
         # print(vc_formula)
         # exit(0)
@@ -1538,7 +1541,6 @@ def add_fo_abstraction(x, in_frame = 0):
 def add_to_footprint(x, extend = 1):
     # if x in footprint.keys():
     # extend = 0
-
     footprint[x] = [vardict[x]['z3name']]
     # extended_footprint[x] = [vardict[x]['z3name']]
     if extend != 0:
@@ -1629,7 +1631,7 @@ def vc(user_input, aux_mode = depth2_mode):
     # nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))
     nc_uip = ml_to_sl(remove_comments(user_input))
     code_line = [create_input(i) for i in nc_uip]
-
+    # return 'done parse'
     print('done creating input list')
     global alloc_set
     global lemma_set
@@ -1659,6 +1661,9 @@ def vc(user_input, aux_mode = depth2_mode):
     # spb = 'SPB'
     
     #+++++ statesdict['initial']= {'funcs': {},'recdefs': {}}
+
+    if mode == footprint_mode:
+        add_to_footprint('nil')
 
     for i in code_line:
         tag = i[0]

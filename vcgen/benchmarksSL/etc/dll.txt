@@ -1,0 +1,194 @@
+FL:
+(Var x Loc)
+(Var k Int)
+
+(Function next Loc Loc)
+(Function prev Loc Loc)
+(Function key  Loc Int)
+
+(RecFunction DLL  Loc Bool)
+(RecFunction Keys Loc SetInt)
+
+(RecDef (DLL  x) (ite (= x nil) True
+                 (ite (= (next x) nil) True
+                    (and (= x (prev (next x)))
+                         (DLL (next x))
+                         (not (IsMember x (Sp (DLL (antiSp (next x))))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                    (SetAdd (Keys (next x)) (key x))))
+
+(lemma (x) (=> (DLL x) (= (Sp (DLL x)) (Sp (Keys x)))))
+
+
+
+(RecDef (RevDLL x) (ite (= x nil) True
+                   (ite (= (prev x) nil) True
+                    (and (= x (next (prev x)))
+                         (RevDLL (prev x))
+                         (not (IsMember x (Sp (RevDLL (antiSp (prev x))))))))))
+
+(RecDef (RevKeys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (RevKeys (prev x)) (key x))))
+
+(lemma (x) (=> (RevDLL x) (= (Sp (RevDLL x)) (Sp (RevKeys x)))))
+
+SL:
+Recdefs-
+Keys(x) := ite( x = nil, EmptySetInt, SetAdd( Keys(next(x)), key(x)) )
+DLL(x) := ite( x = nil, True, 
+                         ite( next(x) = nil, True, 
+                                   \exists y: y = next(x), z = prev(y).( (x = z) * (next(x) = next(x)) * DLL(y)  )
+                                   )
+               )
+
+RevKeys(x) := ite( x = nil, EmptySetInt, SetAdd( Keys(prev(x)), key(x)) )
+RevDLL(x) := ite( x = nil, True, 
+                         ite( prev(x) = nil, True, 
+                                   \exists y: y = prev(x), z = next(y).( (x = z) * (prev(x) = prev(x)) * DLL(y)  )
+                                   )
+               )
+
+(RecDef (DLL x) (ite (= x nil) True 
+                  (Exists (= y (next x)) (ite (= y nil) True 
+                        (Exists (= z (prev y)) 
+                              (* (= x z) (* (= (next x) (next x)) (DLL y)))
+                    ))
+               ))
+)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                    (SetAdd (Keys (next x)) (key x))))
+
+(RecDef (RevDLL x) (ite (= x nil) True 
+                  (Exists (= y (prev x)) (ite (= y nil) True 
+                        (Exists (= z (next y)) 
+                              (* (= x z) (* (= (prev x) (prev x)) (DLL y)))
+                    ))
+               ))
+)
+
+(RecDef (RevKeys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (RevKeys (prev x)) (key x))))
+
+
+
+
+Lemmas-
+ite(DLL(x), DLL(x) and (Keys(x) = Keys(x)), true)
+ite(RevDLL(x), RevDLL(x) and (RevKeys(x) = RevKeys(x)), true)
+
+Contracts
+--------------------------------
+
+FL:
+(Program dll_insert_back (x k) (ret))
+(Pre (DLL x))
+(Post (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys x)) k)) 
+           (ite True True (= (next (next ret)) (next (next ret)))) ))
+
+SL:
+(Program dll_insert_back (x k) (ret))
+Pre: DLL(x)
+
+Post: DLL(ret) and (Keys(ret) = SetAdd(Old(Keys(x)), k))
+
+
+---------------------------
+
+FL:
+(Program dll_insert_front (x k) (ret))
+(Pre (DLL x))
+(Post (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys x)) k))
+           (ite True True (= (next (next ret)) (next (next ret)))) ))
+
+SL:
+(Program dll_insert_front (x k) (ret))
+Pre: DLL(x)
+
+Post: DLL(ret) and (Keys(ret) = SetAdd(Old(Keys(x)), k))
+
+------------------------------
+
+FL:
+(Program dll_mid_delete (p v u) (x))
+(Pre (and (= (next p) v) (= (prev p) u) (DLL v) (RevDLL u)
+          (not (IsMember p (Sp (DLL v)))) (not (IsMember p (Sp (RevDLL u))))
+          (not (IsMember u (Sp (DLL v)))) (not (IsMember v (Sp (RevDLL u)))) ))
+(Post (and (DLL v) (= (Keys v) (Old (Keys v)))
+           (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))
+           (ite (= u nil) True (= (next u) v))
+           (ite (= v nil) True (= (prev v) u)) ))
+
+SL:
+(Program dll_mid_delete (p v u) (x))
+Pre:  (v = next(p) and u = prev(p)) * DLL(v) * RevDLL(u)
+
+Post: ( Dll(v) and Keys(v) = Old(Keys(v)) ) *
+      ( RevDll(u) and RevKeys(u) = Old(RevKeys(u)) ) *
+      ite( u = nil, True, \Exists n_u: n_u = next(u). n_u = v)  *
+      ite( v = nil, True, \Exists p_v: p_v = prev(v). p_v = u)
+
+      // Get rid of exists?
+
+
+(Program dll_mid_delete (p v u) (x))
+(Pre (* (and (= v (next p)) (= u (prev p))) (* (DLL v) (RevDLL u)) ))
+(Post (ite (= u nil) 
+            (ite (= v nil) (* (and (Dll v) (= (Keys v) (Old (Keys v)))) (and (RevDll u) (= (RevKeys u) (Old (RevKeys u)))) )
+                  (Exists (= p_v (prev v)) (* (= p_v u) 
+                                           (* (and (Dll v) (= (Keys v) (Old (Keys v)))) (and (RevDll u) (= (RevKeys u) (Old (RevKeys u)))) )))
+            )
+            (ite (= v nil) (Exists (= n_u (next u)) (* (= n_u v)
+                                                (* (and (Dll v) (= (Keys v) (Old (Keys v)))) (and (RevDll u) (= (RevKeys u) (Old (RevKeys u)))))))
+                  (Exists (= p_v (prev v)) (Exists (= n_u (next u)) (* (and (= n_u v) (= p_v u))
+                                                (* (and (Dll v) (= (Keys v) (Old (Keys v)))) (and (RevDll u) (= (RevKeys u) (Old (RevKeys u))))))))
+            )  
+))
+
+
+
+
+------------------------------
+
+FL:
+(Program dll_mid_insert (u v k) (ret))
+(Pre (and (DLL v) (RevDLL u)
+          (= EmptySetLoc (SetIntersect (Sp (DLL v)) (Sp (RevDLL u))))
+          (ite (= u nil) True (= (next u) v))
+          (ite (= v nil) True (= (prev v) u)) ))
+(Post (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))
+           (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))
+           (= EmptySetLoc (SetIntersect (Sp (DLL ret)) (Sp (RevDLL u))))
+           (ite (= u nil) True (= (next u) ret)) (= (prev ret) u) ))
+
+SL:
+(Program dll_mid_insert (u v k) (ret))
+Pre:  DLL(v) * RevDLL(u) *
+      ite( u = nil, True, \Exists n_u: n_u = next(u). n_u = v)  *
+      ite( v = nil, True, \Exists n_u: p_v = prev(v). p_v = u)   // Get rid of exists?
+
+Post: ( Dll(ret) and Keys(ret) = SetAdd( Old(Keys(v)), k) ) *
+      ( RevDll(u) and RevKeys(u) = Old(RevKeys(u)) ) *
+      ite( u = nil, True, \Exists n_u: n_u = next(u). n_u = v)  *
+      ite( v = nil, True, \Exists n_u: p_v = prev(v). p_v = u)  *
+
+(Program dll_mid_insert (u v k) (ret))
+(Pre (ite (= u nil) 
+            (ite (= v nil) (* (Dll v) (RevDll u))
+                  (Exists (= p_v (prev v)) (* (= p_v u) (* (Dll v) (RevDll u))))
+            )
+            (ite (= v nil) (Exists (= n_u (next u)) (* (= n_u v) (* (Dll v) (RevDll u))))
+                  (Exists (= p_v (prev v)) (Exists (= n_u (next u)) (* (and (= n_u v) (= p_v u)) (* (Dll v) (RevDll u)))) )
+            )  
+))
+(Post (ite (= u nil) 
+            (ite (= v nil) (* (and (Dll ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))) (and (RevDll u) (= (RevKeys u) (Old (RevKeys u)))))
+                  (Exists (= p_v (prev v)) 
+                        (* (= p_v u) (* (and (Dll ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))) (and (RevDll u) (= (RevKeys u) (Old (RevKeys u)))))))
+            )
+            (ite (= v nil) (Exists (= n_u (next u)) (* (= n_u v) 
+                              (* (and (Dll ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))) (and (RevDll u) (= (RevKeys u) (Old (RevKeys u)))))))
+                  (Exists (= p_v (prev v)) (Exists (= n_u (next u)) (* (and (= n_u v) (= p_v u)) 
+                              (* (and (Dll ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))) (and (RevDll u) (= (RevKeys u) (Old (RevKeys u))))))))
+            )  
+))

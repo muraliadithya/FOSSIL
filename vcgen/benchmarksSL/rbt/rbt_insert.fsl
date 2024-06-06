@@ -3,6 +3,10 @@
 (Function left  Loc Loc)
 (Function right Loc Loc)
 
+(EqSp (Keys (Min Max BST BH RBT)))
+
+
+(RecFunction Keys Loc SetInt)
 (RecFunction Min  Loc Int)
 (RecFunction Max  Loc Int)
 (Var plus_infty Int)
@@ -13,7 +17,6 @@
 
 (RecFunction BST  Loc Bool)
 (RecFunction RBT  Loc Bool)
-(RecFunction Keys Loc SetInt)
 
 (Var x Loc)
 (Var rht Loc)
@@ -80,10 +83,6 @@
                         ))  
                 )))
 
-(lemma (x) (=> (BST x) (IsSubset (Sp (Min x)) (Sp (BST x)))))
-(lemma (x) (=> (BST x) (IsSubset (Sp (Max x)) (Sp (BST x)))))
-(lemma (x) (=> (BST x) (IsSubset (Sp (Keys x)) (Sp (BST x)))))
-(lemma (x) (=> (RBT x) (= (Sp (RBT x)) (Sp (BST x)))))
 
 (lemma (x) (=> (RBT x) (=> (not (= x nil))
                           (not (IsMember x (Sp (RBT (antiSp (left x)))))))))

@@ -3,6 +3,9 @@
 (Function next  Loc Loc)
 (Function key   Loc Int)
 
+
+(EqSp (MinTree (MaxTree BST TreeKeys)) (MinList (Sorted ListKeys)))
+
 (RecFunction MinList  Loc Int)
 (RecFunction MinTree  Loc Int)
 (RecFunction MaxTree  Loc Int)
@@ -54,13 +57,6 @@
 (RecDef (TreeKeys x) (ite (= x nil) EmptySetInt
                       (SetAdd (SetUnion (TreeKeys (left x)) (TreeKeys (right x)))
                         (key x))))
-
-(lemma (x) (=> (BST x) (IsSubset (Sp (MinTree x)) (Sp (BST x)))))
-(lemma (x) (=> (BST x) (IsSubset (Sp (MaxTree x)) (Sp (BST x)))))
-(lemma (x) (=> (BST x) (IsSubset (Sp (TreeKeys x)) (Sp (BST x)))))
-
-(lemma (x) (=> (Sorted x) (= (Sp (ListKeys x)) (Sp (Sorted x)))))
-(lemma (x) (=> (Sorted x) (= (Sp (MinList x)) (Sp (Sorted x)))))
 
 (lemma (x) (=> (BST x) (=> (and (not (= x nil)) (<= (key x) plus_infty))
                           (ite (= (left x) nil)

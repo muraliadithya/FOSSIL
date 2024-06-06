@@ -2,15 +2,20 @@
 (Function left  Loc Loc)
 (Function right Loc Loc)
 
-(RecFunction Min  Loc Int)
-(RecFunction Max  Loc Int)
-(Var plus_infty Int)
-(Var minus_infty Int)
+(EqSp (BST (Keys Min Max)))
 
 (RecFunction BST  Loc Bool)
 (RecFunction Keys Loc SetInt)
+(RecFunction Min  Loc Int)
+(RecFunction Max  Loc Int)
+
+(Var plus_infty Int)
+(Var minus_infty Int)
 
 (Var x Loc)
+(Var lft Loc)
+(Var rht Loc)
+(Var k Int)
 
 (RecDef (Min x) (ite (= x nil) plus_infty
                 (ite (<= (key x) (Min (left x)))
@@ -35,8 +40,9 @@
                   )
                 )))
 
-(RecDef (BST x) (ite (= x nil) True (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
-                                (* (* (= k (key x)) (and (BST y) (< (Max y) k))) (and (BST z) (< k (Min z))))
+(RecDef (BST x) (ite (= x nil) True (Exists (= lft (left x)) (Exists (= rht (right x)) (Exists (= k (key x))
+                                (* (* (* (= k (key x)) (and (< k plus_infty) (< minus_infty k)) ) 
+                                (and (BST lft) (< (Max lft) k))) (and (BST rht) (< k (Min rht))))
                           )
                         )
                       )
@@ -46,11 +52,7 @@
                       (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
                               (key x))))
 
-(lemma (x) (=> (BST x) (= (Sp (Min x)) (Sp (BST x)))))
-(lemma (x) (=> (BST x) (= (Sp (Max x)) (Sp (BST x)))))
-(lemma (x) (=> (BST x) (= (Sp (Keys x)) (Sp (BST x)))))
 
-(Var lft Loc)
 (Var ret Loc)
 (Var left_right Loc)
 

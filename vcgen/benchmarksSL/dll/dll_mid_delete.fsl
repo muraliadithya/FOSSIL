@@ -1,0 +1,73 @@
+(Var x Loc)
+(Var y Loc)
+(Var z Loc)
+
+(Function next Loc Loc)
+(Function prev Loc Loc)
+(Function key  Loc Int)
+
+
+(EqSp (DLL (Keys)) (RevDLL (RevKeys)))
+
+(RecFunction DLL     Loc Bool)
+(RecFunction RevDLL  Loc Bool)
+(RecFunction Keys    Loc SetInt)
+(RecFunction RevKeys Loc SetInt)
+
+(RecDef (DLL x) (ite (= x nil) True 
+                  (Exists (= y (next x)) (ite (= y nil) True 
+                        (Exists (= z (prev y)) 
+                              (* (= x z) (* (= (next x) (next x)) (DLL y)))
+                    ))
+               ))
+)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                    (SetAdd (Keys (next x)) (key x))))
+
+(RecDef (RevDLL x) (ite (= x nil) True 
+                  (Exists (= y (prev x)) (ite (= y nil) True 
+                        (Exists (= z (next y)) 
+                              (* (= x z) (* (= (prev x) (prev x)) (DLL y)))
+                    ))
+               ))
+)
+
+(RecDef (RevKeys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (RevKeys (prev x)) (key x))))
+
+
+(Var p Loc)
+(Var v Loc)
+(Var u Loc)
+(Var p_v Loc)
+(Var n_u Loc)
+
+(Program dll_mid_delete (p v u) (x))
+(Pre (* (and (= v (next p)) (= u (prev p))) (* (DLL v) (RevDLL u)) ))
+(Post (ite (= u nil) 
+            (ite (= v nil) (* (and (DLL v) (= (Keys v) (Old (Keys v)))) (and (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))) )
+                  (Exists (= p_v (prev v)) (* (= p_v u) 
+                                           (* (and (DLL v) (= (Keys v) (Old (Keys v)))) (and (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))) )))
+            )
+            (ite (= v nil) (Exists (= n_u (next u)) (* (= n_u v)
+                                                (* (and (DLL v) (= (Keys v) (Old (Keys v)))) (and (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))))))
+                  (Exists (= p_v (prev v)) (Exists (= n_u (next u)) (* (and (= n_u v) (= p_v u))
+                                                (* (and (DLL v) (= (Keys v) (Old (Keys v)))) (and (RevDLL u) (= (RevKeys u) (Old (RevKeys u))))))))
+            )  
+))
+
+(If (not (= v nil))
+ Then
+  (assign (prev v) u)
+ Else
+  (assume True)
+)
+(If (not (= u nil))
+ Then
+  (assign (next u) v)
+ Else
+  (assume True)
+)
+(free p)
+(return)

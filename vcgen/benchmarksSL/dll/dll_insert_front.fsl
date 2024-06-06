@@ -1,5 +1,4 @@
 (Var x Loc)
-(Var k Int)
 (Var y Loc)
 (Var z Loc)
 
@@ -23,28 +22,28 @@
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                     (SetAdd (Keys (next x)) (key x))))
 
-(Var ret Loc)
-(Var tail Loc)
-(Var tmp Loc)
 
-(Program dll_insert_back (x k) (ret))
+
+(Var k Int)
+(Var ret Loc)
+
+(Program dll_mid_insert (x k) (ret))
 (Pre (DLL x))
-(Post (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys x)) k))  ))
+(Post (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys x)) k))))
 
 (If (= x nil)
  Then
-  (alloc tail)
-  (assume (not (= tail nil)))
-  (assign (key tail) k)
-  (assign (next tail) nil)
-  (assign (prev tail) x)
-  (assign ret tail)
+  (alloc ret)
+  (assume (not (= ret nil)))
+  (assign (key ret) k)
+  (assign (next ret) nil)
+  (assign (prev ret) nil)
   (return)
  Else
-  (assign tail (next x))
-  (call dll_insert_back (tail k) (tmp))
-  (assign (next x) tmp)
-  (assign (prev tmp) x)
-  (assign ret x)
+  (alloc ret)
+  (assume (not (= ret nil)))
+  (assign (key ret) k)
+  (assign (next ret) x)
+  (assign (prev x) ret)
   (return)
 )

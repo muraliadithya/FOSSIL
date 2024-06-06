@@ -4,6 +4,8 @@
 (Function left  Loc Loc)
 (Function right Loc Loc)
 
+(EqSp (Tree (InTree Size)))
+
 (RecFunction Tree   Loc Bool)
 (RecFunction InTree Loc Bool)
 (RecFunction Order  Loc Int)
@@ -40,10 +42,7 @@
                                           )
                                         )))
 
-(lemma (x) (=> (Tree x) (= (Sp (Order x)) (Sp (Tree x)))))
-(lemma (x) (=> (Tree x) (= (Sp (Size x)) (Sp (Tree x)))))
-(lemma (x) (=> (InTree x) (= (Sp (Order x)) (Sp (InTree x)))))
-(lemma (x) (=> (InTree x) (= (Sp (Size x)) (Sp (InTree x)))))
+(lemma (x) (=> (InTree x) (IsSubset (Sp (Order x)) (Sp (InTree x)))))
 (lemma (x) (=> (InTree x) (=> (not (= x nil)) (IsSubset (Sp (LSize x)) (Sp (InTree x))))))
 (lemma (x) (=> (InTree x) (=> (not (= x nil)) (IsSubset (Sp (RSize x)) (Sp (InTree x))))))
 

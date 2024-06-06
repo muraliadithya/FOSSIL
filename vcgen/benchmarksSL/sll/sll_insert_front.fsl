@@ -3,6 +3,8 @@
 (Function next Loc Loc)
 (Function key  Loc Int)
 
+(EqSp (List (Keys)))
+
 (RecFunction List Loc Bool)
 (RecFunction Keys Loc SetInt)
 
@@ -12,8 +14,6 @@
 (RecDef (List x) (ite (= x nil) True
                     (Exists (= y (next x)) (* (= (next x) (next x)) (List y)))
                ))
-
-(lemma (x) (=> (List x) (= (Sp (Keys x)) (Sp (List x)))))
 
 (Var k Int)
 (Var ret Loc)

@@ -3,6 +3,8 @@
 (Function next Loc Loc)
 (Function key  Loc Int)
 
+(EqSp (List (Keys)))
+
 (RecFunction List Loc Bool)
 (RecFunction Keys Loc SetInt)
 
@@ -13,7 +15,6 @@
                     (Exists (= y (next x)) (* (= (next x) (next x)) (List y)))
                ))
 
-(lemma (x) (=> (List x) (= (Sp (Keys x)) (Sp (List x)))))
 
 (Var y Loc)
 (Var aux Loc)

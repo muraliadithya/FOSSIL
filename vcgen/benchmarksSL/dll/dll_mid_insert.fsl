@@ -1,0 +1,87 @@
+(Var x Loc)
+(Var y Loc)
+(Var z Loc)
+
+(Function next Loc Loc)
+(Function prev Loc Loc)
+(Function key  Loc Int)
+
+
+(EqSp (DLL (Keys)) (RevDLL (RevKeys)))
+
+(RecFunction DLL     Loc Bool)
+(RecFunction RevDLL  Loc Bool)
+(RecFunction Keys    Loc SetInt)
+(RecFunction RevKeys Loc SetInt)
+
+(RecDef (DLL x) (ite (= x nil) True 
+                  (Exists (= y (next x)) (ite (= y nil) True 
+                        (Exists (= z (prev y)) 
+                              (* (= x z) (* (= (next x) (next x)) (DLL y)))
+                    ))
+               ))
+)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                    (SetAdd (Keys (next x)) (key x))))
+
+(RecDef (RevDLL x) (ite (= x nil) True 
+                  (Exists (= y (prev x)) (ite (= y nil) True 
+                        (Exists (= z (next y)) 
+                              (* (= x z) (* (= (prev x) (prev x)) (DLL y)))
+                    ))
+               ))
+)
+
+(RecDef (RevKeys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (RevKeys (prev x)) (key x))))
+
+(Var u Loc)
+(Var v Loc)
+(Var k Int)
+(Var p_v Loc)
+(Var n_u Loc)
+(Var ret Loc)
+
+(Program dll_mid_insert (u v k) (ret))
+(Pre (ite (= u nil) 
+            (ite (= v nil) (* (DLL v) (RevDLL u))
+                  (Exists (= p_v (prev v)) (* (= p_v u) (* (DLL v) (RevDLL u))))
+            )
+            (ite (= v nil) (Exists (= n_u (next u)) (* (= n_u v) (* (DLL v) (RevDLL u))))
+                  (Exists (= p_v (prev v)) (Exists (= n_u (next u)) (* (and (= n_u v) (= p_v u)) (* (DLL v) (RevDLL u)))) )
+            )  
+))
+(Post (ite (= u nil) 
+            (ite (= v nil) (* (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))) (and (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))))
+                  (Exists (= p_v (prev ret)) 
+                        (* (= p_v u) (* (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))) (and (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))))))
+            )
+            (ite (= v nil) (Exists (= n_u (next u)) (* (= n_u ret) 
+                              (* (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))) (and (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))))))
+                  (Exists (= p_v (prev ret)) (Exists (= n_u (next u)) (* (and (= n_u ret) (= p_v u)) 
+                              (* (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))) (and (RevDLL u) (= (RevKeys u) (Old (RevKeys u))))))))
+            )  
+))
+
+(alloc ret)
+(assume (not (= ret nil)))
+
+(assign (key ret) k)
+(assign (prev ret) u)
+(assign (next ret) v)
+
+(If (not (= u nil))
+ Then
+  (assign (next u) ret)
+ Else
+  (assume True)
+)
+(If (not (= v nil))
+ Then
+  (assign (prev v) ret)
+ Else
+  (assume True)
+)
+
+(return)

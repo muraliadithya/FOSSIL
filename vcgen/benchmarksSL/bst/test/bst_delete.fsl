@@ -14,6 +14,9 @@
 
 
 (Var x Loc)
+(Var lft Loc)
+(Var rht Loc)
+(Var k Int)
 
 (RecDef (Min x) (ite (= x nil) plus_infty
                 (ite (<= (key x) (Min (left x)))
@@ -38,9 +41,9 @@
                   )
                 )))
 
-(RecDef (BST x) (ite (= x nil) True (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
+(RecDef (BST x) (ite (= x nil) True (Exists (= lft (left x)) (Exists (= rht (right x)) (Exists (= k (key x))
                                 (* (* (* (= k (key x)) (and (< k plus_infty) (< minus_infty k)) ) 
-                                (and (BST y) (< (Max y) k))) (and (BST z) (< k (Min z))))
+                                (and (BST lft) (< (Max lft) k))) (and (BST rht) (< k (Min rht))))
                           )
                         )
                       )
@@ -50,12 +53,9 @@
                       (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
                               (key x))))
 
-(Var k Int)
 (lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))))))
 (lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))))))
 
-(Var lft Loc)
-(Var rht Loc)
 (Var right_left Loc)
 (Var tmp Loc)
 (Var ret Loc)

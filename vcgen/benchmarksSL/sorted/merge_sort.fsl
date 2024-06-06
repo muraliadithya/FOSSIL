@@ -5,6 +5,8 @@
 (Function next Loc Loc)
 (Function key  Loc Int)
 
+
+(EqSp (Min (List Keys Sorted)))
 (Var plus_infty Int)
 (RecFunction Min Loc Int)
 (RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
@@ -113,7 +115,7 @@
  Else
   (If (= (next x) nil)
    Then /* singleton list */
-    (assume (<= (key x) plus_infty))
+    (assume (< (key x) plus_infty))
     (assign ret x)
     (return)
    Else /* List of length >= 2 */

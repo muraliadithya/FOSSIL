@@ -3,12 +3,13 @@
 (Function left  Loc Loc)
 (Function right Loc Loc)
 
+(EqSp (Keys (MinKey MaxKey MaxPrio Treap Priorities)))
+
+(RecFunction Keys       Loc SetInt)
 (RecFunction MinKey  Loc Int)
 (RecFunction MaxKey  Loc Int)
 (RecFunction MaxPrio Loc Int)
-
 (RecFunction Treap      Loc Bool)
-(RecFunction Keys       Loc SetInt)
 (RecFunction Priorities Loc SetInt)
 
 (Var x Loc)
@@ -63,7 +64,7 @@
 (RecDef (Treap x) (ite (= x nil) True (Exists (= lft (left x)) (Exists (= rht (right x)) (Exists (= k (key x)) (Exists (= p (prio x))
                                 (* (and (< k plus_infty) (and (< minus_infty k) (and (< p plus_infty) (< minus_infty p)))) 
                                     (* (* (= k (key x)) (and (Treap lft) (and (< (MaxKey lft) k) (< (MaxPrio lft) p)))) 
-                                                        (and (Treap rgt) (and (< k (MinKey rgt)) (< (MaxPrio rgt) p)))))
+                                                        (and (Treap rht) (and (< k (MinKey rht)) (< (MaxPrio rht) p)))))
                                     ))))
                 ))
 
@@ -76,12 +77,8 @@
 
 (Var xl Loc)
 (Var xr Loc)
-
-(lemma (x) (=> (Treap x) (IsSubset (Sp (Keys x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (IsSubset (Sp (Priorities x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (IsSubset (Sp (MinKey x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (IsSubset (Sp (MaxKey x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (IsSubset (Sp (MaxPrio x)) (Sp (Treap x)))))
+(Var k1 Int)
+(Var p1 Int)
 
 (lemma (x) (=> (Treap x) (=> (< k (MinKey x)) (not (IsMember k (Keys x))))))
 (lemma (x) (=> (Treap x) (=> (> k (MaxKey x)) (not (IsMember k (Keys x))))))
@@ -90,7 +87,9 @@
 (lemma (x) (=> (Treap x) (=> (not (= x nil)) (= (MaxPrio x) (prio x)))))
 
 (Program treap_remove_root (x k p) (ret))
-(Pre (* (not (= x nil)) (Exists (= k (key x)) (Exists (= p (prio x)) (Treap x))) 
+(Pre (* (not (= x nil)) (Exists (= k1 (key x)) (Exists (= p1 (prio x)) 
+                        (* (and (= k k1) (= p p1)) (Treap x))
+                        )) 
     ))
 (Post (and (Treap ret) 
             (and (= (Keys ret) (SetDel (Old (Keys x)) k))
@@ -109,13 +108,13 @@
   (return)
  Else (If (= (left x) nil)
  Then
-  (assume (<= minus_infty (prio (right x))))
+  (assume (< minus_infty (prio (right x))))
   (assign ret (right x))
   (free x)
   (return)
  Else (If (= (right x) nil)
  Then
-  (assume (<= minus_infty (prio (left x))))
+  (assume (< minus_infty (prio (left x))))
   (assign ret (left x))
   (free x)
   (return)

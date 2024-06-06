@@ -4,6 +4,9 @@
 (Function next Loc Loc)
 (Function key  Loc Int)
 
+
+(EqSp (List (Keys)))
+
 (RecFunction List Loc Bool)
 (RecFunction Keys Loc SetInt)
 

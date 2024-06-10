@@ -94,7 +94,7 @@ class NPSolver:
 
         if options.instantiation_mode == proveroptions.manual_instantiation_finegrained:
             # We need an indexed set of abstractions as there will be terms specified explicitly for each one
-            indexed_recdefs = get_recursive_definition_indexed(self.annctx)
+            indexed_recdefs = get_recursive_definition_indexed(None, alldefs=True, annctx=self.annctx)
             fo_abstractions = {idx: recdef_unfoldings[value[0]] for idx, value in indexed_recdefs.items()}
             fo_abstractions = {**get_all_axioms_indexed(self.annctx), **fo_abstractions}
         elif options.instantiation_mode == proveroptions.lean_instantiation_with_lemmas:

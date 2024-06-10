@@ -18,8 +18,10 @@ class AnnotatedContext:
     def __init__(self):
         self.__alias_annotation__ = dict()
         self.__vocabulary_annotation__ = set()
-        self.__recdef_annotation__ = set()
-        self.__axiom_annotation__ = set()
+        self.__recdef_counter__ = 0
+        self.__recdef_annotation__ = dict()
+        self.__axiom_counter__ = 0
+        self.__axiom_annotation__ = dict()
         self.__variable_annotation__ = set()
 
     # Functions to manipulate __alias_annotation__
@@ -103,6 +105,13 @@ class AnnotatedContext:
         Returns all the recursive definitions tracked by self.  
         :return: set of (z3.FuncDeclRef, any, any)  
         """
+        return set(self.__recdef_annotation__.values())
+
+    def get_indexed_recdef_annotation(self):
+        """
+        Returns the recursive definitions tracked by self, keyed by a unique ID.
+        :return: dict {any: set of (z3.FuncDeclRef, any, any)}
+        """
         return self.__recdef_annotation__
 
     def add_recdef_annotation(self, annotation):
@@ -111,15 +120,25 @@ class AnnotatedContext:
         first component of the triple is a z3.FuncDeclRef that is expected to be tracked by __vocabulary_annotation__.
         The second and third components are bound variables and the body of the definition, respectively.  
         :param annotation: (z3.FuncDeclRef, any, any)  
-        :return: None  
+        :return: any (index value into the recdef annotation for the added element)
         """
-        self.__recdef_annotation__.add(annotation)
+        self.__recdef_counter__ += 1
+        index = f"rd{self.__recdef_counter__}"
+        self.__recdef_annotation__[index] = annotation
+        return index
 
     # Functions to manipulate __axiom_annotation__
     def get_axiom_annotation(self):
         """
         Returns all the axioms tracked by self.  
         :return: set of (any, any)  
+        """
+        return set(self.__axiom_annotation__.values())
+
+    def get_indexed_axiom_annotation(self):
+        """
+        Returns a dictionary of axioms tracked by self, keyed by a unique ID.
+        :return: dict {any: set of (any, any)}
         """
         return self.__axiom_annotation__
 
@@ -128,9 +147,12 @@ class AnnotatedContext:
         Adds an annotation to the __axiom_annotation__ in self. Each axiom is a pair of bound variables and the body of
         the axiom, respectively.  
         :param annotation: (any, any)  
-        :return: None  
+        :return: any (index value into the axiom annotation for the added element)
         """
-        self.__axiom_annotation__.add(annotation)
+        self.__axiom_counter__ += 1
+        index = f"ax{self.__axiom_counter__}"
+        self.__axiom_annotation__[index] = annotation
+        return index
 
     # Functions to manipulate __variable_annotation__
     def get_variable_annotation(self):

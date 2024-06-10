@@ -5,13 +5,16 @@ import warnings
 import z3
 
 from naturalproofs.AnnotatedContext import default_annctx
-from naturalproofs.decl_api import get_recursive_definition, get_all_axioms, is_expr_fg_sort
+from naturalproofs.decl_api import get_recursive_definition, get_recursive_definition_indexed, \
+    get_all_axioms, get_all_axioms_indexed, is_expr_fg_sort
 from naturalproofs.utils import Implies_as_FuncDeclRef
 import naturalproofs.proveroptions as proveroptions
-from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, instantiate, get_recdef_applications
+from naturalproofs.prover_utils import make_recdef_unfoldings, get_foreground_terms, \
+    instantiate, get_recdef_applications
 
 import random
 import os
+
 
 class NPSolution:
     """
@@ -87,14 +90,21 @@ class NPSolver:
                     raise TypeError('Bound variables of lemma: {} must be of the foreground sort'.format(lemma_body))
         recdef_indexed_lemmas = _sort_by_trigger(lemmas, list(recdef_unfoldings.keys()))
 
-        if options.instantiation_mode == proveroptions.lean_instantiation_with_lemmas:
+        # Compute the set of fo abstractions that are going to be instantiated, according to mode
+
+        if options.instantiation_mode == proveroptions.manual_instantiation_finegrained:
+            # We need an indexed set of abstractions as there will be terms specified explicitly for each one
+            indexed_recdefs = get_recursive_definition_indexed(self.annctx)
+            fo_abstractions = {idx: recdef_unfoldings[value[0]] for idx, value in indexed_recdefs.items()}
+            fo_abstractions = {**get_all_axioms_indexed(self.annctx), **fo_abstractions}
+        elif options.instantiation_mode == proveroptions.lean_instantiation_with_lemmas:
             # Recdefs and lemmas need to be treated separately using 'lean' instantiation
             fo_abstractions = axioms
-        if options.instantiation_mode == proveroptions.lean_instantiation:
+        elif options.instantiation_mode == proveroptions.lean_instantiation:
             # Recdefs need to be treated separately using 'lean' instantiation
             fo_abstractions = axioms | lemmas
         else:
-            # If the instantiation isn't the 'lean' kind then all defs are going to be instantiated with all terms
+            # If the instantiation isn't any of these then all defs are going to be instantiated with all terms
             fo_abstractions = axioms | untagged_unfoldings | lemmas
         print(f'\naxioms: {len(axioms)}  recdefs: {len(untagged_unfoldings)} lemmas: {len(lemmas)}')
         print(f"{', '.join([recdef[0].name() for recdef in recdefs])}")
@@ -111,8 +121,9 @@ class NPSolver:
         extraction_terms = initial_terms
         recdef_application_terms = get_recdef_applications(neg_goal, annctx=self.annctx)
         instantiation_terms = set()
+
         # Instantiate and check for provability according to options
-        # Handle manual instantiation mode first
+        # Handle manual instantiation modes first
         if options.instantiation_mode == proveroptions.manual_instantiation:
             terms_to_instantiate = options.terms_to_instantiate
             instantiations = instantiate(fo_abstractions, terms_to_instantiate)
@@ -124,6 +135,21 @@ class NPSolver:
             model = z3solver.model() if if_sat else None
             return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
                               instantiation_terms=instantiation_terms, options=options)
+
+        if options.instantiation_mode == proveroptions.manual_instantiation_finegrained:
+            pairs_to_instantiate = options.terms_to_instantiate
+            instantiations = set()
+            for idx, terms in pairs_to_instantiate:
+                instantiations.update(instantiate(fo_abstractions[idx], terms))
+                instantiation_terms.update(terms)
+            if instantiations != set():
+                extraction_terms = extraction_terms.union(get_foreground_terms(instantiations, annctx=self.annctx))
+            z3solver.add(instantiations)
+            if_sat = _solver_check(z3solver)
+            model = z3solver.model() if if_sat else None
+            return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
+                              instantiation_terms=instantiation_terms, options=options)
+
         # Automatic instantiation modes
         # stratified instantiation strategy
         if options.instantiation_mode == proveroptions.depth_one_stratified_instantiation:

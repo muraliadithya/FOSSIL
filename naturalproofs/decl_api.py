@@ -117,7 +117,7 @@ def AddRecDefinition(recdef, formal_params, body, annctx=default_annctx):
     :param formal_params: tuple of z3.ExprRef (currently only z3.ArithRef)  
     :param body: z3.ExprRef  
     :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext  
-    :return: None
+    :return: any (ID value for the added recursive definition)
     """
     if not isinstance(formal_params, tuple) and isinstance(formal_params, z3.ExprRef):
         # Only one formal parameter
@@ -135,7 +135,8 @@ def AddRecDefinition(recdef, formal_params, body, annctx=default_annctx):
     if not isinstance(body, z3.ExprRef):
         raise TypeError('ExprRef expected.')
     # TODO: check that the definition is of the supported form: positive recursive mentions, for example.
-    annctx.add_recdef_annotation((recdef, formal_params, body))
+    idx = annctx.add_recdef_annotation((recdef, formal_params, body))
+    return idx
 
 
 def AddAxiom(formal_params, body, annctx=default_annctx):
@@ -147,7 +148,7 @@ def AddAxiom(formal_params, body, annctx=default_annctx):
     :param formal_params: tuple of z3.ExprRef (currently only z3.ArithRef)  
     :param body: z3.ExprRef  
     :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext  
-    :return: None  
+    :return: any (ID value for the added axiom)
     """
     if not isinstance(formal_params, tuple) and isinstance(formal_params, z3.ExprRef):
         # Only one formal parameter
@@ -160,7 +161,8 @@ def AddAxiom(formal_params, body, annctx=default_annctx):
         raise TypeError('All formal parameters can only be of the foreground sort.')
     if not isinstance(body, z3.ExprRef):
         raise TypeError('ExprRef expected.')
-    annctx.add_axiom_annotation((formal_params, body))
+    idx = annctx.add_axiom_annotation((formal_params, body))
+    return idx
 
 
 # Utility functions to manipulate declarations
@@ -215,11 +217,11 @@ def get_recursive_definition(recdef, alldefs=False, annctx=default_annctx):
     """
     Looks up the definition of the function symbol from the set of recursive definitions in the annctx context.
     Returns None if no definition exists in the context.  
-    If the alldefs is true, then all recursive definitions are returned.  
+    If the alldefs parameter is true, then all recursive definitions are returned.
     :param recdef: z3.FuncDeclRef  
     :param alldefs: bool  
     :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext  
-    :return: (recdef, tuple of z3.ExprRef, z3.ExprRef), or a set of such triples, or None  
+    :return: (recdef, tuple of z3.ExprRef, z3.ExprRef), or a set of such triples, or None
     """
     recdef_set = annctx.get_recdef_annotation()
     if alldefs:
@@ -228,6 +230,27 @@ def get_recursive_definition(recdef, alldefs=False, annctx=default_annctx):
         if not annctx.is_tracked_vocabulary(recdef):
             raise ValueError('Function symbol must be declared using naturalproofs.decl_api.Function')
         return next((definition for definition in recdef_set if recdef == definition[0]), None)
+
+
+def get_recursive_definition_indexed(recdef, alldefs=False, annctx=default_annctx):
+    """
+    Looks up the definition of the function symbol from the set of recursive definitions in the annctx context.
+    Returns None if no definition exists in the context.
+    Additionally, each returned recdef will have an associated unique ID.
+    If the alldefs parameter is true, then all recursive definitions are returned.
+    :param recdef: z3.FuncDeclRef
+    :param alldefs: bool
+    :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext
+    :return: None, or (any, (recdef, tuple of z3.ExprRef, z3.ExprRef))
+             or dict {any: (recdef, tuple of z3.ExprRef, z3.ExprRef)}
+    """
+    recdef_dict = annctx.get_indexed_recdef_annotation()
+    if alldefs:
+        return recdef_dict
+    else:
+        if not annctx.is_tracked_vocabulary(recdef):
+            raise ValueError('Function symbol must be declared using naturalproofs.decl_api.Function')
+        return next(((idx, definition) for idx, definition in recdef_dict.items() if recdef == definition[0]), None)
 
 
 def get_boolean_recursive_definitions(annctx=default_annctx):
@@ -252,3 +275,12 @@ def get_all_axioms(annctx=default_annctx):
     :return: (tuple of z3.ExprRef, z3.ExprRef)  
     """
     return annctx.get_axiom_annotation()
+
+
+def get_all_axioms_indexed(annctx=default_annctx):
+    """
+    Returns all axioms tracked by annctx, indexed by a unique ID
+    :param annctx: naturalproofs.AnnotatedContext.AnnotatedContext
+    :return: dict {any: (tuple of z3.ExprRef, z3.ExprRef)}
+    """
+    return annctx.get_indexed_axiom_annotation()

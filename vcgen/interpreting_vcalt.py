@@ -1291,7 +1291,7 @@ def cl_check(solver,lemmas,assumptions, obligation):
         else: 
             vc_formula =  Implies(And(*frame_rules,*assumptions), obligation)
         
-        # with open('bst_insert_vc', 'w+') as fh:
+        # with open('vc_formula.log', 'w+') as fh:
         #     fh.write(str(vc_formula))
         #     fh.write('\n\n')
 

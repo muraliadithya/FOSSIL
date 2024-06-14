@@ -1,0 +1,31 @@
+(Var x Loc)
+(Var xp Loc)
+(Var h Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(RecFunction List Loc Bool)
+(RecDef (List x) (ite (= x nil) True
+                      (and (List (next x))
+                           (not (IsMember x (Sp (List (antiSp (next x)))))))))
+
+(Program regression (x) (h))
+(Pre (List x))
+(Post (List xp))
+(assign xp x)
+(assign h x)
+
+(assume (not (= xp nil)))
+(assign xp (next xp))
+(assign (next h) xp)
+
+(assume (not (= xp nil)))
+(assign xp (next xp))
+(assign (next h) xp)
+
+(assume (not (= xp nil)))
+(assign xp (next xp))
+(assign (next h) xp)
+
+(return)

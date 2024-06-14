@@ -1,0 +1,43 @@
+(Var x Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(EqSp (List (Keys)))
+
+(RecFunction List Loc Bool)
+(RecFunction Keys Loc SetInt)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (Keys (next x)) (key x))))
+
+(RecDef (List x) (ite (= x nil) True
+                    (Exists (= y (next x)) (* (= (next x) (next x)) (List y)))
+               ))
+
+(Var y Loc)
+(Var ret Loc)
+(Var tmp Loc)
+
+(Program sll_reverse_helper (x y) (ret))
+(Pre (* (List x) (List y)
+         ))
+(Post (and (List ret) (= (Keys ret) (SetUnion (Old (Keys x)) (Old (Keys y)))) ))
+
+(If (= x nil)
+ Then
+  (assign ret y)
+  (return)
+ Else
+  (assign tmp (next x))
+  (assign (next x) y)
+  (call sll_reverse_helper (tmp x) (ret))
+  (return)
+)
+
+(Program sll_reverse (x) (ret))
+(Pre (List x))
+(Post (and (List ret) (= (Keys ret) (Old (Keys x)))))
+
+(call sll_reverse_helper (x nil) (ret))
+(return)

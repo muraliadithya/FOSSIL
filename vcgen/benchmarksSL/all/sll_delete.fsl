@@ -1,0 +1,43 @@
+(Var x Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(EqSp (List (Keys)))
+
+(RecFunction List Loc Bool)
+(RecFunction Keys Loc SetInt)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (Keys (next x)) (key x))))
+
+(RecDef (List x) (ite (= x nil) True
+                    (Exists (= y (next x)) (* (= (next x) (next x)) (List y)))
+               ))
+
+(Var k Int)
+(Var aux Loc)
+(Var tmp Loc)
+(Var ret Loc)
+
+(Program sll_delete (x k) (ret))
+(Pre (List x))
+(Post (and (List ret) (= (Keys ret) (SetDel (Old (Keys x)) k)) ))
+
+(If (= x nil)
+ Then
+  (assign ret x)
+  (return)
+ Else (If (= (key x) k)
+ Then
+  (assign tmp (next x))
+  (call sll_delete (tmp k) (ret))
+  (free x)
+  (return)
+ Else
+  (assign aux (next x))
+  (call sll_delete (aux k) (tmp))
+  (assign (next x) tmp)
+  (assign ret x)
+  (return)
+))

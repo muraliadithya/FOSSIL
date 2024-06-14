@@ -24,9 +24,6 @@
                     ))
                ))
 
-(lemma (x) (=> (Sorted x) (= (SPKeys x) (SPSorted x))))
-(lemma (x) (=> (Sorted x) (= (Sp (Min x)) (Sp (Sorted x)))))
-
 (lemma (x) (=> (Sorted x) (=> (< k (Min x)) (not (IsMember k (Keys x))))))
 
 (Var ret Bool)

@@ -1,0 +1,86 @@
+(EqSp (BST (Keys Min Max)))
+(Function key   Loc Int)
+(Function left  Loc Loc)
+(Function right Loc Loc)
+
+
+(Var plus_infty Int)
+(Var minus_infty Int)
+
+(RecFunction BST  Loc Bool)
+(RecFunction Keys Loc SetInt)
+(RecFunction Min  Loc Int)
+(RecFunction Max  Loc Int)
+
+(Var x Loc)
+
+(RecDef (Min x) (ite (= x nil) plus_infty
+                (ite (<= (key x) (Min (left x)))
+                  (ite (<= (key x) (Min (right x)))
+                    (key x)
+                    (Min (right x))
+                  )
+                  (ite (<= (Min (left x)) (Min (right x)))
+                    (Min (left x))
+                    (Min (right x))
+                  )
+                )))
+(RecDef (Max x) (ite (= x nil) minus_infty
+                (ite (>= (key x) (Max (left x)))
+                  (ite (>= (key x) (Max (right x)))
+                    (key x)
+                    (Max (right x))
+                  )
+                  (ite (>= (Max (left x)) (Max (right x)))
+                    (Max (left x))
+                    (Max (right x))
+                  )
+                )))
+
+(RecDef (BST x) (ite (= x nil) True
+                     (and (< minus_infty (key x)) (< (key x) plus_infty)  
+                     (BST (left x))  (< (Max (left x)) (key x))
+                          (BST (right x)) (< (key x) (Min (right x)))
+                          (not (IsMember x (Sp (BST (antiSp (left x))))))
+                          (not (IsMember x (Sp (BST (antiSp (right x))))))
+                          (= EmptySetLoc
+                            (SetIntersect (Sp (BST (antiSp (left x))))
+                                          (Sp (BST (antiSp (right x)))))) )))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
+                              (key x))))
+
+(Var k Int)
+(lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))))))
+(lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))))))
+
+(Var ret Bool)
+(Var tmp Loc)
+
+(Program bst_find_rec (x k) (ret))
+(Pre (BST x))
+(Post (and (BST x) (= (Keys x) (Old (Keys x))) (= (Min x) (Old (Min x)))
+           (= (Max x) (Old (Max x))) (= ret (IsMember k (Keys x))) ))
+
+(If (= x nil)
+ Then
+  (assign ret False)
+  (return)
+ Else
+  (If (= k (key x))
+   Then
+    (assign ret True)
+    (return)
+   Else
+    (If (< k (key x))
+     Then
+      (assign tmp (left x))
+      (call bst_find_rec (tmp k) (ret))
+      (return)
+     Else
+      (assign tmp (right x))
+      (call bst_find_rec (tmp k) (ret))
+      (return)
+    )
+  )
+)

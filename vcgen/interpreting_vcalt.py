@@ -34,7 +34,7 @@ with open(logfile, 'w'):
     pass
 
 # --------------------GLOBAL-------------------------------
-vardict = {'nil' : {'z3name': Const('nil', fgsort),'z3type': fgsort,'type': 'Loc', 'counter': None}}                                                        # Dictionary to store variables
+vardict = {'nil' : {'z3name': Const('nil', fgsort),'z3type': fgsort,'type': 'Loc', 'counter': None, 'is_free_var': False}}                                                        # Dictionary to store variables
 funcdict = {}                                                       # Dictionary to store functions
 recdefdict = {}                                                     # Dictionary for the recusive definitions
 freevardict = {'Loc': 0,'SetLoc': 0,'Int': 0,'SetInt': 0,'Bool': 0} # Will add free vars based on max arity of fn. Tracks number so far
@@ -46,6 +46,9 @@ lemma_set = set()                                                   # lemmas to 
 lemma_description = []                                              #
 defaultdict = {'Loc': vardict['nil']['z3name'],'Int': -1 , 'Bool': False  ,'SetLoc': fgsetsort.lattice_bottom,'SetInt': intsetsort.lattice_bottom}
 statesdict = {}
+latest_state = 'initial'
+tracked_vars = set()
+tracked_vars.add('nil')
 modified_vars = fgsetsort.lattice_bottom
 transform = []
 check_side_conditions = 1                                           # default: check all obligations 
@@ -59,7 +62,9 @@ old_ref = 'initial'                                                 # if in_old 
 
 lemmalist = []
 framelist = []
-instantiation_pairs = []
+instantiation_pairs = {}
+dereferencedlist = []
+boundarylist = []
 #-----------------------
 trace = [ vardict['nil']['z3name']]
 pointerdict = {}
@@ -120,7 +125,7 @@ def var_parser(varinfo):
     z3_type = type_parser(input_type)
     if tag == 'Var':
         z3_var = Var(name+'0', z3_type)
-        vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'type': input_type,'counter': 0}
+        vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'type': input_type,'counter': 0, 'is_free_var': False}
         typevardict[input_type].add(name)
 
         # if input_type == 'Loc':
@@ -128,7 +133,7 @@ def var_parser(varinfo):
 
     elif tag == 'Const':
         z3_var = Const(name, z3_type)
-        vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'type': input_type, 'counter': None}
+        vardict[name] = {'z3name': z3_var,'z3type': z3_type, 'type': input_type, 'counter': None, 'is_free_var': False}
         typevardict[input_type].add(name)
     else:
         raise Exception(f'Invalid Var/Const tag {varinfo}')
@@ -158,7 +163,8 @@ def func_parser(funcinfo):
     if no_of_inputs > no_of_freevars_sofar:
         for i in range(no_of_freevars_sofar,no_of_inputs):
             vardict['free_'+type_of_inputs+str(i)] = {'z3name': (Var('free_'+type_of_inputs+str(i), type_parser(type_of_inputs))),
-                                                      'z3type': type_parser(type_of_inputs), 'type': type_of_inputs,'counter': 0}
+                                                      'z3type': type_parser(type_of_inputs), 'type': type_of_inputs,'counter': 0, 
+                                                      'is_free_var': True}
         freevardict[type_of_inputs] = no_of_inputs
 
     # assuming only one input type per function.
@@ -415,7 +421,9 @@ def interpret_assign(iplist, check_obligations = 1):
     global lemma_set
     global transform
     global alloc_set
-    
+
+    global tracked_vars
+    global boundarylist
     # MODES
     # global mode
 
@@ -428,7 +436,6 @@ def interpret_assign(iplist, check_obligations = 1):
         if mode == footprint_mode:
             if isinstance(lhs,str):
                 if len(rhs) == 2:
-                    # MODES ?check_obligations?
                     if rhs[0] in funcdict.keys() and (funcdict[rhs[0]]['input_type'] == 'Loc'):
                         add_to_footprint(rhs[1])
 
@@ -436,14 +443,25 @@ def interpret_assign(iplist, check_obligations = 1):
                 add_to_footprint(lhs[1], extend = 1)
                 obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
                 if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
-                    print(f'Assuming obligations: {iplist}')
+                    print(f'Obligation not proven. Assuming obligations: {iplist}')
         else:
             if isinstance(lhs,str) and isinstance(rhs,str):    
                 pass
             else:                                                   # => lhs or rhs is y.f
-                obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)
+                if mode == testing_mode:    # CHANGED FOOTPRINT   Assuming rhs, lhs can be of only the form f(x), or x.
+                    global dereferencedlist
+                    global boundarylist
+                    global latest_state
+                    if not(isinstance(lhs,str)):
+                            dereferencedlist.append(interpret_ops(lhs[1]))
+                    if not(isinstance(rhs,str)):
+                        if rhs[1] in vardict.keys():
+                            if vardict[rhs[1]]['type'] == 'Loc':
+                                dereferencedlist.append(interpret_ops(rhs[1]))
+
+                obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)    # change to the form in testing_mode above?
                 if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
-                    print(f'Assuming obligations: {iplist}')
+                    print(f'Obligation not proven. Assuming obligations: {iplist}')
 
 
         # if (isinstance(lhs,str) and (lhs in vardict)):    # MODE - changed if statement
@@ -453,9 +471,16 @@ def interpret_assign(iplist, check_obligations = 1):
 
             if mode == manual_mode: # MODES
                 if vardict[lhs]['type'] == 'Loc':
-                    pointer_closure(vardict[lhs]['z3name'])        
+                    pointer_closure(vardict[lhs]['z3name'])      
 
             interpreted_lhs = interpret_ops(lhs)
+
+            if mode == testing_mode:
+                    if vardict[lhs]['type'] == 'Loc':
+                        boundarylist.append(interpreted_lhs)
+                        tracked_vars.add(lhs)
+                        add_instantiation_pairs_support(latest_state, [interpreted_lhs])
+
             return interpreted_lhs==interpreted_rhs
         if lhs[0] in funcdict:  #if mutation
             global modified_vars
@@ -773,6 +798,9 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
                 if is_loc_var(ac_elt):
                     add_to_footprint(ac_elt)
                     # footprint[ac_elt] = z3_ac_elt
+            if mode == testing_mode:
+                if vardict[ac_elt]['type'] =='Loc':
+                    tracked_vars.add(ac_elt)
 
             outputs_of_call[fm_elt] = z3_ac_elt
 
@@ -797,6 +825,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
         else:
             snapshot('before_call_'+str(number_of_function_calls))
+            add_instantiation_pairs_test('before_call_'+str(number_of_function_calls))  # CHANGED
             sp_pre = support(pre_call)
             pre = interpret_ops(pre_call)            
 
@@ -827,6 +856,9 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
             # MODES
             if mode == manual_mode:
+                if elt['output_type'] == 'Loc':
+                    pointerdict[i] = elt['macro']
+            elif mode == testing_mode:
                 if elt['output_type'] == 'Loc':
                     pointerdict[i] = elt['macro']
 
@@ -886,10 +918,19 @@ def interpret_alloc(iplist):
         x = operands[0]
         if isinstance(x,str):
             pass
-        else:   #add exception
+        elif isinstance(x[0],str):  # CHANEGED?
             x = x[0]
+        else:   #add exception
+            raise Exception(f'Bad alloc {iplist}. Alloc should be of the form (alloc x)')
     global alloc_set
     var_update(x)
+    global mode
+    if mode == testing_mode:    #CHANGED FOOTPRINT
+        global dereferencedlist
+        global tracked_vars
+        dereferencedlist.append(vardict[x]['z3name'])
+        if vardict[x]['type'] =='Loc':
+            tracked_vars.add(x)
 
     # MODES
     if mode == manual_mode:
@@ -922,7 +963,7 @@ def interpret_free(iplist, check_obligations = 1):
 
 
     if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
-        print(f'Assuming obligations: {iplist}')
+        print(f'Obligation not proven. Assuming obligations: {iplist}')
     if len(operands) == 1:
         x = operands[0]
         if isinstance(x,str):
@@ -1120,6 +1161,8 @@ def snapshot(state):
     '''Store the current recursive definitions and functions under state'''
 
     global lemmalist
+    global latest_state
+    global tracked_vars
     
     if state in statesdict.keys():
         raise Exception(f'{state} already a snapshot state')
@@ -1130,12 +1173,15 @@ def snapshot(state):
 
     recdefs = {}
     recdef_ids = []
+    support_ids = []
     for name, elt in recdefdict.items():
         recdefs[name] = elt['z3name']
         
         if name in support_map2.keys():
             pass
         else:
+            if name[:2] == 'SP':
+                support_ids.append(elt['id'])
             recdef_ids.append(elt['id'])    # CHANGED   Note: |recdefs|>=|recdef_ids|. recdef_ids = ids for the unique recdefs
     for name in support_map2.keys():
         recdefs[name] = (recdefdict[support_map2[name]])['z3name']
@@ -1144,16 +1190,18 @@ def snapshot(state):
     locs = []
     for name, elt in vardict.items():
         vars[name] = elt['z3name']
-        if elt['type'] == 'Loc':
-            locs.append(elt['z3name'])
+        if elt['type'] == 'Loc' and (not (elt['is_free_var'])):
+            if name in tracked_vars:
+                locs.append(elt['z3name'])
 
     lemma_id_list = []  # CHANGED
     for i in lemmalist:
         lemma_id_list.append(i)
 
     statesdict[state] = {'funcs': funcs, 'recdefs': recdefs, 'vars': vars,
-                          'recdef_ids': recdef_ids ,  'lemma_ids': lemma_id_list, 'loc_vars': locs}   
+                          'recdef_ids': recdef_ids ,  'lemma_ids': lemma_id_list, 'loc_vars': locs, 'support_ids': support_ids}   
     # CHANGED
+    latest_state = state
 
 
 def cl_check(solver,lemmas,assumptions, obligation):
@@ -1182,12 +1230,11 @@ def cl_check(solver,lemmas,assumptions, obligation):
             solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation))
 
     else:
-        # trace1 = trace+[statesdict['initial']['vars']['x']]
-        # trace1.append(   statesdict['initial']['funcs']['left'](statesdict['initial']['vars']['x']))
-        # trace = list(set(trace1))
-        # print('cl-->', len(trace))
         if mode == manual_mode:
             np_solver.options.terms_to_instantiate = trace
+        elif mode == testing_mode:
+            global instantiation_pairs
+            np_solver.options.terms_to_instantiate = instantiation_pairs.items()
 
 
         # if len(frame_rules) == 0:
@@ -1279,6 +1326,8 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
                             ,s1[name](*fv_used) == s2[name](*fv_used))
                 # recdef_frame = Implies( Not(Or(*[IsMember(melt, s1['SP'+name](*fv_used)) for melt in modified_set])), s1[name](*fv_used) == s2[name](*fv_used))               
                 recdef_ax = AddAxiom((*fv_used,), recdef_frame)
+                if mode == testing_mode:    
+                    framelist.append(recdef_ax) # CHANGED
 
                 if ('SP' + name) in support_map2.keys():    # CHANGED
                     pass
@@ -1287,12 +1336,13 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
                                 ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
                     # support_frame = Implies(Not(Or(*[IsMember(melt, s1['SP'+name](*fv_used)) for melt in modified_set])),s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
                     support_ax = AddAxiom((*fv_used,), support_frame)   # CHANGED
+                    if mode == testing_mode:    
+                        framelist.append(support_ax) # CHANGED
 
-                if mode == testing_mode:    
-                    framelist.append(recdef_ax) # CHANGED
-                    framelist.append(support_ax)
     if mode == testing_mode:
+        global instantiation_pairs
         add_instantiation_pairs(state2)
+        framelist = []
 
 
 def replace_var(the_map, iplist ):
@@ -1348,11 +1398,11 @@ def pointer_closure(var):
     #     trace.append(f(var))
 
 
-def current_vars():
-    varset = ()
-    for i in vardict:
-        varset.add(vardict[i]['z3name'])
-    return varset
+# def tracked_vars():
+#     varset = ()
+#     for i in vardict:
+#         varset.add(vardict[i]['z3name'])
+#     return varset
 
 
 
@@ -1481,8 +1531,8 @@ def vc(user_input, aux_mode = depth2_mode):
     global frame_rules
 
     start = time.time()
-    # nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))
-    nc_uip = ml_to_sl(remove_comments(user_input))
+    nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))
+    # nc_uip = ml_to_sl(remove_comments(user_input))
     code_line = [create_input(i) for i in nc_uip]
     # return 'done parse'
     print('done creating input list')
@@ -1496,6 +1546,9 @@ def vc(user_input, aux_mode = depth2_mode):
     global has_mutated
     global support_map
     global support_map2
+    global tracked_vars
+
+    global instantiation_pairs
 
     # support_map2 = {'SPKeys': 'SPBST', 'SPMin': 'SPBST', 'SPMax': 'SPBST'}
     # support_map2 = {'SPBST': 'SPKeys', 'SPMin': 'SPKeys', 'SPMax': 'SPKeys'}
@@ -1534,10 +1587,10 @@ def vc(user_input, aux_mode = depth2_mode):
             store_inputvars(i)
             
         elif tag == 'Pre':
-            #+++++++
-            snapshot('initial')
-            if mode == testing_mode:    # CHANGED
-                add_instantiation_pairs('initial')
+            # #+++++++
+            # snapshot('initial')
+            # if mode == testing_mode:    # CHANGED         Commented. Added in later in the Pre block
+            #     add_instantiation_pairs_init('initial')
 
 
             # MODES
@@ -1552,6 +1605,8 @@ def vc(user_input, aux_mode = depth2_mode):
                 pre_tag = 0
 
             else:
+                if mode == testing_mode:
+                    tracked_vars = tracked_vars.union(get_loc_vars_in_formula(i[1]))
                 precond = interpret_ops(i[1])
 
                 if mode == manual_mode:
@@ -1563,6 +1618,10 @@ def vc(user_input, aux_mode = depth2_mode):
 
                 alloc_set = support(i[1])
                 transform.append(precond)
+            #+++++++
+            snapshot('initial')
+            if mode == testing_mode:    # CHANGED
+                add_instantiation_pairs_init('initial')
 
 
         elif tag[-4:] == 'Post':
@@ -1596,7 +1655,7 @@ def vc(user_input, aux_mode = depth2_mode):
                 sp_postcond = support(i[1])
                 snapshot('final')
                 if final_frame == 0:
-                    add_instantiation_pairs('final')    # CHANGED - if final_frame == 1, then does this update during frame rule stuff 
+                    add_instantiation_pairs_test('final')    # CHANGED - if final_frame == 1, then does this update during frame rule stuff 
 
 
         elif tag == 'RecDef':
@@ -1657,8 +1716,8 @@ def vc(user_input, aux_mode = depth2_mode):
         elif tag == 'call':
             transform.append(function_call(i, check_side_conditions))
         elif tag == ':side-conditions':
-            # check_side_conditions = side_conditions_update(i)
-            check_side_conditions = 0
+            check_side_conditions = side_conditions_update(i)
+            # check_side_conditions = 0   # CHANGED DEBUG
 
         else:        
             raise Exception (f'Invalid tag in code {i}')
@@ -1675,7 +1734,7 @@ def vc(user_input, aux_mode = depth2_mode):
     print('Time elapsed:', end-start)
     print('checking validity...')
 
-
+    # print(instantiation_pairs)
 
     if mode == manual_mode:
         for fgelt in get_foreground_terms(postcond, default_annctx):
@@ -1685,8 +1744,17 @@ def vc(user_input, aux_mode = depth2_mode):
             else:
                 pointer_closure(fgelt)
 
-    # rp = 2
+    # rp = 2  # CHANGED DEBUG
 
+    # lent = 0
+    # for (x,y) in instantiation_pairs:
+    #     lent = lent + len(y)
+    # print('number of instantiations = ', lent)
+    # print('derefd', len(dereferencedlist))
+    # print('instpairs')
+    # for (x,y) in instantiation_pairs:
+    #     print(len(y))
+    # print('numax:',len(instantiation_pairs))
  
     if rp == 0:
         ret = cl_check(np_solver,lemma_set,transform,And(postcond,sp_postcond == alloc_set))
@@ -1700,12 +1768,14 @@ def vc(user_input, aux_mode = depth2_mode):
     print('---------------')
     print('Number of VCs generated for BB:', number_of_vcs)
     print('---------------')
+
     if ret == True:
         print('goal is valid')
     else:
         print('goal not proven')
     end = time.time()
     print('Time elapsed:', end-start)
+
 
 
 
@@ -1716,21 +1786,114 @@ def add_instantiation_pairs(state):
     """
     global framelist
     global instantiation_pairs
+    global dereferencedlist
 
     id_list = []
-    for i in framelist:
+    # for i in framelist:
+    #     id_list.append(i)
+    for i in statesdict[state]['recdef_ids']:
         id_list.append(i)
+    for i in statesdict[state]['lemma_ids']:
+        id_list.append(i)
+
+    loc_set = set(statesdict[state]['loc_vars'])    # Current vars
+    extended_loc = set()
+    for f in pointerdict.values():
+        for i in loc_set:
+            extended_loc.add(f(i))
+    extended_loc = loc_set.union(extended_loc)  # current vars + pointers
+    loc_and_deref = loc_set.union(set(dereferencedlist))
+    for i in id_list:
+        instantiation_pairs[i] =  loc_and_deref
+        instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)
+    for i in framelist:
+        instantiation_pairs[i] = extended_loc
+    
+    # dereferencedlist = []       # CHANGED FOOTPRINT ....maybe don't?
+
+# [(id, python_set)]
+    
+def add_instantiation_pairs_test(state):
+    """
+    'state' is a key of statesdict. This contains a list of location variables,
+    recdefs, and lemmas.
+    """
+    global framelist
+    global instantiation_pairs
+    global dereferencedlist
+
+    id_list = []
+    # for i in framelist:
+    #     id_list.append(i)
     for i in statesdict[state]['recdef_ids']:
         id_list.append(i)
     for i in statesdict[state]['lemma_ids']:
         id_list.append(i)
 
     loc_set = set(statesdict[state]['loc_vars'])
-
+    extended_loc = set()
+    for f in pointerdict.values():
+        for i in loc_set:
+            extended_loc.add(f(i))
+    extended_loc = loc_set.union(extended_loc)  # current vars + pointers
+    loc_and_deref = loc_set.union(set(dereferencedlist))
     for i in id_list:
-        instantiation_pairs.append((i, loc_set))
+        if i in instantiation_pairs.keys():
+            instantiation_pairs[i] = (instantiation_pairs[i]).union(loc_and_deref)
+            instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)
 
-# [(id, python_set)]
-    
+    # dereferencedlist = []       # CHANGED FOOTPRINT ....maybe don't?
 
 
+def add_instantiation_pairs_init(state):
+    """
+    'state' is a key of statesdict. This contains a list of location variables,
+    recdefs, and lemmas.
+    """
+    global framelist
+    global instantiation_pairs
+    global dereferencedlist
+
+    id_list = []
+    # for i in framelist:
+    #     id_list.append(i)
+    for i in statesdict[state]['recdef_ids']:
+        id_list.append(i)
+    for i in statesdict[state]['lemma_ids']:
+        id_list.append(i)
+
+    loc_set = set(statesdict[state]['loc_vars'])    # Current vars
+    extended_loc = set()
+    for f in pointerdict.values():
+        for i in loc_set:
+            extended_loc.add(f(i))
+    extended_loc = loc_set.union(extended_loc)  # current vars + pointers
+    for i in id_list:
+        instantiation_pairs[i] = extended_loc
+
+
+# def terms_in_formula(formula):
+#     get_foreground_terms(formula)
+
+def add_instantiation_pairs_support(state, vars):
+    global instantiation_pairs
+    support_ids = statesdict[state]['support_ids']
+    for i in support_ids:
+        if i in instantiation_pairs.keys():
+            instantiation_pairs[i] = (instantiation_pairs[i]).union(set(vars))
+
+
+
+
+def get_loc_vars_in_formula(ip):
+    """
+    Given a parsed input as a list (eg: ['next' ['x']]). Return the variable names. (eg: set('x')).
+    """
+    vars_in_formula = set()
+    if isinstance(ip, str):
+        if (ip in vardict.keys()) and (vardict[ip]['type'] == 'Loc'):
+            vars_in_formula.add(ip)
+    else:
+        for i in ip:
+            vars_in_formula = vars_in_formula.union(get_loc_vars_in_formula(i))
+    return vars_in_formula

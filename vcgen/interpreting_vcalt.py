@@ -458,7 +458,7 @@ def interpret_assign(iplist, check_obligations = 1):
                         if rhs[1] in vardict.keys():
                             if vardict[rhs[1]]['type'] == 'Loc':
                                 dereferencedlist.append(interpret_ops(rhs[1]))
-
+            
                 obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)    # change to the form in testing_mode above?
                 if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
                     print(f'Obligation not proven. Assuming obligations: {iplist}')
@@ -825,7 +825,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
 
         else:
             snapshot('before_call_'+str(number_of_function_calls))
-            add_instantiation_pairs_test('before_call_'+str(number_of_function_calls))  # CHANGED
+            add_instantiation_pairs('before_call_'+str(number_of_function_calls), False)  # CHANGED
             sp_pre = support(pre_call)
             pre = interpret_ops(pre_call)            
 
@@ -1322,9 +1322,11 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
                 for j in range(recdefdict[name]['no_inputs']):
                     fv_used.append(vardict['free_' + recdefdict[name]['input_type'] + str(j)]['z3name'])
 
-                recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                # recdef_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                #             ,s1[name](*fv_used) == s2[name](*fv_used))
+                recdef_frame = Implies(SetIntersect(modified_set,s1['SP'+name](*fv_used)) ==  fgsetsort.lattice_bottom
                             ,s1[name](*fv_used) == s2[name](*fv_used))
-                # recdef_frame = Implies( Not(Or(*[IsMember(melt, s1['SP'+name](*fv_used)) for melt in modified_set])), s1[name](*fv_used) == s2[name](*fv_used))               
+                               
                 recdef_ax = AddAxiom((*fv_used,), recdef_frame)
                 if mode == testing_mode:    
                     framelist.append(recdef_ax) # CHANGED
@@ -1332,9 +1334,11 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
                 if ('SP' + name) in support_map2.keys():    # CHANGED
                     pass
                 else: 
-                    support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                    # support_frame = Implies(IsSubset(SetIntersect(modified_set,s1['SP'+name](*fv_used)), fgsetsort.lattice_bottom)
+                    #             ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
+                    support_frame = Implies(SetIntersect(modified_set,s1['SP'+name](*fv_used)) == fgsetsort.lattice_bottom
                                 ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
-                    # support_frame = Implies(Not(Or(*[IsMember(melt, s1['SP'+name](*fv_used)) for melt in modified_set])),s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
+                    
                     support_ax = AddAxiom((*fv_used,), support_frame)   # CHANGED
                     if mode == testing_mode:    
                         framelist.append(support_ax) # CHANGED
@@ -1655,7 +1659,7 @@ def vc(user_input, aux_mode = depth2_mode):
                 sp_postcond = support(i[1])
                 snapshot('final')
                 if final_frame == 0:
-                    add_instantiation_pairs_test('final')    # CHANGED - if final_frame == 1, then does this update during frame rule stuff 
+                    add_instantiation_pairs('final', False)    # CHANGED - if final_frame == 1, then does this update during frame rule stuff 
 
 
         elif tag == 'RecDef':
@@ -1779,7 +1783,7 @@ def vc(user_input, aux_mode = depth2_mode):
 
 
 
-def add_instantiation_pairs(state):
+def add_instantiation_pairs(state, mutated = True):
     """
     'state' is a key of statesdict. This contains a list of location variables,
     recdefs, and lemmas.
@@ -1803,47 +1807,19 @@ def add_instantiation_pairs(state):
             extended_loc.add(f(i))
     extended_loc = loc_set.union(extended_loc)  # current vars + pointers
     loc_and_deref = loc_set.union(set(dereferencedlist))
-    for i in id_list:
-        instantiation_pairs[i] =  loc_and_deref
-        instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)
-    for i in framelist:
-        instantiation_pairs[i] = extended_loc
-    
-    # dereferencedlist = []       # CHANGED FOOTPRINT ....maybe don't?
-
-# [(id, python_set)]
-    
-def add_instantiation_pairs_test(state):
-    """
-    'state' is a key of statesdict. This contains a list of location variables,
-    recdefs, and lemmas.
-    """
-    global framelist
-    global instantiation_pairs
-    global dereferencedlist
-
-    id_list = []
-    # for i in framelist:
-    #     id_list.append(i)
-    for i in statesdict[state]['recdef_ids']:
-        id_list.append(i)
-    for i in statesdict[state]['lemma_ids']:
-        id_list.append(i)
-
-    loc_set = set(statesdict[state]['loc_vars'])
-    extended_loc = set()
-    for f in pointerdict.values():
-        for i in loc_set:
-            extended_loc.add(f(i))
-    extended_loc = loc_set.union(extended_loc)  # current vars + pointers
-    loc_and_deref = loc_set.union(set(dereferencedlist))
-    for i in id_list:
-        if i in instantiation_pairs.keys():
-            instantiation_pairs[i] = (instantiation_pairs[i]).union(loc_and_deref)
+    if mutated:
+        for i in id_list:
+            instantiation_pairs[i] =  loc_and_deref
             instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)
-
-    # dereferencedlist = []       # CHANGED FOOTPRINT ....maybe don't?
-
+        for i in framelist:
+            instantiation_pairs[i] = extended_loc
+    else:
+        for i in id_list:
+            if i in instantiation_pairs.keys():
+                instantiation_pairs[i] = (instantiation_pairs[i]).union(loc_and_deref)
+                # instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)        
+    
+    # dereferencedlist = []       # CHANGED FOOTPRINT ....
 
 def add_instantiation_pairs_init(state):
     """

@@ -8,9 +8,9 @@ from BBGenerator import BBGenerator
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('program')
-
-
-argparser.add_argument('mode')
+argparser.add_argument('--lang', choices=['sl', 'fl'], default='sl', help='Language of annotations (SL or FL)')
+argparser.add_argument('--mode', type=int, choices=[0, 1, 2, 3, 4], default=0, help='[EXPERTS ONLY] Solver mode for reasoning with VCs')
+argparser.add_argument('--one-vc', dest='one_vc', action='store_true', help='[EXPERTS ONLY] Solving option to process all VCs including side conditions with one SMT call')
 
 
 args = argparser.parse_args()
@@ -32,7 +32,7 @@ for prog in progfiles:
     print('****************************************************************************************')
     progname = os.path.basename(prog).split('.fsl')[0]
     prog_folder = os.path.join(tmp_folder, progname)
-    os.makedirs(prog_folder,exist_ok=True)
+    os.makedirs(prog_folder, exist_ok=True)
 
     with open(prog, 'r') as f:
         progtext = f.read()
@@ -50,7 +50,10 @@ for prog in progfiles:
     # Run each bb
     for i in range(len(parsed_bbs)):
         bb_file = os.path.join(prog_folder,f'bb{str(i+1)}.fsl')
-        subprocess.run(['python','runbb.py', f'{bb_file}', args.mode])
+        callargs = ['python', 'runbb.py', f'{bb_file}', f'--lang={args.lang}', f'--mode={args.mode}']
+        if args.one_vc:
+            callargs += ['--one-vc']
+        subprocess.run(callargs)
 
     end = time.time()
     time_taken = end-start

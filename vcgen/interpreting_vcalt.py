@@ -1546,7 +1546,7 @@ def instantiate_footprint(manual_set = None, use_extended = 0, in_frame = 0):
 #----------------------------
 
 
-def vc(user_input, aux_mode = depth2_mode, logic = 0, onthefly = True):
+def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=True):
     '''VC generation'''
     # MODE Use variable 'mode' to switch between the modes
     global mode
@@ -1558,7 +1558,7 @@ def vc(user_input, aux_mode = depth2_mode, logic = 0, onthefly = True):
     on_the_fly = onthefly
 
     start = time.time()
-    if logic == 0:
+    if logic == 'sl':
         nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))
     else:
         nc_uip = ml_to_sl(remove_comments(user_input))

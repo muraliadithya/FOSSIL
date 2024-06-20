@@ -19,30 +19,40 @@ Expr <<= Thing ^ (LParen + Expr[1, ...] + RParen)
 @Expr.set_parse_action
 def parse_expr(string, loc, tokens):
     if len(tokens) == 1:
-        return tokens[0]
+        return tokens[0], tokens[0]
     else:
         expr = list(tokens)
+        if expr[0][0] == 'or':
+            raise ValueError("or operand not supported in SL")
         # and operator
-        if expr[0] == 'and':
-            assert len(expr) == 3, "and operator can only have two operands"
-            return_expr = expr + [['=', ['Sp', expr[1]], ['Sp', expr[2]]]]
+        if expr[0][0] == 'and':
+            #assert len(expr) == 3, "and operator can only have two operands"
+            formulas = [subexpr[0] for subexpr in expr[1:]]
+            sp_formulas = [subexpr[1] for subexpr in expr[1:]]
+            return_expr = ['and'] + formulas + [['='] + list(['Sp', subexpr] for subexpr in sp_formulas)]
+            sp_expr = expr[1]
         # separating conjunction operator
-        elif expr[0] == '*':
+        elif expr[0][0] == '*':
             assert len(expr) == 3, "separating conjunction operator can only have two operands"
-            return_expr = ['and'] + expr[1:] + [['=', 'EmptySetLoc', ['SetIntersect', ['Sp', expr[1]], ['Sp', expr[2]]]]]
+            formulas = [subexpr[0] for subexpr in expr[1:]]
+            sp_formulas = [subexpr[1] for subexpr in expr[1:]]
+            return_expr = ['and'] + formulas + [['=', 'EmptySetLoc', ['SetIntersect', ['Sp', sp_formulas[0]], ['Sp', sp_formulas[1]]]]]
+            sp_expr = ['and'] + expr[1:]
         # existential quantifier
-        elif expr[0] == 'Exists':
+        elif expr[0][0] == 'Exists':
             assert len(expr) == 3, "Existential quantifier handles only one variable, has a guard ((= exists_var expr)), and a body"
-            guard_expr = expr[1]
-            assert guard_expr[0] == '=' and type(guard_expr[1]) == str
+            guard_expr = expr[1][0]
+            assert guard_expr[0][0] == '=' and type(guard_expr[1]) == str
             guard_var = guard_expr[1]
             guard_term = guard_expr[2]
             clouded_guard_term = ['antiSp', guard_term]
-            existential_matrix = expr[2]
-            return_expr = substitute(existential_matrix, guard_var, clouded_guard_term)
+            existential_matrix = expr[2][0]
+            return_expr = ['and', ['=', guard_term, guard_term], substitute(existential_matrix, guard_var, clouded_guard_term)]
+            sp_expr = return_expr
         else:
-            return_expr = expr
-        return [return_expr]
+            return_expr = [subexpr[0] for subexpr in expr]
+            sp_expr = [subexpr[1] for subexpr in expr]
+        return return_expr, sp_expr
 
 
 
@@ -66,16 +76,16 @@ def expr_to_str(expr_as_list):
 
 def sl_to_fl(slexpr_str):
     flexpr = Expr.parse_string(slexpr_str)
-    assert len(flexpr) == 1
+    #assert len(flexpr) == 1
     #print(flexpr)
-    flexpr_str = expr_to_str(flexpr[0])
+    flexpr_str = expr_to_str(flexpr[0][0])
     return flexpr_str
 
 # This is how you test one string at a time
-#sltest = """(ite (= x nil) True
-#                        (Exists (= y (next x))  (* (= (next x) (next x)) (List y)))
-#                    )"""
-#print("Original:\n", sltest, "\n", "Translated:\n",sl_to_fl(sltest), "\n\n")
+sltest = """(ite (= x nil) True
+                       (Exists (= y (next x))  (* (= (next x) (next x)) (List y)))
+                   )"""
+print("Original:\n", sltest, "\n", "Translated:\n", sl_to_fl(sltest), "\n\n")
 
 
 # This is how you test several strings

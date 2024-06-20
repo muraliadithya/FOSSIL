@@ -40,14 +40,16 @@ def parse_expr(string, loc, tokens):
             sp_expr = ['and'] + formulas
         # existential quantifier
         elif expr[0][0] == 'Exists':
-            assert len(expr) == 3, "Existential quantifier handles only one variable, has a guard ((= exists_var expr)), and a body"
-            guard_expr = expr[1][0]
-            assert guard_expr[0] == '=' and type(guard_expr[1]) == str
-            guard_var = guard_expr[1]
-            guard_term = guard_expr[2]
-            clouded_guard_term = ['antiSp', guard_term]
-            existential_matrix = expr[2][0]
-            return_expr = ['and', ['=', guard_term, guard_term], substitute(existential_matrix, guard_var, clouded_guard_term)]
+            # assert len(expr) == 3, "Existential quantifier handles only one variable, has a guard ((= exists_var expr)), and a body"
+            guard_exprs = [subexpr[0] for subexpr in expr[1:-1]]
+            assert all(subexpr[0] == '=' and type(subexpr[1]) == str for subexpr in guard_exprs)
+            guard_var_term_pairs = [(subexpr[1], subexpr[2]) for subexpr in guard_exprs]
+            existential_matrix = expr[-1][0]
+            for guard_var, guard_term in guard_var_term_pairs:
+                existential_matrix = substitute(existential_matrix, guard_var, ['antiSp', guard_term])
+            return_expr = ['and'] \
+                          + [['=', guard_term, guard_term] for _, guard_term in guard_var_term_pairs] \
+                          + [existential_matrix]
             sp_expr = return_expr
         else:
             return_expr = [subexpr[0] for subexpr in expr]
@@ -86,22 +88,22 @@ sltest = """(ite (= x nil) True
                        (Exists (= y (next x))  (* (= (next x) (next x)) (List y)))
                    )"""
 
-# sltest = """
-# (Post (and (BST ret)
-#   (= (Keys ret) (SetAdd (Old (Keys x)) k))
-#   (ite (< k (Old (Min x))) (= (Min ret) k) (= (Min ret) (Old (Min x))))
-#   (ite (> k (Old (Max x))) (= (Max ret) k) (= (Max ret) (Old (Max x))))
-#   (= (BH ret) (Old (BH x)))
-#     (Exists (= lft (left ret)) (Exists (= rht (right ret)) (Exists (= cl (color lft)) (Exists (= cr (color rht))
-#       (* (ite (Black ret) True (ite (Old (Black x))
-#                         (and (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )
-#                         (or (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )
-#                         ))
-#           (and (= (BH lft) (BH rht)) (* (RBT lft) (RBT rht)))
-#       )
-#     ))))
-# ))
-# """
+sltest = """
+(Post (and (BST ret)
+  (= (Keys ret) (SetAdd (Old (Keys x)) k))
+  (ite (< k (Old (Min x))) (= (Min ret) k) (= (Min ret) (Old (Min x))))
+  (ite (> k (Old (Max x))) (= (Max ret) k) (= (Max ret) (Old (Max x))))
+  (= (BH ret) (Old (BH x)))
+    (Exists (= lft (left ret)) (= rht (right ret)) (= cl (color lft)) (= cr (color rht))
+      (* (ite (Black ret) True (ite (Old (Black x))
+                        (and (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )
+                        (or (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )
+                        ))
+          (and (= (BH lft) (BH rht)) (* (RBT lft) (RBT rht)))
+      )
+    )
+))
+"""
 
 print("Original:\n", sltest, "\n", "Translated:\n", sl_to_fl(sltest), "\n\n")
 

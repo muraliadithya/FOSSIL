@@ -22,8 +22,8 @@ def parse_expr(string, loc, tokens):
         return tokens[0], tokens[0]
     else:
         expr = list(tokens)
-        if expr[0][0] == 'or':
-            raise ValueError("or operand not supported in SL")
+        # if expr[0][0] == 'or':
+        #     raise ValueError("or operand not supported in SL")
         # and operator
         if expr[0][0] == 'and':
             #assert len(expr) == 3, "and operator can only have two operands"
@@ -85,8 +85,27 @@ def sl_to_fl(slexpr_str):
 sltest = """(ite (= x nil) True
                        (Exists (= y (next x))  (* (= (next x) (next x)) (List y)))
                    )"""
+
+sltest = """
+(Post (and (BST ret) 
+  (= (Keys ret) (SetAdd (Old (Keys x)) k)) 
+  (ite (< k (Old (Min x))) (= (Min ret) k) (= (Min ret) (Old (Min x)))) 
+  (ite (> k (Old (Max x))) (= (Max ret) k) (= (Max ret) (Old (Max x)))) 
+  (= (BH ret) (Old (BH x))) 
+    (Exists (= lft (left ret)) (Exists (= rht (right ret)) (Exists (= cl (color lft)) (Exists (= cr (color rht)) 
+      (* (ite (Black ret) True (ite (Old (Black x)) 
+                        (and (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )
+                        (or (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )                     
+                        )) 
+          (and (= (BH lft) (BH rht)) (* (RBT lft) (RBT rht)))
+      )
+    ))))
+))
+"""
+
 print("Original:\n", sltest, "\n", "Translated:\n", sl_to_fl(sltest), "\n\n")
 
+exit(0)
 
 # This is how you test several strings
 sltests = [

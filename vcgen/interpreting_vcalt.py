@@ -70,7 +70,9 @@ trace = [ vardict['nil']['z3name']]
 pointerdict = {}
 all_locs = []
 
+final_vc = []
 
+on_the_fly = False
 
 np_solver = NPSolver()
 depth = 2
@@ -101,6 +103,7 @@ number_of_vcs = 0
 
 testing_mode = 4 # CHANGED
 
+instantiation_pairs_support = {}    # CHAGED SUPPORT
 
 def type_parser(input_type):
     '''Going from strings to types:'''
@@ -460,7 +463,7 @@ def interpret_assign(iplist, check_obligations = 1):
                                 dereferencedlist.append(interpret_ops(rhs[1]))
             
                 obligation = IsSubset(SetUnion(support(lhs),support(rhs)),alloc_set)    # change to the form in testing_mode above?
-                if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
+                if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):  # CHANGED SUPPORT
                     print(f'Obligation not proven. Assuming obligations: {iplist}')
 
 
@@ -838,7 +841,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
         # obligation checking
         obligation = And(pre, IsSubset(sp_pre,alloc_set))
 
-        if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform, obligation)):
+        if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform, obligation)):   # CHANGED SUPPORT ? two checks?
             print(f'Could not prove the preconditions for the function call: {iplist}')
             # exit(0)
         old_alloc_rem = SetDifference(alloc_set,sp_pre)
@@ -909,7 +912,7 @@ def function_call(iplist, check_obligations = 1):  # add a var update somewhere 
             to_assume = interpret_ops(post_call) 
 
         in_call = 0 
-        return And(pre, to_assume,IsSubset(SetIntersect(old_alloc_rem,sp_post),fgsetsort.lattice_bottom))    
+        return And(pre, to_assume, SetIntersect(old_alloc_rem,sp_post) == fgsetsort.lattice_bottom)  # CHANGED  
     raise Exception('Bad function call')
     
 def interpret_alloc(iplist):
@@ -962,7 +965,7 @@ def interpret_free(iplist, check_obligations = 1):
     obligation =  IsMember(interpret_ops(operands), alloc_set) 
 
 
-    if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):
+    if (check_obligations == 1) and not(cl_check(np_solver,lemma_set,transform,obligation)):    # CHANGED SUPPORT
         print(f'Obligation not proven. Assuming obligations: {iplist}')
     if len(operands) == 1:
         x = operands[0]
@@ -1025,7 +1028,7 @@ def instantiate_lemma():        #this 'instantiates' a lemma
             if mode == footprint_mode:
                 add_fo_abstraction((argtuple, body))
             elif mode == testing_mode:
-                lemma_id = AddAxiom(argtuple, body)
+                lemma_id = AddAxiom(argtuple, simplify(body))
                 lemmalist.append(lemma_id)
             else:
                 lemma_set.add((argtuple,body))
@@ -1204,13 +1207,15 @@ def snapshot(state):
     latest_state = state
 
 
-def cl_check(solver,lemmas,assumptions, obligation):
+def cl_check(solver,lemmas,assumptions, obligation, is_final = False): # CHANGED SUPPORT
     '''Return true if the solver can prove the obligation with the set of assumptions and lemmas'''
     global number_of_vcs
     global trace
     number_of_vcs = number_of_vcs +1
-    global frame_rules  
+    global frame_rules
 
+    global on_the_fly
+    support_only = False
     # MODES
     if mode == footprint_mode:
         np_solver.options.terms_to_instantiate = set()
@@ -1234,25 +1239,40 @@ def cl_check(solver,lemmas,assumptions, obligation):
             np_solver.options.terms_to_instantiate = trace
         elif mode == testing_mode:
             global instantiation_pairs
-            np_solver.options.terms_to_instantiate = instantiation_pairs.items()
+            # if support_only:
+            #     global instantiation_pairs_support
+            #     np_solver.options.terms_to_instantiate = instantiation_pairs_support.items()
+            # else:
+            if on_the_fly:
+                np_solver.options.terms_to_instantiate = instantiation_pairs.items()
 
-
-        # if len(frame_rules) == 0:
-        #     solution = solver.solve(Implies(And(*assumptions), obligation),lemmas)
-        # else: 
-        #     solution = solver.solve(Implies(And(*frame_rules,*assumptions), obligation),lemmas)
         
         if len(frame_rules) == 0:
             vc_formula = Implies(And(*assumptions), obligation)
         else: 
             vc_formula =  Implies(And(*frame_rules,*assumptions), obligation)
 
-        solution = solver.solve(vc_formula, lemmas)
+        if on_the_fly:
+            solution = solver.solve(simplify(vc_formula), lemmas)
+            if not solution.if_sat:
+                return True
+            return False
+        else:
+            global final_vc
+            final_vc.append(simplify(vc_formula))
+            if is_final:
+                np_solver.options.terms_to_instantiate = instantiation_pairs.items()
+                solution = solver.solve(simplify(And(*final_vc)), lemmas)
+                if not solution.if_sat:
+                    return True
+                return False
+            return True
 
 
-    if not solution.if_sat:
-        return True
-    return False
+
+    # if not solution.if_sat:
+    #     return True
+    # return False
 
 def prove_lemma( solver, body, lemmas):
     '''Prove lemma
@@ -1327,7 +1347,7 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
                 recdef_frame = Implies(SetIntersect(modified_set,s1['SP'+name](*fv_used)) ==  fgsetsort.lattice_bottom
                             ,s1[name](*fv_used) == s2[name](*fv_used))
                                
-                recdef_ax = AddAxiom((*fv_used,), recdef_frame)
+                recdef_ax = AddAxiom((*fv_used,), simplify(recdef_frame))
                 if mode == testing_mode:    
                     framelist.append(recdef_ax) # CHANGED
 
@@ -1339,7 +1359,7 @@ def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bott
                     support_frame = Implies(SetIntersect(modified_set,s1['SP'+name](*fv_used)) == fgsetsort.lattice_bottom
                                 ,s1['SP'+name](*fv_used) == s2['SP'+name](*fv_used))
                     
-                    support_ax = AddAxiom((*fv_used,), support_frame)   # CHANGED
+                    support_ax = AddAxiom((*fv_used,), simplify(support_frame))   # CHANGED
                     if mode == testing_mode:    
                         framelist.append(support_ax) # CHANGED
 
@@ -1526,17 +1546,22 @@ def instantiate_footprint(manual_set = None, use_extended = 0, in_frame = 0):
 #----------------------------
 
 
-def vc(user_input, aux_mode = depth2_mode):
+def vc(user_input, aux_mode = depth2_mode, logic = 0, onthefly = True):
     '''VC generation'''
     # MODE Use variable 'mode' to switch between the modes
     global mode
     mode = 4
 
     global frame_rules
+    global on_the_fly
+
+    on_the_fly = onthefly
 
     start = time.time()
-    nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))
-    # nc_uip = ml_to_sl(remove_comments(user_input))
+    if logic == 0:
+        nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))
+    else:
+        nc_uip = ml_to_sl(remove_comments(user_input))
     code_line = [create_input(i) for i in nc_uip]
     # return 'done parse'
     print('done creating input list')
@@ -1761,11 +1786,11 @@ def vc(user_input, aux_mode = depth2_mode):
     # print('numax:',len(instantiation_pairs))
  
     if rp == 0:
-        ret = cl_check(np_solver,lemma_set,transform,And(postcond,sp_postcond == alloc_set))
+        ret = cl_check(np_solver,lemma_set,transform,And(postcond,sp_postcond == alloc_set), True)
     elif rp == 1:
-        ret = cl_check(np_solver,lemma_set,transform, And(postcond, IsSubset(sp_postcond,alloc_set)))
+        ret = cl_check(np_solver,lemma_set,transform, And(postcond, IsSubset(sp_postcond,alloc_set)), True)
     elif rp == 2:
-        ret = cl_check(np_solver,lemma_set,transform,postcond)
+        ret = cl_check(np_solver,lemma_set,transform,postcond, True)
     else:
         raise Exception ('No postcondition given')
     global number_of_vcs
@@ -1790,6 +1815,7 @@ def add_instantiation_pairs(state, mutated = True):
     """
     global framelist
     global instantiation_pairs
+    # global instantiation_pairs_support  # CHANGED SUPPORT
     global dereferencedlist
 
     id_list = []
@@ -1811,12 +1837,17 @@ def add_instantiation_pairs(state, mutated = True):
         for i in id_list:
             instantiation_pairs[i] =  loc_and_deref
             instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)
+            # if i in statesdict[state]['support_ids']:   # CHANGED SUPPORT
+            #     instantiation_pairs_support[i] = instantiation_pairs[i]
         for i in framelist:
             instantiation_pairs[i] = extended_loc
+            # instantiation_pairs_support[i] = instantiation_pairs[i]
     else:
         for i in id_list:
             if i in instantiation_pairs.keys():
                 instantiation_pairs[i] = (instantiation_pairs[i]).union(loc_and_deref)
+                # if i in statesdict[state]['support_ids']:   # CHANGED SUPPORT
+                #     instantiation_pairs_support[i] = instantiation_pairs[i]
                 # instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)        
     
     # dereferencedlist = []       # CHANGED FOOTPRINT ....
@@ -1828,6 +1859,7 @@ def add_instantiation_pairs_init(state):
     """
     global framelist
     global instantiation_pairs
+    # global instantiation_pairs_support  # CHANGED SUPPORT
     global dereferencedlist
 
     id_list = []
@@ -1846,17 +1878,20 @@ def add_instantiation_pairs_init(state):
     extended_loc = loc_set.union(extended_loc)  # current vars + pointers
     for i in id_list:
         instantiation_pairs[i] = extended_loc
-
+        # if i in statesdict[state]['support_ids']:   # CHANGED SUPPORT
+        #     instantiation_pairs_support[i] = instantiation_pairs[i]
 
 # def terms_in_formula(formula):
 #     get_foreground_terms(formula)
 
 def add_instantiation_pairs_support(state, vars):
     global instantiation_pairs
+    # global  instantiation_pairs_support     # CHANGED SUPPORT
     support_ids = statesdict[state]['support_ids']
     for i in support_ids:
         if i in instantiation_pairs.keys():
             instantiation_pairs[i] = (instantiation_pairs[i]).union(set(vars))
+            # instantiation_pairs_support[i] = instantiation_pairs[i]                 # CHANGED SUPPORT
 
 
 

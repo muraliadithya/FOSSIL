@@ -30,14 +30,14 @@ def parse_expr(string, loc, tokens):
             formulas = [subexpr[0] for subexpr in expr[1:]]
             sp_formulas = [subexpr[1] for subexpr in expr[1:]]
             return_expr = ['and'] + formulas + [['='] + list(['Sp', subexpr] for subexpr in sp_formulas)]
-            sp_expr = expr[1]
+            sp_expr = formulas[0]
         # separating conjunction operator
         elif expr[0][0] == '*':
             assert len(expr) == 3, "separating conjunction operator can only have two operands"
             formulas = [subexpr[0] for subexpr in expr[1:]]
             sp_formulas = [subexpr[1] for subexpr in expr[1:]]
             return_expr = ['and'] + formulas + [['=', 'EmptySetLoc', ['SetIntersect', ['Sp', sp_formulas[0]], ['Sp', sp_formulas[1]]]]]
-            sp_expr = ['and'] + expr[1:]
+            sp_expr = ['and'] + formulas
         # existential quantifier
         elif expr[0][0] == 'Exists':
             assert len(expr) == 3, "Existential quantifier handles only one variable, has a guard ((= exists_var expr)), and a body"
@@ -51,7 +51,7 @@ def parse_expr(string, loc, tokens):
             sp_expr = return_expr
         else:
             return_expr = [subexpr[0] for subexpr in expr]
-            sp_expr = [subexpr[1] for subexpr in expr]
+            sp_expr = return_expr
         return return_expr, sp_expr
 
 

@@ -92,7 +92,8 @@ class NPSolver:
 
         # Compute the set of fo abstractions that are going to be instantiated, according to mode
 
-        if options.instantiation_mode == proveroptions.manual_instantiation_finegrained:
+        if options.instantiation_mode in {proveroptions.manual_instantiation_finegrained,
+                                          proveroptions.manual_instantiation_finegrained_underapprox}:
             # We need an indexed set of abstractions as there will be terms specified explicitly for each one
             indexed_recdefs = get_recursive_definition_indexed(None, alldefs=True, annctx=self.annctx)
             fo_abstractions = {idx: recdef_unfoldings[value[0]] for idx, value in indexed_recdefs.items()}
@@ -136,17 +137,40 @@ class NPSolver:
             return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
                               instantiation_terms=instantiation_terms, options=options)
 
-        if options.instantiation_mode == proveroptions.manual_instantiation_finegrained:
+        if options.instantiation_mode in {proveroptions.manual_instantiation_finegrained,
+                                          proveroptions.manual_instantiation_finegrained_underapprox}:
             pairs_to_instantiate = options.terms_to_instantiate
             instantiations = set()
             for idx, terms in pairs_to_instantiate:
                 instantiations.update(instantiate(fo_abstractions[idx], terms))
-                instantiation_terms.update(terms)
+            # Underapproximate using recdef applications in the appropriate mode
+            if options.instantiation_mode == proveroptions.manual_instantiation_finegrained_underapprox:
+                underapprox_instantiations = set()
+                instantiations_index = {idx: (inst, get_recdef_applications(inst, annctx=self.annctx))
+                                        for idx, inst in enumerate(instantiations)}
+                progress = True
+                current_applications = get_recdef_applications(neg_goal, annctx=self.annctx)
+                while progress:
+                    progress = False
+                    del_set = set()
+                    for idx, (inst, recdef_applications) in instantiations_index.items():
+                        if any(any(arg in current_applications.get(rd, []) for arg in arguments)
+                               for rd, arguments in recdef_applications.items()):
+                            progress = True
+                            underapprox_instantiations.add(inst)
+                            current_applications = {rd: current_applications.get(rd, []) + recdef_applications.get(rd, [])
+                                                    for rd in list(current_applications.keys()) + list(recdef_applications.keys())}
+                            del_set.add(idx)
+                    for idx in del_set:
+                        del instantiations_index[idx]
+                instantiations = underapprox_instantiations
             if instantiations != set():
                 extraction_terms = extraction_terms.union(get_foreground_terms(instantiations, annctx=self.annctx))
             z3solver.add(instantiations)
             if_sat = _solver_check(z3solver)
             model = z3solver.model() if if_sat else None
+            # Instantiation and extraction terms makes no sense
+            # because not every single thing is instantiated on every term
             return NPSolution(if_sat=if_sat, model=model, extraction_terms=extraction_terms,
                               instantiation_terms=instantiation_terms, options=options)
 

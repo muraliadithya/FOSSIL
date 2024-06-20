@@ -34,3 +34,4 @@ depth_one_stratified_instantiation = 4
 lean_instantiation = 5
 lean_instantiation_with_lemmas = 6
 manual_instantiation_finegrained = 7
+manual_instantiation_finegrained_underapprox = 8

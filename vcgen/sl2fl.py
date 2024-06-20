@@ -26,7 +26,7 @@ def parse_expr(string, loc, tokens):
         #     raise ValueError("or operand not supported in SL")
         # and operator
         if expr[0][0] == 'and':
-            #assert len(expr) == 3, "and operator can only have two operands"
+            # assert len(expr) == 3, "and operator can only have two operands"
             formulas = [subexpr[0] for subexpr in expr[1:]]
             sp_formulas = [subexpr[1] for subexpr in expr[1:]]
             return_expr = ['and'] + formulas + [['='] + list(['Sp', subexpr] for subexpr in sp_formulas)]
@@ -42,7 +42,7 @@ def parse_expr(string, loc, tokens):
         elif expr[0][0] == 'Exists':
             assert len(expr) == 3, "Existential quantifier handles only one variable, has a guard ((= exists_var expr)), and a body"
             guard_expr = expr[1][0]
-            assert guard_expr[0][0] == '=' and type(guard_expr[1]) == str
+            assert guard_expr[0] == '=' and type(guard_expr[1]) == str
             guard_var = guard_expr[1]
             guard_term = guard_expr[2]
             clouded_guard_term = ['antiSp', guard_term]
@@ -86,22 +86,22 @@ sltest = """(ite (= x nil) True
                        (Exists (= y (next x))  (* (= (next x) (next x)) (List y)))
                    )"""
 
-sltest = """
-(Post (and (BST ret) 
-  (= (Keys ret) (SetAdd (Old (Keys x)) k)) 
-  (ite (< k (Old (Min x))) (= (Min ret) k) (= (Min ret) (Old (Min x)))) 
-  (ite (> k (Old (Max x))) (= (Max ret) k) (= (Max ret) (Old (Max x)))) 
-  (= (BH ret) (Old (BH x))) 
-    (Exists (= lft (left ret)) (Exists (= rht (right ret)) (Exists (= cl (color lft)) (Exists (= cr (color rht)) 
-      (* (ite (Black ret) True (ite (Old (Black x)) 
-                        (and (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )
-                        (or (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )                     
-                        )) 
-          (and (= (BH lft) (BH rht)) (* (RBT lft) (RBT rht)))
-      )
-    ))))
-))
-"""
+# sltest = """
+# (Post (and (BST ret)
+#   (= (Keys ret) (SetAdd (Old (Keys x)) k))
+#   (ite (< k (Old (Min x))) (= (Min ret) k) (= (Min ret) (Old (Min x))))
+#   (ite (> k (Old (Max x))) (= (Max ret) k) (= (Max ret) (Old (Max x))))
+#   (= (BH ret) (Old (BH x)))
+#     (Exists (= lft (left ret)) (Exists (= rht (right ret)) (Exists (= cl (color lft)) (Exists (= cr (color rht))
+#       (* (ite (Black ret) True (ite (Old (Black x))
+#                         (and (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )
+#                         (or (ite (= lft nil) True (= cl (IntConst 1))) (ite (= rht nil) True (= cr (IntConst 1))) )
+#                         ))
+#           (and (= (BH lft) (BH rht)) (* (RBT lft) (RBT rht)))
+#       )
+#     ))))
+# ))
+# """
 
 print("Original:\n", sltest, "\n", "Translated:\n", sl_to_fl(sltest), "\n\n")
 

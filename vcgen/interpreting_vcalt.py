@@ -386,7 +386,12 @@ def interpret_eq(iplist):
     if len(operands) == 2:
         op1, op2 = operands
         return (interpret_ops(op1)==interpret_ops(op2))
-    raise Exception(f'Equality check(=) takes two arguments. Given {iplist}')
+    elif len(operands) > 2:
+        x= []
+        for i in range(len(operands)-1):
+            x.append(interpret_ops(operands[i]) == interpret_ops(operands[i+1]))
+        return (And(*x))
+    raise Exception(f'Equality check(=) takes >=two arguments. Given {iplist}')
 
 def interpret_ite(iplist):
     '''(ite A B C) -> If(A,B,C)'''
@@ -1546,7 +1551,7 @@ def instantiate_footprint(manual_set = None, use_extended = 0, in_frame = 0):
 #----------------------------
 
 
-def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=True):
+def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False):
     '''VC generation'''
     # MODE Use variable 'mode' to switch between the modes
     global mode

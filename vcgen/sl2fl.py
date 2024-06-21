@@ -16,12 +16,26 @@ Expr = pp.Forward()
 Expr <<= Thing ^ (LParen + Expr[1, ...] + RParen)
 
 
+### Attribute to denote propagation of emptyset ###
+emptysetprop = True
+supportless_operators = ['IntConst','True','False','Old','EmptySetLoc']
+union_operators = ['=', 'not', 'or', 'and', '*', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'SetDel','SetIntersect', 'SetUnion', '<', '>', '>=', '<=', '+', '-']
+
+
 @Expr.set_parse_action
 def parse_expr(string, loc, tokens):
     if len(tokens) == 1:
-        return tokens[0], tokens[0]
+        return tokens[0], tokens[0], True
     else:
         expr = list(tokens)
+        # Handle the empty set propagation bit separately
+        if expr[0][2] in supportless_operators:
+            emp_prop = True
+        elif expr[0][2] in union_operators:
+            subexpr_props = [subexpr[2] for subexpr in expr[1:]]
+            emp_prop = all(subexpr_props)
+        else:
+            emp_prop = False
         # if expr[0][0] == 'or':
         #     raise ValueError("or operand not supported in SL")
         # and operator
@@ -36,7 +50,11 @@ def parse_expr(string, loc, tokens):
             assert len(expr) == 3, "separating conjunction operator can only have two operands"
             formulas = [subexpr[0] for subexpr in expr[1:]]
             sp_formulas = [subexpr[1] for subexpr in expr[1:]]
-            return_expr = ['and'] + formulas + [['=', 'EmptySetLoc', ['SetIntersect', ['Sp', sp_formulas[0]], ['Sp', sp_formulas[1]]]]]
+            subexpr_props = [subexpr[2] for subexpr in expr[1:]]
+            if any(subexpr_props) and emptysetprop:
+                return_expr = ['and'] + formulas
+            else:
+                return_expr = ['and'] + formulas + [['=', 'EmptySetLoc', ['SetIntersect', ['Sp', sp_formulas[0]], ['Sp', sp_formulas[1]]]]]
             sp_expr = ['and'] + formulas
         # existential quantifier
         elif expr[0][0] == 'Exists':
@@ -54,8 +72,7 @@ def parse_expr(string, loc, tokens):
         else:
             return_expr = [subexpr[0] for subexpr in expr]
             sp_expr = return_expr
-        return return_expr, sp_expr
-
+        return return_expr, sp_expr, emp_prop
 
 
 def substitute(expr_as_list, old, new):
@@ -65,7 +82,7 @@ def substitute(expr_as_list, old, new):
         else:
             return expr_as_list
     else:
-        return [substitute(subexpr, old, new) for subexpr in expr_as_list] 
+        return [substitute(subexpr, old, new) for subexpr in expr_as_list]
 
 
 def expr_to_str(expr_as_list):
@@ -104,8 +121,10 @@ def sl_to_fl(slexpr_str):
 # ))
 # """
 #
-# # print("Original:\n", sltest2, "\n", "Translated:\n", sl_to_fl(sltest2), "\n\n")
+# sltest3 = """(* EmptySetLoc EmptySetLoc)"""
 #
+# print("Original:\n", sltest3, "\n", "Translated:\n", sl_to_fl(sltest3), "\n\n")
+
 # # This is how you test several strings
 # sltests = [
 # # Should print out the same expr as there are no sl-specific operators

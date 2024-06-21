@@ -31,11 +31,7 @@
                     ))
                ))
 
-(lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
-(lemma (x) (=> (Sorted x) (= (Sp (List x)) (Sp (Sorted x)))))
-(lemma (x) (=> (Sorted x) (= (Sp (Min x)) (Sp (Sorted x)))))
-(lemma (x) (=> (List x) (= (Sp (Keys x)) (Sp (List x)))))
-(lemma (x) (=> (List x) (= (Sp (Min x)) (Sp (List x)))))
+
 (lemma (x) (=> (Sorted x) (List x)))
 
 (Var y Loc)

@@ -77,7 +77,7 @@
 (Program insertlist (l k) (ret))
 (Pre (* (and (Sorted l) (<= k (MinList l)))
       (and (< k plus_infty) (< minus_infty k)) ))
-(Post (and (and (Sorted ret) (= (ListKeys ret) (SetAdd (Old (ListKeys l)) k)))
+(Post (and (Sorted ret) (= (ListKeys ret) (SetAdd (Old (ListKeys l)) k))
            (= (MinList ret) k) ))
 
 (alloc ret)
@@ -88,11 +88,12 @@
 
 (Program tree2list (t l) (ret))
 (Pre (and (* (BST t) (Sorted l)) (<= (MaxTree t) (MinList l)) ))
-(Post (* (and (BST t) (and (= (TreeKeys t) (Old (TreeKeys t)))
-                   (and (= (MinTree t) (Old (MinTree t)))
-                   (= (MaxTree t) (Old (MaxTree t))) )))
-          (and (Sorted ret) (and (= (ListKeys ret) (SetUnion (Old (TreeKeys t)) (Old (ListKeys l))))
-          (ite (= t nil) (= (MinList ret) (Old (MinList l))) (= (MinList ret) (Old (MinTree t))))  ))
+(Post (* (and (BST t) 
+              (= (TreeKeys t) (Old (TreeKeys t)))
+              (= (MinTree t) (Old (MinTree t)))
+              (= (MaxTree t) (Old (MaxTree t))) )
+          (and (Sorted ret) (= (ListKeys ret) (SetUnion (Old (TreeKeys t)) (Old (ListKeys l))))
+          (ite (= t nil) (= (MinList ret) (Old (MinList l))) (= (MinList ret) (Old (MinTree t))))  )
 ))
 
 (If (= t nil)

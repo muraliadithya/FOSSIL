@@ -24,9 +24,6 @@
                     ))
                ))
 
-(lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
-(lemma (x) (=> (Sorted x) (= (Sp (Min x)) (Sp (Sorted x)))))
-
 (Var ret Loc)
 (Var tmp Loc)
 

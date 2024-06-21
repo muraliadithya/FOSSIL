@@ -26,8 +26,6 @@
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                       (SetAdd (CKys (next x) x) (key x))))
 
-(lemma (x y) (=> (Lseg x y) (= (Sp (Lseg x y)) (Sp (CKys x y)))))
-
 (Var k Int)
 (Var tmp Loc)
 (Var ret Loc)

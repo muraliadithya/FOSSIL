@@ -30,8 +30,6 @@
                ))
 
 (lemma (x) (=> (Sorted x) (<= (Min x) plus_infty)))
-(lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
-(lemma (x) (=> (List x)   (= (Sp (Keys x)) (Sp (List x)))))
 
 (Var fst Loc)
 (Var snd Loc)
@@ -96,7 +94,7 @@
     (return)
    Else
     (assign snd (next x))
-    (assign aux (next (next x)))
+    (assign aux (next snd))
     (call sll_split (aux) (rt1 rt2))
     (assign (next fst) rt1)
     (assign (next snd) rt2)

@@ -60,11 +60,13 @@
   (ite (= x nil) EmptySetInt
     (SetAdd (SetUnion (Priorities (left x)) (Priorities (right x))) (prio x))))
 
-(RecDef (Treap x) (ite (= x nil) True (Exists (= lft (left x)) (Exists (= rht (right x)) (Exists (= k (key x)) (Exists (= p (prio x))
-                                (* (and (< k plus_infty) (and (< minus_infty k) (and (< p plus_infty) (< minus_infty p)))) 
-                                    (* (* (= k (key x)) (and (Treap lft) (and (< (MaxKey lft) k) (< (MaxPrio lft) p)))) 
-                                                        (and (Treap rht) (and (< k (MinKey rht)) (< (MaxPrio rht) p)))))
+(RecDef (Treap x) (ite (= x nil) True (and (Exists (= lft (left x)) (Exists (= rht (right x)) (Exists (= k (key x)) (Exists (= p (prio x))
+                                (* (and (< k plus_infty) (and (< minus_infty k) (and (< p plus_infty) (< minus_infty p))))
+                                    (* (= k (key x)) (* (and (Treap lft) (and (< (MaxKey lft) k) (< (MaxPrio lft) p)))
+                                                        (and (Treap rht) (and (< k (MinKey rht)) (< (MaxPrio rht) p))))))
                                     ))))
+                                    (= EmptySetInt (SetIntersect (Priorities (left x)) (Priorities (right x))))
+)
                 ))
 
 

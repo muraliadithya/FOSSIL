@@ -27,16 +27,16 @@
                          (+ (Size (left x)) (Size (right x))))))
 (RecDef (LSize x) (Size (left x)))
 (RecDef (RSize x) (Size (right x)))
-(RecDef (InTree x) (ite (= x nil) True (Exists (= k (key x)) 
+(RecDef (InTree x) (ite (= x nil) True (Exists (= k (key x)) (= rht (right x)) (= lft (left x))
                                           (* (= k (key x)) (*
-                                              (Exists (= lft (left x)) (ite (= lft nil) True 
+                                                  (ite (= lft nil) True 
                                                     (and (InTree lft) (Exists (= lft2 (left lft)) 
                                                             (* (InTree lft2) (= k (+ (+ (Order lft) (RSize lft)) (IntConst 1))))))
-                                                                        ))
-                                              (Exists (= rht (right x)) (ite (= rht nil) True 
+                                                                        )
+                                              (ite (= rht nil) True 
                                                     (and (InTree rht) (Exists (= rht2 (right rht)) 
                                                             (* (InTree rht2) (= (Order rht) (+ (+ k (LSize rht)) (IntConst 1))))))
-                                                                        ))
+                                                                        )
                                                           
                                                           )
                                           )
@@ -57,13 +57,13 @@
 (Program inorder (x n) (ret))
 (Pre (Tree x))
 (Post (* (= ret (+ n (Old (Size x)))) 
-          (and (InTree x) (and (= (Size x) (Old (Size x)))
-              (ite (= x nil) True (* (= (Order x) (+ n (Old (LSize x)))) (*
-                                    (Exists (= lft (left x)) (= (Size lft) (Old (Size lft))))
-                                    (Exists (= rht (right x)) (= (Size rht) (Old (Size rht))))
-                                  ))
+          (and (InTree x) (= (Size x) (Old (Size x)))
+              (ite (= x nil) True (Exists (= lft (left x)) (= rht (right x)) 
+                                  (* (= (Order x) (+ n (Old (LSize x)))) 
+                                    (*  (= (Size lft) (Old (Size lft))) (= (Size rht) (Old (Size rht)))))
+                                  )
               )
-          ))
+          )
 ))
 
 (If (= x nil)

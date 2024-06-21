@@ -25,7 +25,6 @@
                ))
 
 (lemma (x) (=> (Sorted x) (=> (not (= x nil)) (<= (key x) plus_infty))))
-(lemma (x) (=> (Sorted x) (= (Sp (Keys x)) (Sp (Sorted x)))))
 
 (Var ret Loc)
 (Var tmp Loc)

@@ -18,7 +18,7 @@ Expr <<= Thing ^ (LParen + Expr[1, ...] + RParen)
 
 ### Attribute to denote propagation of emptyset ###
 emptysetprop = True
-supportless_operators = ['IntConst','True','False','Old','EmptySetLoc']
+supportless_operators = ['IntConst','True','False','Old','EmptySetLoc', 'antiSp']
 union_operators = ['=', 'not', 'or', 'and', '*', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'SetDel','SetIntersect', 'SetUnion', '<', '>', '>=', '<=', '+', '-']
 
 
@@ -29,9 +29,9 @@ def parse_expr(string, loc, tokens):
     else:
         expr = list(tokens)
         # Handle the empty set propagation bit separately
-        if expr[0][2] in supportless_operators:
+        if expr[0][0] in supportless_operators:
             emp_prop = True
-        elif expr[0][2] in union_operators:
+        elif expr[0][0] in union_operators:
             subexpr_props = [subexpr[2] for subexpr in expr[1:]]
             emp_prop = all(subexpr_props)
         else:
@@ -122,8 +122,21 @@ def sl_to_fl(slexpr_str):
 # """
 #
 # sltest3 = """(* EmptySetLoc EmptySetLoc)"""
+
+# sltest4 = """
+#  (ite (= x nil) True
+#                     (Exists (= nxt (next x)) (Exists (= k (key x))
+#                     (* (< k plus_infty) (*
+#                       (= k (key x)) (and (Sorted nxt) (<= k (Min nxt)))))
+#                     ))
+#                )
+# """
 #
-# print("Original:\n", sltest3, "\n", "Translated:\n", sl_to_fl(sltest3), "\n\n")
+# sltest5 = """
+# (* (< k plus_infty) (= k (key x)))
+# """
+#
+# print("Original:\n", sltest4, "\n", "Translated:\n", sl_to_fl(sltest4), "\n\n")
 
 # # This is how you test several strings
 # sltests = [

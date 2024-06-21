@@ -57,13 +57,13 @@
 (Program inorder (x n) (ret))
 (Pre (Tree x))
 (Post (* (= ret (+ n (Old (Size x)))) 
-          (and (InTree x) (and (= (Size x) (Old (Size x)))
+          (and (InTree x) (= (Size x) (Old (Size x)))
               (ite (= x nil) True (* (= (Order x) (+ n (Old (LSize x)))) (*
                                     (Exists (= lft (left x)) (= (Size lft) (Old (Size lft))))
                                     (Exists (= rht (right x)) (= (Size rht) (Old (Size rht))))
                                   ))
               )
-          ))
+          )
 ))
 
 (If (= x nil)

@@ -1,5 +1,5 @@
 import pyparsing as pp
-
+pp.ParserElement.enablePackrat()
 
 
 # from BBGenerator import BBGenerator

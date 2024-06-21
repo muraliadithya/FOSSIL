@@ -33,7 +33,7 @@ FrontEnd := Decls Lemmas [ProgDecl PreCondition PostCondition Program]^+
 
 
 import pyparsing as pp
-
+pp.ParserElement.enablePackrat()
 
 """
 The parsing happens in two phases. The first phase collects the programs appearing in the input and collects their

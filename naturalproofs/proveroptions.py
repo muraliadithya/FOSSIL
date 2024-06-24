@@ -16,12 +16,19 @@ class Options:
     only serve to provide additional relationships between terms that are already tracked.  
     instantiation, but lemmas provide further relationships between these terms.  
     - depth: number of rounds for which quantifier instantiation is performed  
-    - terms_to_instantiate: when mode=manual, use only this set of terms to do instantiations  
+    - terms_to_instantiate: when mode=manual, use only this set of terms to do instantiations
+    - smt_solver: choice of smt solver to handle the query.
+                  Currently only supported for quantified_instantiation mode
+    - logfile: name and path of file to output a log
+               what the log is will depend on the mode. Currently only supported for quantified_instantiation
+               The file contains an smt query.
     """
     def __init__(self):
         self.instantiation_mode = bounded_depth
         self.depth = 1
         self.terms_to_instantiate = None
+        self.smt_solver = z_three
+        self.logfile = None
 
 
 # Defined constants for options
@@ -35,3 +42,10 @@ lean_instantiation = 5
 lean_instantiation_with_lemmas = 6
 manual_instantiation_finegrained = 7
 manual_instantiation_finegrained_underapprox = 8
+quantified_reasoning = 9
+
+
+# smt_solver
+z_three = 'z3'
+cvc_four = 'cvc4'
+cvc_five = 'cvc5'

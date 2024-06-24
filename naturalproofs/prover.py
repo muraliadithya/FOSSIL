@@ -3,6 +3,7 @@
 import warnings
 
 import z3
+import subprocess
 
 from naturalproofs.AnnotatedContext import default_annctx
 from naturalproofs.decl_api import get_recursive_definition, get_recursive_definition_indexed, \
@@ -124,7 +125,39 @@ class NPSolver:
         instantiation_terms = set()
 
         # Instantiate and check for provability according to options
-        # Handle manual instantiation modes first
+        # Handle explicit call to an external binary first
+        if options.instantiation_mode == proveroptions.quantified_reasoning:
+            quantified_formulas = [z3.ForAll(list(params), body) for params, body in fo_abstractions]
+            for qf in quantified_formulas:
+                z3solver.add(qf)
+            # No need to add the negated goal as it is already added to the solver
+            with open(options.logfile, 'w') as fh:
+                fh.write(z3solver.sexpr())
+                fh.write("\n(check-sat)\n")
+            smt_solver = options.smt_solver
+            if smt_solver == proveroptions.z_three:
+                solver_proc = 'z3'
+            elif smt_solver == proveroptions.cvc_four:
+                solver_proc = 'cvc4 --lang=smt2'
+            elif smt_solver == proveroptions.cvc_five:
+                solver_proc = 'cvc5'
+            else:
+                raise ValueError(f'Solver type {smt_solver} unsupported')
+            proc = subprocess.Popen('{} {}'.format(solver_proc, options.logfile),
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    shell=True, universal_newlines=True)
+            out, err = proc.communicate()
+            # Convert output to string
+            out, err = str(out).strip(), str(err)
+            if not out:
+                raise Exception(f'Solver returned error: {err}')
+            else:
+                if_sat = True if out == 'sat' else False
+                return NPSolution(if_sat=if_sat, model=None, extraction_terms=None,
+                                  instantiation_terms=None, options=None)
+
+
+        # Handle manual instantiation modes next
         if options.instantiation_mode == proveroptions.manual_instantiation:
             terms_to_instantiate = options.terms_to_instantiate
             instantiations = instantiate(fo_abstractions, terms_to_instantiate)

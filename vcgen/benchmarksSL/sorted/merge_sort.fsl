@@ -29,7 +29,6 @@
                     ))
                ))
 
-(lemma (x) (=> (Sorted x) (<= (Min x) plus_infty)))
 
 (Var fst Loc)
 (Var snd Loc)

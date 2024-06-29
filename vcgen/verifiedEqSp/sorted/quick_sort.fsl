@@ -27,14 +27,10 @@
                            (not (IsMember x (Sp (Sorted (antiSp (next x))))))
                            (<= (key x) (Min (next x))))))
 
-(RecFunction NonNil Loc Bool)
-(RecDef (NonNil x) (not (= x nil)))
-
-(lemma (x) (=> (Sorted x) (=> (not (= x nil)) (< (key x) plus_infty))))
 
 (Var y Loc)
 (Var z Loc)
-(lemma (x y) (=> (NonNil x) (=> (<= (Max x) (Min y)) (<= (Min x) (Min y)))))
+
 
 (Var cur Loc)
 (Var pivot Int)

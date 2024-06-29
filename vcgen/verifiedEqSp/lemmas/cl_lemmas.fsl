@@ -1,0 +1,47 @@
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(EqSp (Lseg (CKys)) (Circ (Keys)))
+
+(RecFunction Lseg Loc Loc Bool)
+(RecFunction Circ Loc Bool)
+(RecFunction CKys Loc Loc SetInt)
+(RecFunction Keys Loc SetInt)
+
+(Var x Loc)
+(Var y Loc)
+
+(RecDef (Lseg x y) (ite (= x y) True
+                   (ite (= x nil) False
+                        (and (Lseg (next x) y)
+                             (not (IsMember x (Sp (Lseg (antiSp (next x)) y)))) ))))
+(RecDef (Circ x) (ite (= x nil) True
+                 (and (Lseg (next x) x)
+                      (not (IsMember x (Sp (Lseg (antiSp (next x)) (antiSp x))))) )))
+
+(RecDef (CKys x y) (ite (= x y) EmptySetInt
+                        (SetAdd (CKys (next x) y) (key x))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (CKys (next x) x) (key x))))
+
+
+(Var k Int)
+(Var tmp Loc)
+(Var ret Loc)
+
+(Program lemma1 (x y) (ret))
+(Pre (Lseg x y))
+(Post (not (IsMember y (Sp (Lseg x y)))))
+(If (= x y)
+Then
+     (return)
+Else
+     (If (= x nil)
+     Then
+          (return)
+     Else
+          (assign tmp (next x) )
+          (call lemma1  (tmp y) (ret))
+          (return)
+ )
+)

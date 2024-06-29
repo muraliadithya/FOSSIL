@@ -5,18 +5,13 @@
 
 (EqSp (Keys (MinKey MaxKey MaxPrio Treap Priorities)))
 
-(RecFunction Keys       Loc SetInt)
 
+(RecFunction Keys       Loc SetInt)
 (RecFunction MinKey  Loc Int)
 (RecFunction MaxKey  Loc Int)
 (RecFunction MaxPrio Loc Int)
-
 (RecFunction Treap      Loc Bool)
 (RecFunction Priorities Loc SetInt)
-
-
-
-
 
 (Var x Loc)
 (Var plus_infty Int)
@@ -58,7 +53,7 @@
   (ite (= x nil) True
     (and (< minus_infty (key x)) (< (key x) plus_infty)
     (< minus_infty (prio x)) (< (prio x) plus_infty)
-        (Treap (left x))  (< (MaxKey (left x)) (key x))  (< (MaxPrio (left x)) (prio x))
+    (Treap (left x))  (< (MaxKey (left x)) (key x))  (< (MaxPrio (left x)) (prio x))
          (Treap (right x)) (< (key x) (MinKey (right x))) (< (MaxPrio (right x)) (prio x))
          (= EmptySetInt (SetIntersect (Priorities (left x)) (Priorities (right x))))
          (not (IsMember x (Sp (Treap (antiSp (left x))))))
@@ -75,38 +70,64 @@
     (SetAdd (SetUnion (Priorities (left x)) (Priorities (right x))) (prio x))))
 
 (Var k Int)
-(Var ret Bool)
-(Var aux Loc)
+(Var p Int)
+(Var ret Loc)
+(Var lft Loc)
+(Var rht Loc)
 
-(lemma (x) (=> (Treap x) (=> (< k (MinKey x)) (not (IsMember k (Keys x))))))
-(lemma (x) (=> (Treap x) (=> (> k (MaxKey x)) (not (IsMember k (Keys x))))))
 
-(Program treap_find_rec (x k) (ret))
-(Pre (and (Treap x) (< minus_infty k) (< k plus_infty)) )
-(Post (and (Treap x) (= ret (IsMember k (Keys x)))
-           (= (Keys x) (Old (Keys x))) (= (Priorities x) (Old (Priorities x)))
-           (= (MinKey x) (Old (MinKey x))) (= (MaxKey x) (Old (MaxKey x)))
-           (= (MaxPrio x) (Old (MaxPrio x))) ))
+(Program lemma3 (x) (ret))
+(Pre (Treap x))
+(Post (and (Treap x) (Treap ret) (=> (not (= x nil)) (= (MaxPrio x) (prio x)))))
+(assume (not (= x nil)))
+(assign lft (left x))
+(assign rht (right x))
+(call lemma3 (lft) (ret))
+(assign ret (lft))
+(call lemma3 (rht) (ret))
+(return)
 
+
+
+(Program lemma1 (x k) (ret))
+(Pre (Treap x))
+(Post (=> (< k (MinKey x)) (not (IsMember k (Keys x)))))
 (If (= x nil)
- Then
-  (assign ret False)
-  (return)
- Else
-  (If (= k (key x))
-   Then
-    (assign ret True)
-    (return)
-   Else
-    (If (< k (key x))
-     Then
-      (assign aux (left x))
-      (call treap_find_rec (aux k) (ret))
-      (return)
-     Else
-      (assign aux (right x))
-      (call treap_find_rec (aux k) (ret))
-      (return)
-    )
-  )
+Then
+(return)
+Else
+(assign lft (left x))
+(assign rht (right x))
+(call lemma1 (lft k) (ret))
+(call lemma1 (rht k) (ret))
+(return)
+)
+
+(Program lemma2 (x p) (ret))
+(Pre (Treap x))
+(Post (=> (> p (MaxPrio x)) (not (IsMember p (Priorities x)))))
+(If (= x nil)
+Then
+(return)
+Else
+(assign lft (left x))
+(assign rht (right x))
+(call lemma2 (lft p) (ret))
+(call lemma2 (rht p) (ret))
+(return)
+)
+
+
+(Program lemma4 (x k) (ret))
+(Pre (Treap x))
+(Post (=> (> k (MaxKey x)) (not (IsMember k (Keys x)))))
+(If (= x nil)
+Then
+(return)
+Else
+(assign lft (left x))
+(assign rht (right x))
+(call lemma4 (lft k) (ret))
+(call lemma4 (rht k) (ret))
+(return)
 )

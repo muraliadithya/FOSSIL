@@ -13,8 +13,6 @@
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                       (SetAdd (Keys (next x)) (key x))))
 
-(lemma (x) (=> (List x) (= (Sp (Keys x)) (Sp (List x)))))
-
 (Var k Int)
 (Var aux Loc)
 (Var tmp Loc)

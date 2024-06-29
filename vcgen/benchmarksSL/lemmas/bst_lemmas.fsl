@@ -8,9 +8,10 @@
 (RecFunction Keys Loc SetInt)
 (RecFunction Min  Loc Int)
 (RecFunction Max  Loc Int)
-
 (Var plus_infty Int)
 (Var minus_infty Int)
+
+
 
 (Var x Loc)
 (Var lft Loc)
@@ -52,49 +53,33 @@
                       (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
                               (key x))))
 
-(lemma (x) (=> (and (BST x) (> (Min x) k)) (not (IsMember k (Keys x))) ))
-(lemma (x) (=> (and (BST x) (< (Max x) k)) (not (IsMember k (Keys x))) ))
-
 (Var ret Loc)
-(Var tmp Loc)
-(Var aux Loc)
 
-(Program bst_insert (x k) (ret))
-(Pre (* (and (< k plus_infty) (< minus_infty k)) (BST x) ))
-(Post (and (BST ret) (and (= (Keys ret) (SetAdd (Old (Keys x)) k))
-           (and (ite (< k (Old (Min x))) (= (Min ret) k) (= (Min ret) (Old (Min x))))
-           (ite (> k (Old (Max x))) (= (Max ret) k) (= (Max ret) (Old (Max x))))
-           )))
+
+(Program lemma1 (x k) (ret))
+(Pre (and (BST x) (> (Min x) k)))
+(Post (not (IsMember k (Keys x))))
+(If (= x nil)
+Then
+(return)
+Else
+(assign lft (left x))
+(assign rht (right x))
+(call lemma1 (lft k) (ret))
+(call lemma1 (rht k) (ret))
+(return)
 )
 
+(Program lemma2 (x k) (ret))
+(Pre (and (BST x) (< (Max x) k)))
+(Post (not (IsMember k (Keys x))))
 (If (= x nil)
- Then
-  (alloc ret)
-  (assume (not (= ret nil)))
-  
-  (assign (key ret) k)
-  (assign (left ret) nil)
-  (assign (right ret) nil)
-  (return)
- Else
-  (If (= k (key x))
-   Then
-    (assign ret x)
-    (return)
-   Else
-    (If (< k (key x))
-     Then
-      (assign aux (left x))
-      (call bst_insert (aux k) (tmp))
-      (assign (left x) tmp)
-      (assign ret x)
-      (return)
-     Else
-      (assign aux (right x))
-      (call bst_insert (aux k) (tmp))
-      (assign (right x) tmp)
-      (assign ret x)
-      (return)
-    )
-  )
+Then
+(return)
+Else
+(assign lft (left x))
+(assign rht (right x))
+(call lemma2 (lft k) (ret))
+(call lemma2 (rht k) (ret))
+(return)
 )

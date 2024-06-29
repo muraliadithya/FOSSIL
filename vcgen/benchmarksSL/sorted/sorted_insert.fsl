@@ -7,12 +7,12 @@
 
 (Var plus_infty Int)
 
-(EqSp (Min (List Keys Sorted)))
-(RecFunction Min Loc Int)
-(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
-
-(RecFunction Keys   Loc SetInt)
+(EqSp (Sorted (Min Keys)))
 (RecFunction Sorted Loc Bool)
+(RecFunction Min Loc Int)
+(RecFunction Keys   Loc SetInt)
+
+(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
 
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                  (SetAdd (Keys (next x)) (key x))))

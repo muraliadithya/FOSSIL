@@ -83,7 +83,6 @@
 (Var ret Loc)
 (Var tmp Loc)
 (Var aux Loc)
-
 (Var tmp1 Loc)
 
 (Program rbt_insert_helper (x k) (ret))
@@ -96,11 +95,7 @@
            (ite (Black ret) True
              (ite (Old (Black x)) (and (Black (left ret)) (Black (right ret)))
                 (or (Black (left ret)) (Black (right ret)))))
-           (ite True True
-              (and (= (left  (left  ret)) (left  (left  ret)))
-                   (= (left  (right ret)) (left  (right ret)))
-                   (= (right (left  ret)) (right (left  ret)))
-                   (= (right (right ret)) (right (right ret))))) ))
+                 ))
 
 (If (= x nil)
  Then
@@ -128,7 +123,7 @@
     (If (not (Black (left tmp)))
      Then
       (assign tmp1 (right tmp))
-      (assign (left x) tmp1)
+      (assign (left x) (right tmp))
       (assign (right tmp) x)
       (assign tmp1 (left tmp))
       (assign (color tmp1) (IntConst 1))
@@ -167,7 +162,7 @@
       (assign (color tmp) (IntConst 1))
       (return)
      Else
-      (assign tmp1 (left tmp))
+     (assign tmp1 (left tmp))
       (assign (right x) tmp1)
       (assign (left tmp) x)
       (assign tmp1 (right tmp))

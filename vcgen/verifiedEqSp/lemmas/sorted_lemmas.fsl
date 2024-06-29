@@ -1,0 +1,58 @@
+(Var x   Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(Var plus_infty Int)
+
+(EqSp (Min (Max List Keys Sorted)))
+(RecFunction Min Loc Int)
+(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
+
+(Var minus_infty Int)
+(RecFunction Max Loc Int)
+(RecDef (Max x) (ite (= x nil) minus_infty (ite (> (key x) (Max (next x))) (key x) (Max (next x)))))
+
+(RecFunction List   Loc Bool)
+(RecFunction Keys   Loc SetInt)
+(RecFunction Sorted Loc Bool)
+
+(RecDef (List x) (ite (= x nil) True
+                      (and (< (key x) plus_infty) (< minus_infty (key x)) (List (next x))
+                           (not (IsMember x (Sp (List (antiSp (next x)))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                 (SetAdd (Keys (next x)) (key x))))
+(RecDef (Sorted x) (ite (= x nil) True
+                      (and (< (key x) plus_infty) (< minus_infty (key x)) (Sorted (next x))
+                           (not (IsMember x (Sp (Sorted (antiSp (next x))))))
+                           (<= (key x) (Min (next x))))))
+
+(Var y Loc)
+(Var k Int)
+(Var ret Loc)
+
+
+(Program lemma1 (x) (ret))
+(Pre (Sorted x))
+(Post (=> (< k (Min x)) (not (IsMember k (Keys x)))))
+(If (= x nil)
+Then
+(return)
+Else
+(assign y (next x))
+(call lemma1 (y) (ret))
+(return)
+)
+(return)
+
+(Program lemma2 (x) (ret))
+(Pre (Sorted x))
+(Post (List x))
+(If (= x nil)
+Then
+(return)
+Else
+(assign y (next x))
+(call lemma2 (y) (ret))
+(return)
+)

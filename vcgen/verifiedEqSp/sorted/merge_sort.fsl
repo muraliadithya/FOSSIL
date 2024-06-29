@@ -23,7 +23,6 @@
                            (not (IsMember x (Sp (Sorted (antiSp (next x))))))
                            (<= (key x) (Min (next x))))))
 
-(lemma (x) (=> (Sorted x) (<= (Min x) plus_infty)))
 
 (Var fst Loc)
 (Var snd Loc)

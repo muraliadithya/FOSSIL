@@ -53,8 +53,8 @@
                       (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
                               (key x))))
 
-(lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))))))
-(lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))))))
+(lemma (x) (=> (and (BST x) (> (Min x) k)) (not (IsMember k (Keys x))) ))
+(lemma (x) (=> (and (BST x) (< (Max x) k)) (not (IsMember k (Keys x))) ))
 
 (Var right_left Loc)
 (Var tmp Loc)

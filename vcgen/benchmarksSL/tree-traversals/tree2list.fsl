@@ -58,10 +58,7 @@
                       (SetAdd (SetUnion (TreeKeys (left x)) (TreeKeys (right x)))
                         (key x))))
 
-(lemma (x) (=> (BST x) (=> (and (not (= x nil)) (<= (key x) plus_infty))
-                          (ite (= (left x) nil)
-                            (= (MinTree x) (key x))
-                            (= (MinTree x) (MinTree (left x)))))))
+
 
 (Var t Loc)
 (Var l Loc)

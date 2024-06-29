@@ -37,12 +37,6 @@
                     ))
                ))
 
-(RecFunction NonNil Loc Bool)
-(RecDef (NonNil x) (not (= x nil)))
-
-
-(lemma (x y) (=> (NonNil x) (=> (<= (Max x) (Min y)) (<= (Min x) (Min y)))))
-
 (Var cur Loc)
 (Var pivot Int)
 (Var lpt Loc)

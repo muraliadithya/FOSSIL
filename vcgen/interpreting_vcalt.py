@@ -25,13 +25,13 @@ import time
 immutables = ['=', 'not', 'or', 'and', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'SetDel','SetIntersect', 'SetUnion', '<', '>', '>=', '<=', '+', '-']
 
 #Add logs into vcgen.txt, which will be in the path the code is run on
-logfile = 'logs/vcgen.txt'
-os.makedirs(os.path.dirname(logfile), exist_ok=True)
-with open(logfile, 'w'):
-    pass
-logging.basicConfig(filename=logfile, level=logging.INFO)
-with open(logfile, 'w'):
-    pass
+# logfile  ='C:\\Users\\hrish\\OneDrive\\Documents\\GitHub\\FOSSIL\\vcgen\\logs\\vcgen.txt'
+
+# # logfile = '\\logs\\vcgen.txt'
+
+# logging.basicConfig(filename=logfile, level=logging.INFO)
+# with open(logfile, 'a+'):
+#     pass
 
 # --------------------GLOBAL-------------------------------
 vardict = {'nil' : {'z3name': Const('nil', fgsort),'z3type': fgsort,'type': 'Loc', 'counter': None, 'is_free_var': False}}                                                        # Dictionary to store variables
@@ -510,7 +510,7 @@ def interpret_assign(iplist, check_obligations = 1):
             if funcdict[func]['output_type'] == 'Loc':
                 pointerdict[func] = funcdict[func]['macro']
 
-            logging.info('Mutation: %s = %s' %(func, new_macro))
+            # logging.info('Mutation: %s = %s' %(func, new_macro))
             global has_mutated
             has_mutated = 1 #indicates recdefs need to be updated. Will do when necessary.
             return None
@@ -551,6 +551,7 @@ def interpret_recdef(iplist):
                     add_fo_abstraction(yval)
             else:
                 return_id = AddRecDefinition(a1,tuple(a2),simplify(a3))
+                # print('RecDef-', a1, a2, simplify(a3), '\n')
                 recdefdict[func_info[0]]['id'] = return_id          # CHANGED
 
 
@@ -1267,7 +1268,13 @@ def cl_check(solver,lemmas,assumptions, obligation, is_final = False): # CHANGED
             final_vc.append(simplify(vc_formula))
             if is_final:
                 np_solver.options.terms_to_instantiate = instantiation_pairs.items()
+                # t1 = time.time()
+                # for i in instantiation_pairs.items():
+                #     print(i,'\n')
+                # exit(0)
                 solution = solver.solve(simplify(And(*final_vc)), lemmas)
+
+                # logging.info('SMT time:' + str(time.time()-t1)+ '\n')
                 if not solution.if_sat:
                     return True
                 return False
@@ -1779,6 +1786,7 @@ def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False):
                 pointer_closure(fgelt)
 
     # rp = 2  # CHANGED DEBUG
+    # set to true for lemma proofs
 
     # lent = 0
     # for (x,y) in instantiation_pairs:

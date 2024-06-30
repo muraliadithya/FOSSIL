@@ -3,8 +3,8 @@
 (Function left  Loc Loc)
 (Function right Loc Loc)
 
-
 (EqSp (Keys (Min Max BST BH RBT)))
+
 
 (RecFunction Keys Loc SetInt)
 (RecFunction Min  Loc Int)
@@ -19,6 +19,9 @@
 (RecFunction RBT  Loc Bool)
 
 (Var x Loc)
+(Var rht Loc)
+(Var lft Loc)
+(Var k Int)
 
 (RecDef (Min x) (ite (= x nil) plus_infty
                 (ite (<= (key x) (Min (left x)))
@@ -52,37 +55,53 @@
                     (ite (< (BH (left x)) (BH (right x)))
                       (BH (right x)) (BH (left x))))))
 
-(RecDef (BST x) (ite (= x nil) True
-                     (and (< minus_infty (key x)) (< (key x) plus_infty)
-                          (BST (left x))  (< (Max (left x)) (key x))
-                          (BST (right x)) (< (key x) (Min (right x)))
-                          (not (IsMember x (Sp (BST (antiSp (left x))))))
-                          (not (IsMember x (Sp (BST (antiSp (right x))))))
-                          (= EmptySetLoc (SetIntersect
-                            (Sp (BST (antiSp (left x))))
-                            (Sp (BST (antiSp (right x)))))) )))
-(RecDef (RBT x) (ite (= x nil) True
-                     (and (BST x) (RBT (left x)) (RBT (right x))
-                          (= (BH (left x)) (BH (right x)))
-                          (ite (Black x) True
-                            (and (Black (left x)) (Black (right x)))) )))
-
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                       (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
                               (key x))))
+
+(RecDef (BST x) (ite (= x nil) True (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
+                                (*  (and (< k plus_infty) (< minus_infty k))
+                                    (* (* (= (key x) (key x)) (and (BST y) (< (Max y) k))) (and (BST z) (< k (Min z)))))
+                          )
+                        )
+                      )
+                ))
+
+(RecDef (RBT x) (ite (= x nil) True
+                  (and  (BST x) (= (BH (left x)) (BH (right x)))
+                                 (Exists (= lft (left x)) (= rht (right x))
+                                    (ite (= lft nil)
+                                          (ite (= rht nil)  
+                                                (* (RBT lft) (RBT rht))
+                                                (Exists (= cr (color rht)) 
+                                                   (* (ite (Black x) True (= cr (IntConst 1))) (* (RBT lft) (RBT rht)))
+                                                  )
+                                          )
+                                          (ite (= rht nil)  
+                                                (Exists (= cl (color lft)) 
+                                                   (* (ite (Black x) True (= cl (IntConst 1))) (* (RBT lft) (RBT rht)))
+                                                  )
+                                                (Exists (= cl (color lft)) (= cr (color rht)) 
+                                                   (* (ite (Black x) True (and (= cl (IntConst 1)) (= cr (IntConst 1)) )) 
+                                                          (* (RBT lft) (RBT rht)))
+                                                  )
+                                          )
+                                    )
+                                 )
+                  )))
+
+(lemma (x) (=> (RBT x) (=> (not (= x nil))
+                          (not (IsMember x (Sp (RBT (antiSp (left x)))))))))
+(lemma (x) (=> (RBT x) (=> (not (= x nil))
+                          (not (IsMember x (Sp (RBT (antiSp (right x)))))))))
+
 (Var ret Loc)
-(Var lft Loc)
-(Var rht Loc)
+(Var y Loc)
 
 (Program lemma1 (x) (ret))
 (Pre (RBT x))
-(Post (and (=> (not (= x nil)) (not (IsMember x (Sp (RBT (antiSp (left x)))))))
-           (=> (not (= x nil)) (not (IsMember x (Sp (RBT (antiSp (right x)))))))
-           (=> (not (= x nil)) (= (left x) (left x)))
+(Post (ite (= x nil) True (Exists (= lft (left x)) (= rht (right x))
+(* (= (key x) (key x)) (* (RBT rht) (RBT lft)))
+)
 ))
-(assume (not (= x nil)))
-(assign lft (left x))
-(assign rht (right x))
-(call lemma1 (lft) (ret))
-(call lemma1 (rht) (ret))
 (return)

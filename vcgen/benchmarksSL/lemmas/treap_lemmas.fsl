@@ -5,7 +5,6 @@
 
 (EqSp (Keys (MinKey MaxKey MaxPrio Treap Priorities)))
 
-
 (RecFunction Keys       Loc SetInt)
 (RecFunction MinKey  Loc Int)
 (RecFunction MaxKey  Loc Int)
@@ -14,6 +13,11 @@
 (RecFunction Priorities Loc SetInt)
 
 (Var x Loc)
+(Var k Int)
+(Var p Int)
+(Var ret Loc)
+(Var rht Loc)
+(Var lft Loc)
 (Var plus_infty Int)
 (Var minus_infty Int)
 
@@ -49,19 +53,6 @@
         (MaxPrio (left x))
         (MaxPrio (right x))))))
 
-(RecDef (Treap x)
-  (ite (= x nil) True
-    (and (< minus_infty (key x)) (< (key x) plus_infty)
-    (< minus_infty (prio x)) (< (prio x) plus_infty)
-    (Treap (left x))  (< (MaxKey (left x)) (key x))  (< (MaxPrio (left x)) (prio x))
-         (Treap (right x)) (< (key x) (MinKey (right x))) (< (MaxPrio (right x)) (prio x))
-         (= EmptySetInt (SetIntersect (Priorities (left x)) (Priorities (right x))))
-         (not (IsMember x (Sp (Treap (antiSp (left x))))))
-         (not (IsMember x (Sp (Treap (antiSp (right x))))))
-         (= EmptySetLoc (SetIntersect (Sp (Treap (antiSp (left x))))
-                                      (Sp (Treap (antiSp (right x))))))
-         )))
-
 (RecDef (Keys x)
   (ite (= x nil) EmptySetInt
     (SetAdd (SetUnion (Keys (left x)) (Keys (right x))) (key x))))
@@ -69,29 +60,26 @@
   (ite (= x nil) EmptySetInt
     (SetAdd (SetUnion (Priorities (left x)) (Priorities (right x))) (prio x))))
 
-(Var k Int)
-(Var p Int)
-(Var ret Loc)
-(Var lft Loc)
-(Var rht Loc)
+(RecDef (Treap x) (ite (= x nil) True (and (Exists (= lft (left x)) (Exists (= rht (right x)) (Exists (= k (key x)) (Exists (= p (prio x))
+                                (* (and (< k plus_infty) (and (< minus_infty k) (and (< p plus_infty) (< minus_infty p))))
+                                    (* (= k (key x)) (* (and (Treap lft) (and (< (MaxKey lft) k) (< (MaxPrio lft) p)))
+                                                        (and (Treap rht) (and (< k (MinKey rht)) (< (MaxPrio rht) p))))))
+                                    ))))
+                                    (= EmptySetInt (SetIntersect (Priorities (left x)) (Priorities (right x))))
+)
+                ))
 
 
 (Program lemma3 (x) (ret))
 (Pre (Treap x))
-(Post (and (Treap x) (Treap ret) (=> (not (= x nil)) (= (MaxPrio x) (prio x)))))
-(assume (not (= x nil)))
-(assign lft (left x))
-(assign rht (right x))
-(call lemma3 (lft) (ret))
-(assign ret (lft))
-(call lemma3 (rht) (ret))
+(Post (ite (= x nil) True (= (MaxPrio x) (prio x))))
 (return)
 
 
 
 (Program lemma1 (x k) (ret))
-(Pre (Treap x))
-(Post (=> (< k (MinKey x)) (not (IsMember k (Keys x)))))
+(Pre (and (Treap x) (< k (MinKey x))))
+(Post (not (IsMember k (Keys x))))
 (If (= x nil)
 Then
 (return)
@@ -104,8 +92,8 @@ Else
 )
 
 (Program lemma2 (x p) (ret))
-(Pre (Treap x))
-(Post (=> (> p (MaxPrio x)) (not (IsMember p (Priorities x)))))
+(Pre (and (Treap x) (> p (MaxPrio x))))
+(Post (not (IsMember p (Priorities x))))
 (If (= x nil)
 Then
 (return)
@@ -119,8 +107,8 @@ Else
 
 
 (Program lemma4 (x k) (ret))
-(Pre (Treap x))
-(Post (=> (> k (MaxKey x)) (not (IsMember k (Keys x)))))
+(Pre (and (Treap x) (> k (MaxKey x))))
+(Post (not (IsMember k (Keys x))))
 (If (= x nil)
 Then
 (return)

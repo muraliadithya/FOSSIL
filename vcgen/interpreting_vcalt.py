@@ -1020,6 +1020,9 @@ def instantiate_lemma(prove = False):        #this 'instantiates' a lemma
 
     lemmalist = []
 
+    if prove:
+        already_proven_lemmas = []
+
     global np_solver
 
     for operands in lemma_description:
@@ -1040,7 +1043,7 @@ def instantiate_lemma(prove = False):        #this 'instantiates' a lemma
                 lemmalist.append(lemma_id)
             
             if prove: # CHANGED LEMMA
-                isproven =  prove_lemma(np_solver, bodyop,lemma_set)
+                isproven, already_proven_lemmas =  prove_lemma(np_solver, bodyop,lemma_set, already_proven_lemmas)
                 if isproven:
                     print('Lemma is valid')
                 else:
@@ -1297,11 +1300,12 @@ def cl_check(solver,lemmas,assumptions, obligation, is_final = False): # CHANGED
     #     return True
     # return False
 
-def prove_lemma( solver, lemma_body, lemmas):
+def prove_lemma( solver, lemma_body, lemmas, already_proven_lemmas = []):
     '''Prove lemma
     body:   [=>, A, B]  A=>B
     '''
     global depth
+    global lemmalist
     lem = interpret_ops(lemma_body)
     # lem = lemma_body
     print('this is the lemma:', lem)
@@ -1309,24 +1313,29 @@ def prove_lemma( solver, lemma_body, lemmas):
 
     locs_in_lemma = get_foreground_terms(lem, default_annctx)
     locs_in_lemma.add(vardict['nil']['z3name'])
-
+    locs_in_lemma_pointers = set()
+    for f in pointerdict.values():
+        for i in locs_in_lemma:
+            locs_in_lemma_pointers.add(f(i))
+    locs_in_lemma = locs_in_lemma.union(locs_in_lemma_pointers)
     print('These are the terms instantiated upon to prove lemms:', locs_in_lemma)
     pfp_formula = make_pfp_formula(lem)
     # print('This is the pfp formula', pfp_formula)
 
     terms_to_instantaite_lemma = [(i, locs_in_lemma) for i in statesdict['for_lemmas']['recdef_ids']]
-    solver.options.terms_to_instantiate = terms_to_instantaite_lemma
+    solver.options.terms_to_instantiate = terms_to_instantaite_lemma + already_proven_lemmas
 
-
+    # print('---------lemmas used to prove current lemma-------+++++++++++++++>>>>>>>>>>>>>>>>', already_proven_lemmas)
     solution = solver.solve(pfp_formula, lemmas)
     if not solution.if_sat:
         # print('lemma is valid')
         solver.options.depth = depth
-        return True
+        already_proven_lemmas = already_proven_lemmas + [(i, locs_in_lemma) for i in lemmalist]
+        return True, already_proven_lemmas
     
     # print('lemma not proven')
     solver.options.depth = depth
-    return False
+    return False, already_proven_lemmas
 
 def frame_rule(state1, state2, use_alt = 0, alt_mod_set = fgsetsort.lattice_bottom, use_local = 0):
     '''

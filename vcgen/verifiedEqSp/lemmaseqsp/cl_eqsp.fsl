@@ -33,7 +33,7 @@
 (RecFunction IndStructSeg Loc Loc Bool)
 (RecDef (IndStructSeg x y) (ite (= x y) True (IndStructSeg (next x) y)))
 (RecFunction IndStruct Loc Bool)
-(RecDef (IndStruct x) (ite (= x nil) True (= (Sp (Lseg (next x) x)) (Sp (CKys (next x) x)))))
+(RecDef (IndStruct x) (ite (= x nil) True (IndStructSeg (next x) x)))
 
 (lemma (x y) (=> (IndStructSeg x y) (= (Sp (Lseg x y)) (Sp (CKys x y))))
 )

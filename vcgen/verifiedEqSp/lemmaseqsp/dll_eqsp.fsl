@@ -1,0 +1,46 @@
+(Var x Loc)
+
+(Function next Loc Loc)
+(Function prev Loc Loc)
+(Function key  Loc Int)
+
+(RecFunction DLL     Loc Bool)
+(RecFunction RevDLL  Loc Bool)
+(RecFunction Keys    Loc SetInt)
+(RecFunction RevKeys Loc SetInt)
+
+
+
+(RecDef (DLL  x) (ite (= x nil) True
+                 (ite (= (next x) nil) True
+                    (and (= x (prev (next x)))
+                         (DLL (next x))
+                         (not (IsMember x (Sp (DLL (antiSp (next x))))))))))
+(RecDef (RevDLL x) (ite (= x nil) True
+                   (ite (= (prev x) nil) True
+                    (and (= x (next (prev x)))
+                         (RevDLL (prev x))
+                         (not (IsMember x (Sp (RevDLL (antiSp (prev x))))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                    (SetAdd (Keys (next x)) (key x))))
+(RecDef (RevKeys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (RevKeys (prev x)) (key x))))
+
+(RecFunction IndStruct Loc Bool)
+(RecDef (IndStruct x) (ite (= x nil) True (IndStruct (next x))))
+
+(RecFunction IndStructRev Loc Bool)
+(RecDef (IndStructRev x) (ite (= x nil) True (IndStructRev (prev x))))
+
+
+
+(lemma (x) (=> (IndStruct x) (= (Sp (DLL x)) (Sp (Keys x))))
+)
+(lemma (x) (=> (IndStructRev x) (= (Sp (RevDLL x)) (Sp (RevKeys x))))
+)
+
+(Var ret Loc)
+(Program temp (x) (ret))
+(Pre True)
+(Post True)
+(return)

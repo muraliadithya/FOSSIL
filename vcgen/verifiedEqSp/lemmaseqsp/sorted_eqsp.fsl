@@ -1,0 +1,42 @@
+(Var x   Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(Var plus_infty Int)
+
+
+(RecFunction Min Loc Int)
+(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
+
+(Var minus_infty Int)
+(RecFunction Max Loc Int)
+(RecDef (Max x) (ite (= x nil) minus_infty (ite (> (key x) (Max (next x))) (key x) (Max (next x)))))
+
+(RecFunction List   Loc Bool)
+(RecFunction Keys   Loc SetInt)
+(RecFunction Sorted Loc Bool)
+
+(RecDef (List x) (ite (= x nil) True
+                      (and (< (key x) plus_infty) (< minus_infty (key x)) (List (next x))
+                           (not (IsMember x (Sp (List (antiSp (next x)))))))))
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                 (SetAdd (Keys (next x)) (key x))))
+(RecDef (Sorted x) (ite (= x nil) True
+                      (and (< (key x) plus_infty) (< minus_infty (key x)) (Sorted (next x))
+                           (not (IsMember x (Sp (Sorted (antiSp (next x))))))
+                           (<= (key x) (Min (next x))))))
+
+
+(RecFunction IndStruct Loc Bool)
+(RecDef (IndStruct x) (ite (= x nil) True (IndStruct (next x))))
+
+(lemma (x) (=> (IndStruct x) (and (= (Sp (Sorted x)) (Sp (Keys x))) (= (Sp (Sorted x)) (Sp (List x)))
+                                  (= (Sp (Sorted x)) (Sp (Max x))) (= (Sp (Sorted x)) (Sp (Min x)))
+                              )
+))
+
+(Program temp (x) (ret))
+(Pre True)
+(Post True)
+(return)

@@ -30,15 +30,12 @@
 
 (RecFunction IndStructSeg Loc Loc Bool)
 (RecDef (IndStructSeg x y) (ite (= x y) True (IndStructSeg (next x) y)))
-(RecFunction IndStruct Loc Bool)
-(RecDef (IndStruct x) (ite (= x nil) True (IndStructSeg (next x) x)))
 
 (lemma (x y) (=> (IndStructSeg x y) (= (Sp (Lseg x y)) (Sp (CKys x y))))
 )
-(lemma (x) (=> (IndStruct x) (= (Sp (Circ x)) (Sp (Keys x))))
-)
+
 
 (Program temp (x) (ret))
-(Pre True)
-(Post True)
+(Pre (ite (= x nil) True (= (Sp (Lseg (next x) x)) (Sp (CKys (next x) x))) ))
+(Post (= (Sp (Circ x)) (Sp (Keys x))))
 (return)

@@ -21,8 +21,8 @@
                     (Exists (= nxt (next x)) (* (= nxt (next x)) (Lseg nxt x)))
                ))
 
-(RecDef (CKys x y) (ite (= x y) EmptySetInt
-                        (SetAdd (CKys (next x) y) (key x))))
+(RecDef (CKys x y) (ite (= x y) EmptySetInt (ite (= x nil) EmptySetInt
+                        (SetAdd (CKys (next x) y) (key x)))))
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                       (SetAdd (CKys (next x) x) (key x))))
 

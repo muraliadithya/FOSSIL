@@ -1012,13 +1012,15 @@ def interpret_antisp(iplist):
 #         raise Exception(f' Wrong number of arguments for lemma {iplist}')
 
 
-def instantiate_lemma():        #this 'instantiates' a lemma
+def instantiate_lemma(prove = False):        #this 'instantiates' a lemma
     
     global lemma_set                    # (lemma (args) (body) )
     global lemma_description
     global lemmalist
 
     lemmalist = []
+
+    global np_solver
 
     for operands in lemma_description:
         if len(operands)==2:
@@ -1036,8 +1038,15 @@ def instantiate_lemma():        #this 'instantiates' a lemma
             elif mode == testing_mode:
                 lemma_id = AddAxiom(argtuple, simplify(body))
                 lemmalist.append(lemma_id)
-            else:
-                lemma_set.add((argtuple,body))
+            
+            if prove: # CHANGED LEMMA
+                isproven =  prove_lemma(np_solver, bodyop,lemma_set)
+                if isproven:
+                    print('Lemma is valid')
+                else:
+                    print('Lemma not proven')
+            lemma_set.add((argtuple,body))
+
         else:
             raise Exception(f'lemma format (args) (body). Given {operands}')
 #---------------------------------------------------------------------------------
@@ -1272,6 +1281,8 @@ def cl_check(solver,lemmas,assumptions, obligation, is_final = False): # CHANGED
                 # for i in instantiation_pairs.items():
                 #     print(i,'\n')
                 # exit(0)
+                if mode == testing_mode:    # CHANGED LEMMA
+                    lemmas = set()
                 solution = solver.solve(simplify(And(*final_vc)), lemmas)
 
                 # logging.info('SMT time:' + str(time.time()-t1)+ '\n')
@@ -1286,21 +1297,34 @@ def cl_check(solver,lemmas,assumptions, obligation, is_final = False): # CHANGED
     #     return True
     # return False
 
-def prove_lemma( solver, body, lemmas):
+def prove_lemma( solver, lemma_body, lemmas):
     '''Prove lemma
     body:   [=>, A, B]  A=>B
     '''
     global depth
-    lem = interpret_ops(body)
+    lem = interpret_ops(lemma_body)
+    # lem = lemma_body
     print('this is the lemma:', lem)
-    solver.options.depth = 1
-    solution = solver.solve(make_pfp_formula(lem), lemmas)
+    # solver.options.depth = 1      # CHANGED LEMMA
+
+    locs_in_lemma = get_foreground_terms(lem, default_annctx)
+    locs_in_lemma.add(vardict['nil']['z3name'])
+
+    print('These are the terms instantiated upon to prove lemms:', locs_in_lemma)
+    pfp_formula = make_pfp_formula(lem)
+    # print('This is the pfp formula', pfp_formula)
+
+    terms_to_instantaite_lemma = [(i, locs_in_lemma) for i in statesdict['for_lemmas']['recdef_ids']]
+    solver.options.terms_to_instantiate = terms_to_instantaite_lemma
+
+
+    solution = solver.solve(pfp_formula, lemmas)
     if not solution.if_sat:
-        print('lemma is valid')
+        # print('lemma is valid')
         solver.options.depth = depth
         return True
     
-    print('lemma not proven')
+    # print('lemma not proven')
     solver.options.depth = depth
     return False
 
@@ -1562,8 +1586,7 @@ def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False):
     '''VC generation'''
     # MODE Use variable 'mode' to switch between the modes
     global mode
-    mode = 4
-
+    mode = aux_mode
     global frame_rules
     global on_the_fly
 
@@ -1623,7 +1646,8 @@ def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False):
                     pass
                 else:
                     interpret_recdef(recdefdict[name]['description'])
-            instantiate_lemma()    
+            snapshot('for_lemmas')
+            instantiate_lemma(prove =True)    # CHANGED LEMMA
 
             store_inputvars(i)
             
@@ -1661,8 +1685,12 @@ def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False):
                 transform.append(precond)
             #+++++++
             snapshot('initial')
+
+            # instantiate_lemma(prove =True)  # CHANGED LEMMA
+
             if mode == testing_mode:    # CHANGED
                 add_instantiation_pairs_init('initial')
+            
 
 
         elif tag[-4:] == 'Post':

@@ -78,12 +78,6 @@
 (Var ret Bool)
 (Var aux Loc)
 
-(lemma (x) (=> (Treap x) (= (Sp (Keys x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (= (Sp (Priorities x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (= (Sp (MinKey x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (= (Sp (MaxKey x)) (Sp (Treap x)))))
-(lemma (x) (=> (Treap x) (= (Sp (MaxPrio x)) (Sp (Treap x)))))
-
 (lemma (x) (=> (Treap x) (=> (< k (MinKey x)) (not (IsMember k (Keys x))))))
 (lemma (x) (=> (Treap x) (=> (> k (MaxKey x)) (not (IsMember k (Keys x))))))
 

@@ -17,12 +17,12 @@
                    (ite (= x nil) False
                         (and (Lseg (next x) y)
                              (not (IsMember x (Sp (Lseg (antiSp (next x)) y)))) ))))
+(RecDef (CKys x y) (ite (= x y) EmptySetInt (ite (= x nil) EmptySetInt
+                        (SetAdd (CKys (next x) y) (key x)))))
+
 (RecDef (Circ x) (ite (= x nil) True
                  (and (Lseg (next x) x)
                       (not (IsMember x (Sp (Lseg (antiSp (next x)) (antiSp x))))) )))
-
-(RecDef (CKys x y) (ite (= x y) EmptySetInt
-                        (SetAdd (CKys (next x) y) (key x))))
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                       (SetAdd (CKys (next x) x) (key x))))
 

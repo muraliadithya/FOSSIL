@@ -2,7 +2,6 @@
 (Function left  Loc Loc)
 (Function right Loc Loc)
 
-(EqSp (BST (Keys Min Max)))
 
 (RecFunction BST  Loc Bool)
 (RecFunction Keys Loc SetInt)
@@ -12,8 +11,8 @@
 (Var minus_infty Int)
 
 
-(Var x Loc)
 
+(Var x Loc)
 
 
 (RecDef (Min x) (ite (= x nil) plus_infty
@@ -52,79 +51,19 @@
                       (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
                               (key x))))
 
-(Var k Int)
-(lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))))))
-(lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))))))
+(RecFunction IndStruct Loc Bool)
+(RecDef (IndStruct x) (ite (= x nil) True (and (IndStruct (left x)) (IndStruct (right x)))))
 
-(Var lft Loc)
-(Var rht Loc)
-(Var right_left Loc)
-(Var tmp Loc)
+
+
+(lemma (x) (=> (IndStruct x) (and (= (Sp (BST x)) (Sp (Keys x)))
+                                  (= (Sp (BST x)) (Sp (Min x))) (= (Sp (BST x)) (Sp (Max x)))
+                              )
+))  
+
+
 (Var ret Loc)
-
-(Var xl Loc)
-(Var xr Loc)
-
-(Program bst_remove_root (x k) (ret))
-(Pre (and (not (= x nil)) (BST x) (= (key x) k) ))
-(Post (and (BST ret) (= (Keys ret) (SetDel (Old (Keys x)) k))
-           (<= (Old (Min x)) (Min ret)) (<= (Max ret) (Old (Max x)))
-           (ite True True (= (left ret) (left ret)))
-           (ite True True (= (right ret) (right ret))) ))
-
-(If (and (= (left x) nil) (= (right x) nil))
- Then
-  (free x)
-  (assign ret nil)
-  (return)
- Else (If (= (left x) nil)
- Then
-  (assign ret (right x))
-  (free x)
-  (return)
- Else (If (= (right x) nil)
- Then
-  (assign ret (left x))
-  (free x)
-  (return)
- Else
-  (assign rht (right x))
-  (assign right_left (left rht))
-
-  (assign (right x) right_left)
-  (call bst_remove_root (x k) (tmp))
-  
-  (assign (left rht) tmp)
-  (assign ret rht)
-  (return)
-)))
-
-(Program bst_delete (x k) (ret))
-(Pre (BST x))
-(Post (and (BST ret) (= (Keys ret) (SetDel (Old (Keys x)) k))
-           (<= (Old (Min x)) (Min ret)) (<= (Max ret) (Old (Max x))) ))
-
-(If (= x nil)
- Then
-  (assign ret x)
-  (return)
- Else (If (= (key x) k)
- Then
-  (assign lft (left x))
-  (assign rht (right x))
-  (call bst_remove_root (x k) (ret))
-  (return)
- Else (If (< k (key x))
- Then
-  (assign xl (left x))
-  (call bst_delete (xl k) (tmp))
-  (assign (left x) tmp)
-  (assign ret x)
-  (return)
- Else
-  (assign xr (right x))
-  (call bst_delete (xr k) (tmp))
-  (assign (right x) tmp)
-  (assign ret x)
-  (return)
-)))
+(Program temp (x) (ret))
+(Pre True)
+(Post True)
+(return)

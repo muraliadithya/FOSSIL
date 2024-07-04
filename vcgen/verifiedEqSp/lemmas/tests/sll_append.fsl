@@ -3,9 +3,10 @@
 (Function next Loc Loc)
 (Function key  Loc Int)
 
-(EqSp (List (Keys)))
+(EqSp (List (Keys Length)))
 (RecFunction List Loc Bool)
 (RecFunction Keys Loc SetInt)
+(RecFunction Length Loc Int)
 
 (RecDef (List x) (ite (= x nil) True
                       (and (List (next x))
@@ -13,29 +14,23 @@
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                       (SetAdd (Keys (next x)) (key x))))
 
-(Var k Int)
+(RecDef (Length x) (ite (= x nil) (IntConst 0)
+                (+ (IntConst 1) (Length (next x)))
+))
+
+(Var y Loc)
 (Var aux Loc)
 (Var tmp Loc)
 (Var ret Loc)
 
-(Program sll_delete (x k) (ret))
+(Program lemma (x) (ret))
 (Pre (List x))
-(Post (and (List ret) (= (Keys ret) (SetDel (Old (Keys x)) k)) ))
-
+(Post (<= (IntConst 0) (Length x)))
 (If (= x nil)
- Then
-  (assign ret x)
-  (return)
- Else (If (= (key x) k)
- Then
-  (assign tmp (next x))
-  (call sll_delete (tmp k) (ret))
-  (free x)
-  (return)
- Else
-  (assign aux (next x))
-  (call sll_delete (aux k) (tmp))
-  (assign (next x) tmp)
-  (assign ret x)
-  (return)
-))
+Then
+(return)
+Else
+(assume (<= (IntConst 0) (Length (next x))))
+(return)
+)
+

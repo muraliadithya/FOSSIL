@@ -52,8 +52,8 @@
                               (key x))))
 
 
-(lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))))))
-(lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))))))
+(lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))) )))
+(lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))) )))
 
 (Var ret Bool)
 (Var tmp Loc)

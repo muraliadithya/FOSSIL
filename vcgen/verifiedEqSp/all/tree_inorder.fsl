@@ -49,9 +49,6 @@
 (RecDef (LSize x) (Size (left x)))
 (RecDef (RSize x) (Size (right x)))
 
-(lemma (x) (=> (InTree x) (=> (not (= x nil)) (IsSubset (Sp (LSize x)) (Sp (InTree x))))))
-(lemma (x) (=> (InTree x) (=> (not (= x nil)) (IsSubset (Sp (RSize x)) (Sp (InTree x))))))
-
 (Var n Int)
 (Var n1 Int)
 (Var n2 Int)

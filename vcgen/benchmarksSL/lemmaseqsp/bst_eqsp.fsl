@@ -2,15 +2,13 @@
 (Function left  Loc Loc)
 (Function right Loc Loc)
 
-(EqSp (BST (Keys Min Max)))
-
 (RecFunction BST  Loc Bool)
 (RecFunction Keys Loc SetInt)
 (RecFunction Min  Loc Int)
 (RecFunction Max  Loc Int)
-
 (Var plus_infty Int)
 (Var minus_infty Int)
+
 (Var x Loc)
 (Var lft Loc)
 (Var rht Loc)
@@ -51,37 +49,19 @@
                       (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
                               (key x))))
 
+(RecFunction IndStruct Loc Bool)
+(RecDef (IndStruct x) (ite (= x nil) True (and (IndStruct (left x)) (IndStruct (right x)))))
 
-(lemma (x) (=> (BST x) (=> (> (Min x) k) (not (IsMember k (Keys x))) )))
-(lemma (x) (=> (BST x) (=> (< (Max x) k) (not (IsMember k (Keys x))) )))
 
-(Var ret Bool)
-(Var tmp Loc)
 
-(Program bst_find_rec (x k) (ret))
-(Pre (* (and (< k plus_infty) (< minus_infty k)) (BST x)))
-(Post (and (BST x) (and (= (Keys x) (Old (Keys x))) (and (= (Min x) (Old (Min x)))
-           (and (= (Max x) (Old (Max x))) (= ret (IsMember k (Keys x))) )))))
+(lemma (x) (=> (IndStruct x) (and (= (Sp (BST x)) (Sp (Keys x)))
+                                  (= (Sp (BST x)) (Sp (Min x))) (= (Sp (BST x)) (Sp (Max x)))
+                              )
+))  
 
-(If (= x nil)
- Then
-  (assign ret False)
-  (return)
- Else
-  (If (= k (key x))
-   Then
-    (assign ret True)
-    (return)
-   Else
-    (If (< k (key x))
-     Then
-      (assign tmp (left x))
-      (call bst_find_rec (tmp k) (ret))
-      (return)
-     Else
-      (assign tmp (right x))
-      (call bst_find_rec (tmp k) (ret))
-      (return)
-    )
-  )
-)
+
+(Var ret Loc)
+(Program temp (x) (ret))
+(Pre (True))
+(Post (True))
+(return)

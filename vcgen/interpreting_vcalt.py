@@ -1318,7 +1318,8 @@ def prove_lemma( solver, lemma_body, lemmas, already_proven_lemmas = []):
         for i in locs_in_lemma:
             locs_in_lemma_pointers.add(f(i))
     locs_in_lemma = locs_in_lemma.union(locs_in_lemma_pointers)
-    print('These are the terms instantiated upon to prove lemms:', locs_in_lemma)
+    print('These are the terms instantiated upon to prove lemmas:', locs_in_lemma)
+    print('Number of lemmas assumed already:', len(already_proven_lemmas))
     pfp_formula = make_pfp_formula(lem)
     # print('This is the pfp formula', pfp_formula)
 

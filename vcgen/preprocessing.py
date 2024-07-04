@@ -240,16 +240,26 @@ def sl_to_fl_commands(list_of_commands):
             c3 = '('.join(c1[:3]) + c2 + ')'
             ret.append(c3)
         elif (command.startswith('(Pre') or command.startswith('(Post')):
-            c1 = command.split('(')
-            c2 = sl_to_fl( '(' + '('.join(c1[2:])[:-1] )
-            c3 = '('.join(c1[:2]) + c2 + ')'
-            ret.append(c3)
+            if command in ['(Pre True)', '(Pre False)', '(Post True)', '(Post False)']:
+                ret.append(command)
+            else:
+                c1 = command.split('(')
+                c2 = sl_to_fl( '(' + '('.join(c1[2:])[:-1] )
+                c3 = '('.join(c1[:2]) + c2 + ')'
+                ret.append(c3)
         elif command.startswith('(call'):
             c1 = command.split('(')
             c2_1, c2_2 = fst_n_second('(' + '('.join(c1[6:])[:-1])
             c2 = sl_to_fl(c2_1) + ' ' + sl_to_fl(c2_2)
             c3 = '('.join(c1[:6]) + c2 + ')'
             ret.append(c3)
+        # CHANGED: ADDED sl-fl lemma translation
+        # elif command.startswith('(lemma'):
+        #     # (lemma (v1 v2 ..) (definition_body))
+        #     c1 = command.split('(')
+        #     c2 = sl_to_fl( '(' + '('.join(c1[3:]) )
+        #     c3 = '('.join(c1[:3]) + c2 + ')'
+        #     ret.append(c3)           
         else:
             ret.append(command)
     return(ret)

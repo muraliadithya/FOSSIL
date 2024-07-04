@@ -1,0 +1,79 @@
+(Function left  Loc Loc)
+(Function right Loc Loc)
+(Function next  Loc Loc)
+(Function key   Loc Int)
+
+(RecFunction MinList  Loc Int)
+(RecFunction MinTree  Loc Int)
+(RecFunction MaxTree  Loc Int)
+
+(RecFunction Sorted   Loc Bool)
+(RecFunction ListKeys Loc SetInt)
+(RecFunction BST      Loc Bool)
+(RecFunction TreeKeys Loc SetInt)
+
+(Var plus_infty  Int)
+(Var minus_infty Int)
+
+(Var x Loc)
+
+(RecDef (MinList x) (ite (= x nil) plus_infty
+                      (ite (<= (key x) (MinList (next x)))
+                        (key x) (MinList (next x)) )))
+(RecDef (MinTree x) (ite (= x nil) plus_infty
+                      (ite (<= (key x) (MinTree (left x)))
+                        (ite (<= (key x) (MinTree (right x)))
+                          (key x) (MinTree (right x)))
+                        (ite (<= (MinTree (left x)) (MinTree (right x)))
+                          (MinTree (left x)) (MinTree (right x)) ))))
+(RecDef (MaxTree x) (ite (= x nil) minus_infty
+                      (ite (>= (key x) (MaxTree (left x)))
+                        (ite (>= (key x) (MaxTree (right x)))
+                          (key x) (MaxTree (right x)))
+                        (ite (>= (MaxTree (left x)) (MaxTree (right x)))
+                          (MaxTree (left x)) (MaxTree (right x)) ))))
+
+(RecDef (Sorted x) (ite (= x nil) True
+                    (Exists (= nxt (next x)) (Exists (= k (key x))
+                    (* (and (< k plus_infty) (< minus_infty k)) (* 
+                      (= k (key x)) (and (Sorted nxt) (<= k (MinList nxt)))))
+                    ))
+               ))
+               
+(RecDef (ListKeys x) (ite (= x nil) EmptySetInt
+                                    (SetAdd (ListKeys (next x)) (key x))))
+
+(RecDef (BST x) (ite (= x nil) True (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
+                                (* (and (< k plus_infty) (< minus_infty k)) 
+                                  (* (* (= k (key x)) (and (BST y) (< (MaxTree y) k))) (and (BST z) (< k (MinTree z)))))
+                          )
+                        )
+                      )
+                ))
+
+(RecDef (TreeKeys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (SetUnion (TreeKeys (left x)) (TreeKeys (right x)))
+                        (key x))))
+
+
+(RecFunction IndStructTree Loc Bool)
+(RecDef (IndStructTree x) (ite (= x nil) True (and (IndStructTree (left x)) (IndStructTree (right x)))))
+(RecFunction IndStructList Loc Bool)
+(RecDef (IndStructList x) (ite (= x nil) True (IndStructList (next x))))
+
+(lemma (x) (=> (IndStructTree x) (and (= (Sp (BST x)) (Sp (TreeKeys x))) (= (Sp (BST x)) (Sp (MaxTree x)))
+                                      (= (Sp (BST x)) (Sp (MinTree x)))
+                              )
+))
+
+
+
+(lemma (x) (=> (IndStructList x) (and (= (Sp (Sorted x)) (Sp (ListKeys x))) (= (Sp (Sorted x)) (Sp (MinList x)))
+                              )
+))
+
+(Var ret Loc)
+(Program temp (x) (ret))
+(Pre True)
+(Post True)
+(return)

@@ -1,0 +1,55 @@
+(Var x Loc)
+
+(Function key   Loc Int)
+(Function left  Loc Loc)
+(Function right Loc Loc)
+
+(RecFunction Tree   Loc Bool)
+(RecFunction InTree Loc Bool)
+(RecFunction Order  Loc Int)
+(RecFunction Size   Loc Int)
+(RecFunction LSize  Loc Int)
+(RecFunction RSize  Loc Int)
+
+(RecDef (Tree x) (ite (= x nil) True
+                      (Exists (= lft (left x)) (Exists (= rht (right x))
+                        (* (= lft (left x)) (* (Tree lft) (Tree rht)))
+                      ))
+                  ))
+                  
+
+
+(RecDef (Order x) (ite (= x nil) (IntConst 0) (key x)))
+(RecDef (Size x) (ite (= x nil) (IntConst 0)
+                      (+ (IntConst 1)
+                         (+ (Size (left x)) (Size (right x))))))
+(RecDef (LSize x) (Size (left x)))
+(RecDef (RSize x) (Size (right x)))
+(RecDef (InTree x) (ite (= x nil) True (Exists (= k (key x)) (= rht (right x)) (= lft (left x))
+                                          (* (= k (key x)) (*
+                                                  (ite (= lft nil) True 
+                                                    (and (InTree lft) (Exists (= lft2 (left lft)) 
+                                                            (* (InTree lft2) (= k (+ (+ (Order lft) (RSize lft)) (IntConst 1))))))
+                                                                        )
+                                              (ite (= rht nil) True 
+                                                    (and (InTree rht) (Exists (= rht2 (right rht)) 
+                                                            (* (InTree rht2) (= (Order rht) (+ (+ k (LSize rht)) (IntConst 1))))))
+                                                                        )
+                                                          
+                                                          )
+                                          )
+                                        )))
+
+(RecFunction IndStruct Loc Bool)
+(RecDef (IndStruct x) (ite (= x nil) True (and (IndStruct (left x)) (IndStruct (right x)))))
+
+(lemma (x) (=> (IndStruct x) (and (= (Sp (Tree x)) (Sp (InTree x))) (= (Sp (Tree x)) (Sp (Size x)))
+                              )
+))  
+
+
+(Var ret Loc)
+(Program temp (x) (ret))
+(Pre True)
+(Post True)
+(return)

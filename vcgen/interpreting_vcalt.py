@@ -1592,7 +1592,7 @@ def instantiate_footprint(manual_set = None, use_extended = 0, in_frame = 0):
 #----------------------------
 
 
-def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False):
+def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False, weaken_alloc_check = 0):
     '''VC generation'''
     # MODE Use variable 'mode' to switch between the modes
     global mode
@@ -1823,6 +1823,8 @@ def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False):
             else:
                 pointer_closure(fgelt)
 
+    if weaken_alloc_check != 0:
+        rp = weaken_alloc_check
     # rp = 2  # CHANGED DEBUG
     # set to true for lemma proofs
 

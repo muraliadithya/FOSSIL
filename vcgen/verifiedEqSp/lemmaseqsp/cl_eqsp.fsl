@@ -38,6 +38,6 @@
 
 
 (Program temp (x) (ret))
-(Pre (ite (= x nil) True (= (Sp (Lseg (next x) x)) (Sp (CKys (next x) x))) ))
+(Pre (ite (= x nil) True (= (Sp (Lseg (antiSp (next x)) (antiSp x))) (Sp (CKys (antiSp (next x)) (antiSp x)))) ))
 (Post (= (Sp (Circ x)) (Sp (Keys x))))
 (return)

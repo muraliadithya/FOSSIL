@@ -79,7 +79,10 @@ depth = 2
 np_solver.options.depth = depth
 # np_solver.options.instantiation_mode = proveroptions.manual_instantiation
 # np_solver.options.instantiation_mode = proveroptions.lean_instantiation_with_lemmas
-np_solver.options.instantiation_mode = proveroptions.manual_instantiation_finegrained
+# np_solver.options.instantiation_mode = proveroptions.manual_instantiation_finegrained
+# np_solver.options.instantiation_mode = proveroptions.quantified_reasoning # CHANGED QUANT
+# np_solver.options.logfile = os.path.join(os.path.abspath('.'),'tmp','quantified_query.smt2')
+# np_solver.options.smt_solver = proveroptions.z_three
 # -----------------------------------------------
 # For alt frame rules
 typevardict = {'Loc': set(), 'SetLoc': set(), 'Int': set(), 'SetInt': set(), 'Bool': set() }   # stores the variables/consts of each type
@@ -98,10 +101,12 @@ footprint_mode = 0
 depth1_mode = 1
 depth2_mode = 2
 manual_mode = 3
-mode = 2
+testing_mode = 4 # CHANGED
+quantified_mode = 5
+mode = 4
 number_of_vcs = 0
 
-testing_mode = 4 # CHANGED
+
 
 instantiation_pairs_support = {}    # CHAGED SUPPORT
 
@@ -1592,15 +1597,36 @@ def instantiate_footprint(manual_set = None, use_extended = 0, in_frame = 0):
 #----------------------------
 
 
-def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False, weaken_alloc_check = 0):
+def vc(user_input, aux_mode=testing_mode, logic='sl', onthefly=False, weaken_alloc_check = 0):
     '''VC generation'''
     # MODE Use variable 'mode' to switch between the modes
     global mode
     mode = aux_mode
     global frame_rules
     global on_the_fly
+    global np_solver
 
     on_the_fly = onthefly
+
+    if mode == testing_mode:
+        np_solver.options.instantiation_mode = proveroptions.manual_instantiation_finegrained
+    elif mode == quantified_mode:
+        np_solver.options.instantiation_mode = proveroptions.quantified_reasoning # CHANGED QUANT
+        np_solver.options.logfile = os.path.join(os.path.abspath('.'),'tmp','quantified_query.smt2')
+        np_solver.options.smt_solver = proveroptions.z_three
+    elif mode == depth1_mode:
+        np_solver.options.depth = 1
+    elif mode == depth2_mode:
+        np_solver.options.depth = 2
+    else:
+        raise Exception('Bad mode')
+        
+
+# np_solver.options.instantiation_mode = proveroptions.manual_instantiation_finegrained
+# np_solver.options.instantiation_mode = proveroptions.quantified_reasoning # CHANGED QUANT
+# np_solver.options.logfile = os.path.join(os.path.abspath('.'),'tmp','quantified_query.smt2')
+# np_solver.options.smt_solver = proveroptions.z_three
+
 
     start = time.time()
     if logic == 'sl':
@@ -1614,7 +1640,6 @@ def vc(user_input, aux_mode=depth2_mode, logic='sl', onthefly=False, weaken_allo
     global lemma_set
     global check_side_conditions
     global modified_vars
-    global np_solver
     global transform
     global number_of_function_calls
     global has_mutated
@@ -1889,7 +1914,7 @@ def add_instantiation_pairs(state, mutated = True):
     if mutated:
         for i in id_list:
             instantiation_pairs[i] =  loc_and_deref
-            instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)
+            # instantiation_pairs[i] = (instantiation_pairs[i]).union(extended_loc)
             # if i in statesdict[state]['support_ids']:   # CHANGED SUPPORT
             #     instantiation_pairs_support[i] = instantiation_pairs[i]
         for i in framelist:

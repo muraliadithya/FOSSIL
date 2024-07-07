@@ -1,0 +1,247 @@
+(Function key   Loc Int)
+(Function color Loc Int)
+(Function left  Loc Loc)
+(Function right Loc Loc)
+
+
+(EqSp (Keys (Min Max BH RBT)))
+
+(RecFunction Keys Loc SetInt)
+(RecFunction Min  Loc Int)
+(RecFunction Max  Loc Int)
+(Var plus_infty Int)
+(Var minus_infty Int)
+
+(RecFunction BH Loc Int)
+(RecFunction RBT  Loc Bool)
+
+(Var x Loc)
+
+(RecDef (Min x) (ite (= x nil) plus_infty
+                (ite (<= (key x) (Min (left x)))
+                  (ite (<= (key x) (Min (right x)))
+                    (key x)
+                    (Min (right x))
+                  )
+                  (ite (<= (Min (left x)) (Min (right x)))
+                    (Min (left x))
+                    (Min (right x))
+                  )
+                )))
+(RecDef (Max x) (ite (= x nil) minus_infty
+                (ite (>= (key x) (Max (left x)))
+                  (ite (>= (key x) (Max (right x)))
+                    (key x)
+                    (Max (right x))
+                  )
+                  (ite (>= (Max (left x)) (Max (right x)))
+                    (Max (left x))
+                    (Max (right x))
+                  )
+                )))
+
+(RecDef (BH x) (ite (= x nil) (IntConst 1)
+               (ite (= (color x) (IntConst 1))
+                    (+ (IntConst 1)
+                      (ite (< (BH (left x)) (BH (right x)))
+                        (BH (right x)) (BH (left x))))
+                    (ite (< (BH (left x)) (BH (right x)))
+                      (BH (right x)) (BH (left x))))))
+
+(RecDef (RBT x) (ite (= x nil) True 
+                    (and (= (BH (left x)) (BH (right x)))
+                      (Exists (= lft (left x)) (= rht (right x)) (= k (key x)) (= cx (color x))
+                                (and 
+                                (* (* (* (= k (key x)) (and (< k plus_infty) (< minus_infty k)) ) 
+                                (and (RBT lft) (< (Max lft) k))) (and (RBT rht) (< k (Min rht))))
+                                
+                                (ite (= cx (IntConst 1)) (* (= (key x) (key x)) (* (RBT lft) (RBT rht)) )
+                                        (* (= (key x) (key x))
+                                        (* (ite (= lft nil) True (Exists (= llft (left lft)) (= rlft (right lft)) 
+                                              (* (= (color lft) (IntConst 1)) (* (RBT llft) (RBT rlft)))  
+                                        ))
+                                        (ite (= rht nil) True (Exists (= lrht (left rht)) (= rrht (right rht)) 
+                                              (* (= (color rht) (IntConst 1)) (* (RBT lrht) (RBT rrht)))  
+                                        ))
+                                        ))
+                                )
+                          )
+                        )
+                      )    
+                ))
+
+
+
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                      (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
+                              (key x))))
+
+(lemma (x) (=> (RBT x) (=> (not (= x nil))
+                          (not (IsMember x (Sp (RBT (antiSp (left x)))))))))
+(lemma (x) (=> (RBT x) (=> (not (= x nil))
+                          (not (IsMember x (Sp (RBT (antiSp (right x)))))))))
+
+(Var k Int)
+(Var ret Loc)
+(Var aux Loc)
+(Var aux1 Loc)
+(Var p Loc)
+(Var auxl Loc)
+(Var auxr Loc)
+
+(Var lft Loc)
+(Var rht Loc)
+
+(Var oldblack Bool)
+
+(Program rbt_insert (x k) (ret))
+(Pre (* (and (< minus_infty k) (< k plus_infty))
+        (and (RBT x) (not (IsMember k (Keys x))))
+     )
+)
+
+
+(Post           (ite (= lft nil)
+                        (ite (= rht nil)  
+                                (and (RBT ret) (= (Keys ret) (SetAdd (Old (Keys x)) k)) (= (BH ret) (Old (BH x))))
+                                (Exists (= cr (color rht)) 
+                                    (ite (ite (= ret nil) True (= (color ret) (IntConst 1))) (and (RBT ret) (= (Keys ret) (SetAdd (Old (Keys x)) k)) (= (BH ret) (Old (BH x))))  
+                                        (* (ite oldblack (= cr (IntConst 1)) True)
+                                            (and (RBT ret) (= (Keys ret) (SetAdd (Old (Keys x)) k)) (= (BH ret) (Old (BH x)))))
+                                    ) 
+                                )
+                        )
+                        (ite (= rht nil)  
+                                (Exists (= cl (color lft)) 
+                                    (ite (ite (= ret nil) True (= (color ret) (IntConst 1))) 
+                                         (and (RBT ret) (= (Keys ret) (SetAdd (Old (Keys x)) k)) (= (BH ret) (Old (BH x))))  
+                                         (* (ite oldblack (= cl (IntConst 1)) True)
+                                            (and (RBT ret) (= (Keys ret) (SetAdd (Old (Keys x)) k)) (= (BH ret) (Old (BH x)))))
+                                    )
+                                )
+                                (Exists (= cl (color lft)) (= cr (color rht))
+                                    (ite (ite (= ret nil) True (= (color ret) (IntConst 1))) 
+                                         (and (RBT ret) (= (Keys ret) (SetAdd (Old (Keys x)) k)) (= (BH ret) (Old (BH x))))  
+                                         (* (ite oldblack 
+                                                                (and (= cl (IntConst 1)) (= cr (IntConst 1))) 
+                                                                (or (= cl (IntConst 1)) (= cr (IntConst 1)))
+                                                                )
+                                            (and (RBT ret) (= (Keys ret) (SetAdd (Old (Keys x)) k)) (= (BH ret) (Old (BH x))))
+                                          )
+                                    ) 
+                                )
+                        )
+                      )
+       )
+
+
+
+
+(assume (= oldblack (ite (= x nil) True (= (color x) (IntConst 1)))))
+(If (= x nil)
+ Then
+  (assign oldblack True)
+  (alloc ret)
+  (assume (not (= ret nil)))
+  (assign (key ret) k)
+  (assign (color ret) (IntConst 0))
+  (assign (left ret) nil)
+  (assign (right ret) nil)
+ Else
+  (If (< k (key x))
+  Then
+  (assign aux (left x))
+  (call rbt_insert (aux k) (p))
+          (If (= (color p) (IntConst 1))
+          Then
+            (assign (left x) p)
+            (assign ret x)
+          Else
+            (assign aux (right x))      
+            (If (not (ite (= aux nil) True (= (color aux) (IntConst 1))))
+            Then
+              (assign (left x) p)
+              (assign (color p) (IntConst 1))
+              (assign (color aux) (IntConst 1))
+              (assign (color x) (IntConst 0))
+              (assign ret x)
+            Else
+              (assign aux1 (left p))
+              (assign aux (right p))
+              (If (not (ite (= aux nil) True (= (color aux) (IntConst 1))))
+              Then
+                (assign auxl (left aux))
+                (assign auxr (right aux))
+                (assign (right p) auxl)
+                (assign (left x) auxr)
+                (assign (left aux) p)
+                (assign (right aux) x)
+                (assign (color aux) (IntConst 1))
+                (assign (color x) (IntConst 0))
+                (assign ret aux)
+              Else
+                (If (not (ite (= aux1 nil) True (= (color aux1) (IntConst 1))))
+                Then
+                  (assign (right p) x)
+                  (assign (left x) aux)
+                  (assign (color p) (IntConst 1))
+                  (assign (color x) (IntConst 0))
+                  (assign ret p)
+                Else
+                  (assign (left x) p)
+                  (assign ret x)
+                )
+              )
+            )
+          )
+  Else
+    (assign aux (right x))
+    (call rbt_insert (aux k) (p))
+    (If (ite (= p nil) True (= (color p) (IntConst 1)))
+    Then
+      (assign (right x) p)
+      (assign ret x)
+    Else
+      (assign aux1 (left x))
+      (If (not (ite (= aux1 nil) True (= (color aux1) (IntConst 1))))
+      Then
+        (assign (right x) p)
+        (assign (color p) (IntConst 1))
+        (assign (color aux1) (IntConst 1))
+        (assign (color x) (IntConst 0))
+        (assign ret x)
+      Else
+        (assign aux1 (left p))
+        (assign aux (right p))
+        (If (not (ite (= aux1 nil) True (= (color aux1) (IntConst 1))))
+        Then
+          (assign auxl (left aux1))
+          (assign auxr (right aux1))
+          (assign (left p) auxr)
+          (assign (right  x) auxl)
+          (assign (right aux1) p)
+          (assign (left aux1) x)
+          (assign (color aux1) (IntConst 1))
+          (assign (color x) (IntConst 0))
+          (assign ret aux1)
+        Else
+          (If (not (ite (= aux nil) True (= (color aux) (IntConst 1))))
+          Then
+            (assign (left p) x)
+            (assign (right x) aux1)
+            (assign (color p) (IntConst 1))
+            (assign (color x) (IntConst 0))
+            (assign ret p)
+          Else
+            (assign (right x) p)
+            (assign ret x)
+          )
+        )
+      )
+    )
+  )
+)
+(assign lft (left ret))
+(assign rht (right ret))
+(return)

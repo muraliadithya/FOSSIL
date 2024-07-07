@@ -8,8 +8,6 @@
 (RecFunction Max  Loc Int)
 (Var plus_infty Int)
 (Var minus_infty Int)
-
-(RecFunction Black Loc Bool)
 (RecFunction BH Loc Int)
 (RecFunction RBT  Loc Bool)
 
@@ -38,8 +36,6 @@
                   )
                 )))
 
-(RecDef (Black x) (ite (= x nil) True (= (color x) (IntConst 1))))
-
 (RecDef (BH x) (ite (= x nil) (IntConst 1)
                (ite (= (color x) (IntConst 1))
                     (+ (IntConst 1)
@@ -53,7 +49,7 @@
                           (RBT (right x)) (< (key x) (Min (right x)))
                           (= (BH (left x)) (BH (right x)))
                           (ite (= (color x) (IntConst 1)) True
-                               (and (Black (left x)) (Black (right x))))
+                               (and (ite (= (left x) nil) True (= (color (left x)) (IntConst 1))) (ite (= (right x) nil) True (= (color (right x)) (IntConst 1)))))
                           (not (IsMember x (Sp (RBT (antiSp (left x))))))
                           (not (IsMember x (Sp (RBT (antiSp (right x))))))
                           (= EmptySetLoc (SetIntersect

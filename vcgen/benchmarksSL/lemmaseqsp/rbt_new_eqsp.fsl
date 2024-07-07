@@ -9,7 +9,6 @@
 (Var plus_infty Int)
 (Var minus_infty Int)
 
-(RecFunction Black Loc Bool)
 (RecFunction BH Loc Int)
 (RecFunction RBT  Loc Bool)
 
@@ -38,8 +37,6 @@
                   )
                 )))
 
-(RecDef (Black x) (ite (= x nil) True (= (color x) (IntConst 1))))
-
 (RecDef (BH x) (ite (= x nil) (IntConst 1)
                (ite (= (color x) (IntConst 1))
                     (+ (IntConst 1)
@@ -48,37 +45,27 @@
                     (ite (< (BH (left x)) (BH (right x)))
                       (BH (right x)) (BH (left x))))))
 
-(RecDef (RBT x) (ite (= x nil) True
-                  (and (= (BH (left x)) (BH (right x))) 
-                                 (Exists (= lft (left x)) (= rht (right x)) (= k (key x))
-                                    (ite (= lft nil)
-                                          (ite (= rht nil)  
-                                                (*  (= (key x) (key x)) 
-                                                      (* (and (RBT lft) (< (Max lft) k)) (and (RBT rht) (< k (Min rht))))
-                                                )
-                                                (Exists (= cr (color rht)) 
-                                                   (* (ite (= (color x) (IntConst 1)) True (= cr (IntConst 1))) 
-                                                      (* (and (RBT lft) (< (Max lft) k)) (and (RBT rht) (< k (Min rht))))
-                                                    )
-                                                  )
-                                          )
-                                          (ite (= rht nil)  
-                                                (Exists (= cl (color lft)) 
-                                                   (* (ite (= (color x) (IntConst 1)) True (= cl (IntConst 1))) 
-                                                      (* (and (RBT lft) (< (Max lft) k)) (and (RBT rht) (< k (Min rht))))
-                                                    )
-                                                  )
-                                                (Exists (= cl (color lft)) (= cr (color rht)) 
-                                                   (* (ite (= (color x) (IntConst 1)) True (and (= cl (IntConst 1)) (= cr (IntConst 1)) )) 
-                                                          (* (and (RBT lft) (< (Max lft) k)) (and (RBT rht) (< k (Min rht))))
-                                                    )
-                                                  )
-                                          )
-                                    )
-                                 )
-                  )
-                )
-)
+(RecDef (RBT x) (ite (= x nil) True 
+                    (and (= (BH (left x)) (BH (right x)))
+                      (Exists (= lft (left x)) (= rht (right x)) (= k (key x)) (= cx (color x))
+                                (and 
+                                (* (* (* (= k (key x)) (and (< k plus_infty) (< minus_infty k)) ) 
+                                (and (RBT lft) (< (Max lft) k))) (and (RBT rht) (< k (Min rht))))
+                                
+                                (ite (= cx (IntConst 1)) (* (= (key x) (key x)) (* (RBT lft) (RBT rht)) )
+                                        (* (= (key x) (key x))
+                                        (* (ite (= lft nil) True (Exists (= llft (left lft)) (= rlft (right lft)) 
+                                              (* (= (color lft) (IntConst 1)) (* (RBT llft) (RBT rlft)))  
+                                        ))
+                                        (ite (= rht nil) True (Exists (= lrht (left rht)) (= rrht (right rht)) 
+                                              (* (= (color rht) (IntConst 1)) (* (RBT lrht) (RBT rrht)))  
+                                        ))
+                                        ))
+                                )
+                          )
+                        )
+                      )    
+                ))
 
 
 (RecDef (Keys x) (ite (= x nil) EmptySetInt

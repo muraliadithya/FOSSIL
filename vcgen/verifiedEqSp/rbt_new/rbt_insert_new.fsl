@@ -12,7 +12,6 @@
 (Var plus_infty Int)
 (Var minus_infty Int)
 
-(RecFunction Black Loc Bool)
 (RecFunction BH Loc Int)
 (RecFunction RBT  Loc Bool)
 
@@ -41,8 +40,6 @@
                   )
                 )))
 
-(RecDef (Black x) (ite (= x nil) True (= (color x) (IntConst 1))))
-
 (RecDef (BH x) (ite (= x nil) (IntConst 1)
                (ite (= (color x) (IntConst 1))
                     (+ (IntConst 1)
@@ -56,7 +53,7 @@
                           (RBT (right x)) (< (key x) (Min (right x)))
                           (= (BH (left x)) (BH (right x)))
                           (ite (= (color x) (IntConst 1)) True
-                               (and (Black (left x)) (Black (right x))))
+                               (and (ite (= (left x) nil) True (= (color (left x)) (IntConst 1))) (ite (= (right x) nil) True (= (color (right x)) (IntConst 1)))))
                           (not (IsMember x (Sp (RBT (antiSp (left x))))))
                           (not (IsMember x (Sp (RBT (antiSp (right x))))))
                           (= EmptySetLoc (SetIntersect
@@ -82,6 +79,7 @@
 (Var p Loc)
 (Var auxl Loc)
 (Var auxr Loc)
+(Var oldblack Bool)
 (Var lft Loc)
 (Var rht Loc)
 
@@ -92,13 +90,14 @@
 (Post (and (RBT ret) 
           (= (Keys ret) (SetAdd (Old (Keys x)) k))
           (= (BH ret) (Old (BH x))) 
-          (ite (Black ret) True
-            (and (ite (Old (Black x)) (and (Black lft) (Black rht))
-                                      (or (Black lft) (Black rht)))
+          (ite (ite (= ret nil) True (= (color ret) (IntConst 1))) True
+            (and (ite oldblack (and (ite (= (left ret) nil) True (= (color (left ret)) (IntConst 1))) (ite (= (right ret) nil) True (= (color (right ret)) (IntConst 1))))
+                                      (or (ite (= (left ret) nil) True (= (color (left ret)) (IntConst 1))) (ite (= (right ret) nil) True (= (color (right ret)) (IntConst 1)))))
             )
           )
       )
 )
+(assume (= oldblack (ite (= x nil) True (= (color x) (IntConst 1)))))
 (If (= x nil)
  Then
   (alloc ret)
@@ -120,7 +119,7 @@
             
           Else
             (assign aux (right x))      
-            (If (not (Black aux))
+            (If (not (ite (= aux nil) True (= (color aux) (IntConst 1))))
             Then
               (assign (left x) p)
               (assign (color p) (IntConst 1))
@@ -131,7 +130,7 @@
             Else
               (assign aux1 (left p))
               (assign aux (right p))
-              (If (not (Black aux))
+              (If (not (ite (= aux nil) True (= (color aux) (IntConst 1))))
               Then
                 (assign auxl (left aux))
                 (assign auxr (right aux))
@@ -144,7 +143,8 @@
                 (assign ret aux)
                 
               Else
-                (If (not (Black aux1))
+              
+                (If (not (ite (= aux1 nil) True (= (color aux1) (IntConst 1))))
                 Then
                   (assign (right p) x)
                   (assign (left x) aux)
@@ -163,14 +163,15 @@
   Else
     (assign aux (right x))
     (call rbt_insert (aux k) (p))
-    (If (Black p)
+    
+    (If (ite (= p nil) True (= (color p) (IntConst 1)))
     Then
       (assign (right x) p)
       (assign ret x)
       
     Else
       (assign aux1 (left x))
-      (If (not (Black aux1))
+      (If (not (ite (= aux1 nil) True (= (color aux1) (IntConst 1))))
       Then
         (assign (right x) p)
         (assign (color p) (IntConst 1))
@@ -181,7 +182,7 @@
       Else
         (assign aux1 (left p))
         (assign aux (right p))
-        (If (not (Black aux1))
+        (If (not (ite (= aux1 nil) True (= (color aux1) (IntConst 1))))
         Then
           (assign auxl (left aux1))
           (assign auxr (right aux1))
@@ -194,7 +195,7 @@
           (assign ret aux1)
           
         Else
-          (If (not (Black aux))
+          (If (not (ite (= aux nil) True (= (color aux) (IntConst 1))))
           Then
             (assign (left p) x)
             (assign (right x) aux1)
@@ -205,6 +206,7 @@
           Else
             (assign (right x) p)
             (assign ret x)
+            
           )
         )
       )

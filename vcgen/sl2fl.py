@@ -61,7 +61,7 @@ def parse_expr(string, loc, tokens):
                 return_expr = ['and'] + formulas
             else:
                 return_expr = ['and'] + formulas + [['=', 'EmptySetLoc', ['SetIntersect', ['Sp', sp_formulas[0]], ['Sp', sp_formulas[1]]]]]
-            sp_expr = ['and'] + formulas
+            sp_expr = ['and'] + sp_formulas
         # existential quantifier
         elif expr[0][0] == 'Exists':
             # assert len(expr) == 3, "Existential quantifier handles only one variable, has a guard ((= exists_var expr)), and a body"
@@ -69,12 +69,16 @@ def parse_expr(string, loc, tokens):
             assert all(subexpr[0] == '=' and type(subexpr[1]) == str for subexpr in guard_exprs)
             guard_var_term_pairs = [(subexpr[1], subexpr[2]) for subexpr in guard_exprs]
             existential_matrix = expr[-1][0]
+            sp_existential_matrix = expr[-1][1]
             for guard_var, guard_term in guard_var_term_pairs:
                 existential_matrix = substitute(existential_matrix, guard_var, ['antiSp', guard_term])
+                sp_existential_matrix = substitute(sp_existential_matrix, guard_var, ['antiSp', guard_term])
             return_expr = ['and'] \
                           + [['=', guard_term, guard_term] for _, guard_term in guard_var_term_pairs] \
                           + [existential_matrix]
-            sp_expr = return_expr
+            sp_expr = ['and'] \
+                          + [['=', guard_term, guard_term] for _, guard_term in guard_var_term_pairs] \
+                          + [sp_existential_matrix]
         else:
             return_expr = [subexpr[0] for subexpr in expr]
             sp_expr = return_expr

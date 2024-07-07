@@ -19,7 +19,7 @@ Expr <<= Thing ^ (LParen + Expr[1, ...] + RParen)
 ### Attribute to denote propagation of emptyset ###
 emptysetprop = True
 supportless_operators = ['IntConst','True','False','Old','EmptySetLoc', 'antiSp']
-union_operators = ['=', 'not', 'or', 'and', '*', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'SetDel','SetIntersect', 'SetUnion', '<', '>', '>=', '<=', '+', '-']
+union_operators = ['=', 'not', 'or', 'and', 'nonsepand', '*', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'SetDel','SetIntersect', 'SetUnion', '<', '>', '>=', '<=', '+', '-']
 
 
 @Expr.set_parse_action
@@ -45,6 +45,12 @@ def parse_expr(string, loc, tokens):
             sp_formulas = [subexpr[1] for subexpr in expr[1:]]
             return_expr = ['and'] + formulas + [['='] + list(['Sp', subexpr] for subexpr in sp_formulas)]
             sp_expr = formulas[0]
+        elif expr[0][0] == 'nonsepand':
+            assert len(expr) == 3, "nonsepand operator can only have two operands"
+            formulas = [subexpr[0] for subexpr in expr[1:]]
+            sp_formulas = [subexpr[1] for subexpr in expr[1:]]
+            return_expr = ['and'] + formulas
+            sp_expr = ['and'] + sp_formulas
         # separating conjunction operator
         elif expr[0][0] == '*':
             assert len(expr) == 3, "separating conjunction operator can only have two operands"

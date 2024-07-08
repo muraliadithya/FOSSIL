@@ -1620,12 +1620,6 @@ def vc(user_input, aux_mode=testing_mode, logic='sl', onthefly=False, weaken_all
         np_solver.options.depth = 2
     else:
         raise Exception('Bad mode')
-        
-
-# np_solver.options.instantiation_mode = proveroptions.manual_instantiation_finegrained
-# np_solver.options.instantiation_mode = proveroptions.quantified_reasoning # CHANGED QUANT
-# np_solver.options.logfile = os.path.join(os.path.abspath('.'),'tmp','quantified_query.smt2')
-# np_solver.options.smt_solver = proveroptions.z_three
 
 
     start = time.time()

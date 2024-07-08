@@ -46,7 +46,6 @@ for prog in progfiles:
     with open(prog, 'r') as f:
         progtext = f.read()
 
-
     start = time.time()
 
     bbgen_object = BBGenerator()

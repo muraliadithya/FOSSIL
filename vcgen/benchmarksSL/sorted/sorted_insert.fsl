@@ -28,7 +28,7 @@
 (Var tmp Loc)
 
 (Program sorted_insert (x k) (ret))
-(Pre (and (Sorted x) (< k plus_infty) ))
+(Pre (* (Sorted x) (< k plus_infty) ))
 (Post (and (Sorted ret) (and (= (Keys ret) (SetAdd (Old (Keys x)) k))
            (ite (< (Old (Min x)) k) (= (Min ret) (Old (Min x))) (= (Min ret) k)) )))
 

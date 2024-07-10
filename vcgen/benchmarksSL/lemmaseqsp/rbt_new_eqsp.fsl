@@ -48,24 +48,18 @@
 (RecDef (RBT x) (ite (= x nil) True 
                     (and (= (BH (left x)) (BH (right x)))
                       (Exists (= lft (left x)) (= rht (right x)) (= k (key x)) (= cx (color x))
-                                (and 
                                 (* (* (* (= k (key x)) (and (< k plus_infty) (< minus_infty k)) ) 
-                                (and (RBT lft) (< (Max lft) k))) (and (RBT rht) (< k (Min rht))))
-                                
-                                (ite (= cx (IntConst 1)) (* (= (key x) (key x)) (* (RBT lft) (RBT rht)) )
-                                        (* (= (key x) (key x))
-                                        (* (ite (= lft nil) True (Exists (= llft (left lft)) (= rlft (right lft)) 
-                                              (* (= (color lft) (IntConst 1)) (* (RBT llft) (RBT rlft)))  
-                                        ))
-                                        (ite (= rht nil) True (Exists (= lrht (left rht)) (= rrht (right rht)) 
-                                              (* (= (color rht) (IntConst 1)) (* (RBT lrht) (RBT rrht)))  
-                                        ))
-                                        ))
+                                (nonsepand (and (RBT lft) (< (Max lft) k)) 
+                                  (ite (= cx (IntConst 1)) True (ite (= lft nil) True (= (color lft) (IntConst 1))))
+                                )) 
+                                (nonsepand (and (RBT rht) (< k (Min rht))) 
+                                  (ite (= cx (IntConst 1)) True (ite (= rht nil) True (= (color rht) (IntConst 1))))
+                                )
                                 )
                           )
                         )
                       )    
-                ))
+)
 
 
 (RecDef (Keys x) (ite (= x nil) EmptySetInt

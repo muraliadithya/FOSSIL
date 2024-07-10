@@ -57,11 +57,10 @@
 (Var left_right Loc)
 
 (Program rotate_left (x) (ret))
-(Pre (* (not (= x nil)) (and (BST x) (Exists (= y (left x)) (Exists (= z (right x)) (Exists (= k (key x))
-                                (* (* (not (= (left x) nil)) (and (BST y) (< (Max y) k))) (and (BST z) (< k (Min z))))
-                                    )))
-                        )
+(Pre (* (not (= x nil)) (nonsepand (BST x) (not (= (left x) nil)))
 ))
+
+
 (Post (and (BST ret) (and (= (Keys ret) (Old (Keys x)))
            (and (= (Min ret) (Old (Min x))) (= (Max ret) (Old (Max x)))
       ))))

@@ -37,21 +37,13 @@
 (RecDef (RevKeys x) (ite (= x nil) EmptySetInt
                       (SetAdd (RevKeys (prev x)) (key x))))
 
-(RecFunction IndStruct Loc Bool)
-(RecDef (IndStruct x) (ite (= x nil) True (IndStruct (next x))))
-
-(RecFunction IndStructRev Loc Bool)
-(RecDef (IndStructRev x) (ite (= x nil) True (IndStructRev (prev x))))
-
-
-
-(lemma (x) (=> (IndStruct x) (= (Sp (DLL x)) (Sp (Keys x))))
-)
-(lemma (x) (=> (IndStructRev x) (= (Sp (RevDLL x)) (Sp (RevKeys x))))
-)
-
 (Var ret Loc)
 (Program temp (x) (ret))
-(Pre True)
-(Post True)
+(Pre (ite (= x nil) True (= (Sp (DLL (antiSp (next x)))) (Sp (Keys (antiSp (next x)))))))
+(Post (= (Sp (DLL x)) (Sp (Keys x))))
+(return)
+
+(Program temprev (x) (ret))
+(Pre (ite (= x nil) True (= (Sp (RevDLL (antiSp (prev x)))) (Sp (RevKeys (antiSp (prev x)))))))
+(Post (= (Sp (RevDLL x)) (Sp (RevKeys x))))
 (return)

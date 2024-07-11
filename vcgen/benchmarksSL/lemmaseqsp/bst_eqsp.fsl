@@ -49,19 +49,27 @@
                       (SetAdd (SetUnion (Keys (left x)) (Keys (right x)))
                               (key x))))
 
-(RecFunction IndStruct Loc Bool)
-(RecDef (IndStruct x) (ite (= x nil) True (and (IndStruct (left x)) (IndStruct (right x)))))
-
-
-
-(lemma (x) (=> (IndStruct x) (and (= (Sp (BST x)) (Sp (Keys x)))
-                                  (= (Sp (BST x)) (Sp (Min x))) (= (Sp (BST x)) (Sp (Max x)))
-                              )
-))  
-
-
 (Var ret Loc)
-(Program temp (x) (ret))
-(Pre (True))
-(Post (True))
+(Program temp1 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (Max (antiSp (left x)))) (Sp (Keys (antiSp (left x)))))
+                              (= (Sp (Max (antiSp (right x)))) (Sp (Keys (antiSp (right x)))))
+)))
+(Post (= (Sp (Max x)) (Sp (Keys x))))
+(return)
+
+(Program temp2 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (Min (antiSp (left x)))) (Sp (Keys (antiSp (left x)))))
+                              (= (Sp (Min (antiSp (right x)))) (Sp (Keys (antiSp (right x)))))
+)))
+(Post (= (Sp (Min x)) (Sp (Keys x))))
+(return)
+
+
+(Program temp3 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (BST (antiSp (left x)))) (Sp (Keys (antiSp (left x)))))
+                              (= (Sp (BST (antiSp (right x)))) (Sp (Keys (antiSp (right x)))))
+                              (= (Sp (Max x)) (Sp (Keys x)))
+                              (= (Sp (Min x)) (Sp (Keys x)))
+)))
+(Post (= (Sp (BST x)) (Sp (Keys x))))
 (return)

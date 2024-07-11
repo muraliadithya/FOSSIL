@@ -37,15 +37,25 @@
                ))
 
 
-(RecFunction IndStruct Loc Bool)
-(RecDef (IndStruct x) (ite (= x nil) True (IndStruct (next x))))
 
-(lemma (x) (=> (IndStruct x) (and (= (Sp (Sorted x)) (Sp (Keys x))) (= (Sp (Sorted x)) (Sp (List x)))
-                                  (= (Sp (Sorted x)) (Sp (Max x))) (= (Sp (Sorted x)) (Sp (Min x)))
-                              )
-))
+(Program temp1 (x) (ret))
+(Pre (ite (= x nil) True (= (Sp (List (antiSp (next x)))) (Sp (Keys (antiSp (next x)))))))
+(Post (= (Sp (List x)) (Sp (Keys x))))
+(return)
 
-(Program temp (x) (ret))
-(Pre True)
-(Post True)
+(Program temp1 (x) (ret))
+(Pre (ite (= x nil) True (= (Sp (Max (antiSp (next x)))) (Sp (Keys (antiSp (next x)))))))
+(Post (= (Sp (Max x)) (Sp (Keys x))))
+(return)
+
+(Program temp2 (x) (ret))
+(Pre (ite (= x nil) True (= (Sp (Min (antiSp (next x)))) (Sp (Keys (antiSp (next x)))))))
+(Post (= (Sp (Min x)) (Sp (Keys x))))
+(return)
+
+(Program temp3 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (Sorted (antiSp (next x)))) (Sp (Keys (antiSp (next x)))))
+                              (= (Sp (Min x)) (Sp (Keys x)))
+)))
+(Post (= (Sp (Sorted x)) (Sp (Keys x))))
 (return)

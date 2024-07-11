@@ -40,16 +40,16 @@
                                           )
                                         )))
 
-(RecFunction IndStruct Loc Bool)
-(RecDef (IndStruct x) (ite (= x nil) True (and (IndStruct (left x)) (IndStruct (right x)))))
+(Program temp1 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (Size (antiSp (left x)))) (Sp (InTree (antiSp (left x)))))
+                              (= (Sp (Size (antiSp (right x)))) (Sp (InTree (antiSp (right x)))))
+)))
+(Post (= (Sp (Size x)) (Sp (InTree x))))
+(return)
 
-(lemma (x) (=> (IndStruct x) (and (= (Sp (Tree x)) (Sp (InTree x))) (= (Sp (Tree x)) (Sp (Size x)))
-                              )
-))  
-
-
-(Var ret Loc)
-(Program temp (x) (ret))
-(Pre True)
-(Post True)
+(Program temp2 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (Tree (antiSp (left x)))) (Sp (Size (antiSp (left x)))))
+                              (= (Sp (Tree (antiSp (right x)))) (Sp (Size (antiSp (right x)))))
+)))
+(Post (= (Sp (Tree x)) (Sp (Size x))))
 (return)

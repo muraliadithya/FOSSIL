@@ -13,20 +13,15 @@
 (RecDef (Keys x) (ite (= x nil) EmptySetInt
                       (SetAdd (Keys (next x)) (key x))))
 
-
-(RecFunction IndStruct Loc Bool)
-(RecDef (IndStruct x) (ite (= x nil) True (IndStruct (next x))))
-
 (Var y Loc)
 (Var aux Loc)
 (Var tmp Loc)
 (Var ret Loc)
 
 
-(lemma (x) (=> (IndStruct x) (= (Sp (List x)) (Sp (Keys x))))
-)
+
 
 (Program temp (x) (ret))
-(Pre True)
-(Post True)
+(Pre (ite (= x nil) True (= (Sp (List (antiSp (next x)))) (Sp (Keys (antiSp (next x)))))))
+(Post (= (Sp (List x)) (Sp (Keys x))))
 (return)

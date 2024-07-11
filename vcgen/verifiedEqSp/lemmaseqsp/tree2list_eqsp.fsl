@@ -54,24 +54,39 @@
                         (key x))))
 
 
-(RecFunction IndStructTree Loc Bool)
-(RecDef (IndStructTree x) (ite (= x nil) True (and (IndStructTree (left x)) (IndStructTree (right x)))))
-(RecFunction IndStructList Loc Bool)
-(RecDef (IndStructList x) (ite (= x nil) True (IndStructList (next x))))
-
-(lemma (x) (=> (IndStructTree x) (and (= (Sp (BST x)) (Sp (TreeKeys x))) (= (Sp (BST x)) (Sp (MaxTree x)))
-                                      (= (Sp (BST x)) (Sp (MinTree x)))
-                              )
-))
-
-
-
-(lemma (x) (=> (IndStructList x) (and (= (Sp (Sorted x)) (Sp (ListKeys x))) (= (Sp (Sorted x)) (Sp (MinList x)))
-                              )
-))
 
 (Var ret Loc)
 (Program temp (x) (ret))
-(Pre True)
-(Post True)
+(Pre (ite (= x nil) True (= (Sp (Sorted (antiSp (next x)))) (Sp (MinList (antiSp (next x)))))))
+(Post (= (Sp (Sorted x)) (Sp (MinList x))))
+(return)
+
+(Program temp0 (x) (ret))
+(Pre (ite (= x nil) True (= (Sp (ListKeys (antiSp (next x)))) (Sp (MinList (antiSp (next x)))))))
+(Post (= (Sp (ListKeys x)) (Sp (MinList x))))
+(return)
+
+
+(Program temp1 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (MaxTree (antiSp (left x)))) (Sp (TreeKeys (antiSp (left x)))))
+                              (= (Sp (MaxTree (antiSp (right x)))) (Sp (TreeKeys (antiSp (right x)))))
+)))
+(Post (= (Sp (MaxTree x)) (Sp (TreeKeys x))))
+(return)
+
+(Program temp2 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (MinTree (antiSp (left x)))) (Sp (TreeKeys (antiSp (left x)))))
+                              (= (Sp (MinTree (antiSp (right x)))) (Sp (TreeKeys (antiSp (right x)))))
+)))
+(Post (= (Sp (MinTree x)) (Sp (TreeKeys x))))
+(return)
+
+
+(Program temp3 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (BST (antiSp (left x)))) (Sp (TreeKeys (antiSp (left x)))))
+                              (= (Sp (BST (antiSp (right x)))) (Sp (TreeKeys (antiSp (right x)))))
+                              (= (Sp (MaxTree x)) (Sp (TreeKeys x)))
+                              (= (Sp (MinTree x)) (Sp (TreeKeys x)))
+)))
+(Post (= (Sp (BST x)) (Sp (TreeKeys x))))
 (return)

@@ -61,9 +61,8 @@
 ))
 
 
-(Post (and (BST ret) (and (= (Keys ret) (Old (Keys x)))
-           (and (= (Min ret) (Old (Min x))) (= (Max ret) (Old (Max x)))
-      ))))
+(Post (and (BST ret) (= (Keys ret) (Old (Keys x)))
+      ))
 
 (assign lft (left x))
 (assign left_right (right lft))

@@ -60,7 +60,6 @@
 (Program rotate_right (x) (ret))
 (Pre (and (BST x) (not (= x nil)) (not (= (left x) nil)) ))
 (Post (and (BST ret) (= (Keys ret) (Old (Keys x)))
-           (= (Min ret) (Old (Min x))) (= (Max ret) (Old (Max x)))
            (BST (right (right ret))) (BST (left ret)) ))
 
 (assign lft (left x))

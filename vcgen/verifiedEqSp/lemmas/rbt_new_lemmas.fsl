@@ -75,7 +75,7 @@
 (Var rht Loc)
 
 (Program lemma1 (x) (ret))
-(Pre (RBT x))
+(Pre (and (RBT x) (not (= x nil))))
 (Post (and (=> (not (= x nil)) (not (IsMember x (Sp (RBT (antiSp (left x)))))))
            (=> (not (= x nil)) (not (IsMember x (Sp (RBT (antiSp (right x)))))))
            (=> (not (= x nil)) (= (left x) (left x)))

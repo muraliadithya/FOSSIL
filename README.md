@@ -54,50 +54,49 @@ Each benchmark file contains variable declarations, followed by function declara
 
 A simple SLFL program to help read the benchmarks:
 
-> (Var x Loc)                           /* variable x of location sort.*/ \
-> (Var ret Loc) \
+> (Var x Loc)
+/\* variable x of location sort. \*/
+> (Var ret Loc)
 >
-> (Function next Loc Loc)               /* pointer next:Loc --> Loc */ \
-> (Function keys Loc Int) \
+> (Function next Loc Loc)           
+/\* pointer next:Loc --> Loc \*/
+> (Function keys Loc Int)
 >
-> (EqSp (List (Keys)))                  /* Declare that the recursive functions
-                                            List and Keys (which must be declared afterwards) have the same heaplet (support). */ \
+> (EqSp (List (Keys)))                  
+/\* Declare that the recursive functions List and Keys have the same heaplet (support). \*/
 >
-> (RecFunction List Loc Bool)           /* Recursive function List:Loc --> Bool. */ \
-> (RecFunction Keys Loc SetInt) \
+> (RecFunction List Loc Bool)          
+/\* Recursive function List:Loc --> Bool. \*/
+> (RecFunction Keys Loc SetInt)
 >
-> (RecDef (List x) (ite (= x nil) True
->                            (Exists (= y (next x)) (* (= (next x) (next x)) (List y))))) \
->                             /* The definition of the recursive function List. RecFunctions must be declasred before providing a definition. */ \
-> (RecDef (Keys x) (ite (= x nil) EmptySetInt  
->                            (SetAdd (Keys (next x)) (key x)))) \
+> (RecDef (List x) (ite (= x nil) True (Exists (= y (next x)) (\* (= (next x) (next x)) (List y))))) 
+>  /\* The definition of List. RecFunctions must be declared before providing a definition. \*/
+> (RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (Keys (next x)) (key x))))
 >
->  (Program example (x) (ret)) \
->  (Pre (List x))                                       /* Preconditin:   (List x) holds at the start of the program */ \
->  (Post (= (Keys ret) (SetAdd (Old (Keys x)) k)))      /* Postcondition: (Keys ret) at the end of the program is the same as (Keys x) at the start
-                                                        along with k.*/ \
->  (alloc ret)                           /* Allocate a new location named ret. */ \
+>  (Program example (x) (ret))
+>  (Pre (List x))  
+> /\* Precondition: (List x) holds at the start of the program. \*/
+>  (Post (= (Keys ret) (SetAdd (Old (Keys x)) k))) \
+> /\* Postcondition: (Keys ret) at the end of the program is the same as (Keys x) plus k .\*/ \
+>  (alloc ret)                           
+/\* Allocate a new location named ret. \*/ \
 >  (assume (not (= ret nil))) \
->  (assign (key ret) k) \                 
->  (assign (next ret) x)                /* Mutation: the next pointer of ret points to x. */ \
->  (return)                             /* end of program. */ \
+>  (assign (key ret) k)
+>  (assign (next ret) x)                
+/\* Mutation: the next pointer of ret points to x. \*/ \
+>  (return)                            
+/\* end of program. \*/ 
 
 #### Writing Benchmarks
 
 A program should be written in the following format:
 
 [Variables]^*^.
-
 [Pointers]^*^.
-
 ([Equal-Supports] | $$\epsilon$$).
-
 [RecursiveFunctionNames]^*^.
-
 [RecursiveFunctionDefinitions]^*^.
-
 [Lemmas]^*^.
-
 [Methods]^*^.
 
 NOTE: Variables may be declared anytime before [Methods].

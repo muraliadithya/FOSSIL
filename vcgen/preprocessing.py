@@ -81,7 +81,7 @@ def ml_to_sl(user_input):
     for line in user_input:
         if parantheses_nesting == 0:
             current_formula = line
-        elif parantheses_nesting > 0:                       #may just use >=0 with a single if statement
+        elif parantheses_nesting > 0:                       
             current_formula = current_formula + ' ' + line
         for elt in line:
             if elt == '(':
@@ -191,15 +191,9 @@ def make_list(semip_list): #elements can be strings or lists
     return newlist
                 
 
-
 def create_input(input_string):
     ''''Take a use given input and convert it into the input format used by the vc method '''
     return make_list(listify(input_string))[0]
-
-
-# To complete preprocessing, read the text file-> remove comments -> multiline to singleline -> create input for each element in the resulting list. 
-
-
 
 
 def ntuple(ipset,n):    # Used in making inputs to local frame rules 
@@ -252,14 +246,7 @@ def sl_to_fl_commands(list_of_commands):
             c2_1, c2_2 = fst_n_second('(' + '('.join(c1[6:])[:-1])
             c2 = sl_to_fl(c2_1) + ' ' + sl_to_fl(c2_2)
             c3 = '('.join(c1[:6]) + c2 + ')'
-            ret.append(c3)
-        # CHANGED: ADDED sl-fl lemma translation
-        # elif command.startswith('(lemma'):
-        #     # (lemma (v1 v2 ..) (definition_body))
-        #     c1 = command.split('(')
-        #     c2 = sl_to_fl( '(' + '('.join(c1[3:]) )
-        #     c3 = '('.join(c1[:3]) + c2 + ')'
-        #     ret.append(c3)           
+            ret.append(c3)          
         else:
             ret.append(command)
     return(ret)
@@ -275,19 +262,3 @@ def fst_n_second(call_string):
             num_paren -= 1
         if num_paren == 0:
             return call_string[:i+1], call_string[i+1:]
-
-
-    # for command in list_of_commands:
-    #     convert_to_sl = False
-    #     for x in to_convert:
-    #         if command.startswith(x):
-    #             convert_to_sl = True
-    #             break
-        
-    #     if convert_to_sl:
-    #         ret.append(sl_to_fl(command))
-    #     else:
-    #         ret.append(command)
-    # return ret
-
-# nc_uip = sl_to_fl_commands(ml_to_sl(remove_comments(user_input)))

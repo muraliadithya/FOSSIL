@@ -37,7 +37,7 @@ with Frame Logic (FL) or FL inspired Separation Logic (SL-FL) specification. [ci
 - To run all the FL benchmarks, run `python runbench.py ./benchmarksFL/all/ --lang fl`
     - NOTE: The tool assumes specifications are in SL-FL by default. Use `--lang fl` when running FL annotated files.
 - To run individual files, simply run `python runbench.py ./path-to-file/filename.fsl`
-- Additionally, you may log the entire output of the tool by adding `&> name-of-log-file.txt`.
+- Additionally, you may log the entire output of the tool by adding `&> name-of-log-file.txt`.  
 
 - The tool generates multiples VCs per file. 
     - It prints 'goal is valid' for each VC it is able to prove the VC valid, and 'goal not proven' otherwise.

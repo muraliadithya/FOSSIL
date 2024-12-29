@@ -58,14 +58,14 @@ A simple SLFL program to help read the benchmarks:
 /\* variable x of location sort. \*/ \
 > (Var ret Loc) \
 > \
-> (Function next Loc Loc) \           
+> (Function next Loc Loc)           
 /\* pointer next:Loc --> Loc \*/ \
 > (Function keys Loc Int) \
 > \
 > (EqSp (List (Keys))) \
 /\* Declare that the recursive functions List and Keys have the same heaplet (support). \*/ \
 > \
-> (RecFunction List Loc Bool) \         
+> (RecFunction List Loc Bool)       
 /\* Recursive function List:Loc --> Bool. \*/ \
 > (RecFunction Keys Loc SetInt) \
 > \
@@ -78,13 +78,13 @@ A simple SLFL program to help read the benchmarks:
 > /\* Precondition: (List x) holds at the start of the program. \*/ \
 >  (Post (= (Keys ret) (SetAdd (Old (Keys x)) k))) \
 > /\* Postcondition: (Keys ret) at the end of the program is the same as (Keys x) plus k .\*/ \
->  (alloc ret) \                           
+>  (alloc ret)                           
 /\* Allocate a new location named ret. \*/ \
 >  (assume (not (= ret nil))) \
 >  (assign (key ret) k) \
->  (assign (next ret) x) \               
+>  (assign (next ret) x)              
 /\* Mutation: the next pointer of ret points to x. \*/ \
->  (return) \                            
+>  (return)                            
 /\* end of program. \*/ 
 
 #### Writing Benchmarks

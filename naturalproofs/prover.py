@@ -108,8 +108,8 @@ class NPSolver:
         else:
             # If the instantiation isn't any of these then all defs are going to be instantiated with all terms
             fo_abstractions = axioms | untagged_unfoldings | lemmas
-        print(f'\naxioms: {len(axioms)}  recdefs: {len(untagged_unfoldings)} lemmas: {len(lemmas)}')
-        print(f"{', '.join([recdef[0].name() for recdef in recdefs])}")
+        # print(f'\naxioms: {len(axioms)}  recdefs: {len(untagged_unfoldings)} lemmas: {len(lemmas)}')
+        # print(f"{', '.join([recdef[0].name() for recdef in recdefs])}")
         #print(f'fo_abstractions: {len(fo_abstractions)}')
 
         # All parameters have been set appropriately. Begin constructing instantiations

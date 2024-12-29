@@ -28,7 +28,7 @@ TODO: [cite paper here]
 2. Install Z3Py.
 3. Install the naturalproof package from the FOSSIL repository.
     - Add the path to the naturalproofs toplevel folder to `PYTHONPATH`: execute `export PYTHONPATH ="/path/to/naturalproofs":$PYTHONPATH` or add it to `~/.bashrc` and then do `source ~/.bashrc`.
-4. Change directory to vcgen.
+4. Change directory to `vcgen`.
 
 ## Experiments
 
@@ -52,32 +52,44 @@ TODO: [cite paper here]
 
 Each benchmark file contains variable declarations, followed by function declarations (both pointers as well as recursively defined functions), then provides definitions for recursive functions, defines certain inductive lemmas which are checked automatically, and finally the methods. These are written in a lisp-like format.
 
-A simple program to help read the benchmarks:
+A simple SLFL program to help read the benchmarks:
 
-(Var x Loc)                  /* variable x of location sort. Sorts allowed: Loc, Bool, Int, SetLoc, SetBool, SetInt */
-(Var ret Loc)
+> (Var x Loc)                           /* variable x of location sort.*/
+> (Var ret Loc)
+>
+> (Function next Loc Loc)               /* pointer next:Loc --> Loc */
+> (Function keys Loc Int)
+>
+> (EqSp (List (Keys)))                  /* Declare that the recursive functions
+                                            List and Keys (which must be declared afterwards) have the same heaplet (support). */
+>
+> (RecFunction List Loc Bool)           /* Recursive function List:Loc --> Bool. */
+> (RecFunction Keys Loc SetInt)
+>
+> (RecDef (List x) (ite (= x nil) True 
+>                            (Exists (= y (next x)) (* (= (next x) (next x)) (List y))))) 
+>                             /* The definition of the recursive function List. RecFunctions must be declasred before providing a definition. */
+> (RecDef (Keys x) (ite (= x nil) EmptySetInt  
+>                            (SetAdd (Keys (next x)) (key x))))
+>
+>  (Program example (x) (ret))             
+>  (Pre (List x))                                       /* Preconditin:   (List x) holds at the start of the program */
+>  (Post (= (Keys ret) (SetAdd (Old (Keys x)) k)))      /* Postcondition: (Keys ret) at the end of the program is the same as (Keys x) at the start
+                                                        along with k.*/
+>  (alloc ret)                           /* Allocate a new location named ret. */
+>  (assume (not (= ret nil)))
+>  (assign (key ret) k)                 
+>  (assign (next ret) x)                /* Mutation: the next pointer of ret points to x. */
+>  (return)                             /* end of program. */
 
-(Function next Loc Loc)      /* pointer next:Loc --> Loc */
-(Function keys Loc Int)
 
-(EqSp (List (Keys)))        /* Declare that List and Keys (which must be declared afterwards) have the same heap (support). */
-
-(RecFunction List Loc Bool) /* Recursive function List:Loc --> Bool. */
-(RecFunction Keys Loc SetInt)
-
-(RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x))))))))) 
-                            /* The definition of recursive function List. RecFunctions must be declared before providing a definition. 'Sp' is the support operator, and 'antiSp' is the cloud operator. */
-(RecDef (Keys x) (ite (= x nil) EmptySetInt
-                      (SetAdd (Keys (next x)) (key x))))
-
-(Program example (x) (ret)) /* A program/function called example that takes input x and returns ret. */
-
-(Pre (List x))              /* (List x) holds in the precondition */
-
-(Post (List ret))           /* (List ret) holds in the precondition, and the permission set is exactly the support of List(ret) */
-(assign ret x)              /* Assigns x to ret. */
-(return)                    /* end of program. */
-
+The corresponding FL annotations for the program above:
+> (RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x))))))))) 
+>                             /* 'Sp' is the support operator, and 'antiSp' is the cloud operator. */
+> (RecDef (Keys x) (ite (= x nil) EmptySetInt
+>                       (SetAdd (Keys (next x)) (key x))))
+> (Pre (List x)) 
+> (Post (= (Keys ret) (SetAdd (Old (Keys x)) k)))
 
 #### Writing Benchmarks
 
@@ -141,7 +153,7 @@ NOTE: Variables may be declared anytime before [Methods].
 
 [logic-formula]                 -  Either [sl-formula] or [fl-formula] depending on the benchmark.
 
-###### SL-Formulas
+###### SLFL-Formulas
 [sl-formula]                    -  True | False | (= var1 var2) | (not (= var1 var2)) | (= var1 nil) | (not (= var1 nil)) | (= var1 (func1 var2))
                                   | [set-formula]
                                   | [int-formula] 

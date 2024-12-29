@@ -68,7 +68,7 @@ Declare pointer next:Loc --> Loc and data field key:Loc --> Int.
 
 Declare that the recursive functions List and Keys have the same heaplet (support).
 
-> (RecFunction List Loc Bool) <br>        
+> (RecFunction List Loc Bool) <br>
 > (RecFunction Keys Loc SetInt)
 
 Recursive function List:Loc --> Bool and Keys:Loc -> SetInt.

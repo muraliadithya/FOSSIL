@@ -82,32 +82,23 @@ A simple SLFL program to help read the benchmarks:
 >  (assign (next ret) x)                /* Mutation: the next pointer of ret points to x. */
 >  (return)                             /* end of program. */
 
-
-The corresponding FL annotations for the program above:
-> (RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x))))))))) 
->                             /* 'Sp' is the support operator, and 'antiSp' is the cloud operator. */
-> (RecDef (Keys x) (ite (= x nil) EmptySetInt
->                       (SetAdd (Keys (next x)) (key x))))
-> (Pre (List x)) 
-> (Post (= (Keys ret) (SetAdd (Old (Keys x)) k)))
-
 #### Writing Benchmarks
 
 A program should be written in the following format:
 
-[Variables]$$^{*}$$.
+[Variables]^*^.
 
-[Pointers]$$^{*}$$.
+[Pointers]^*^.
 
 ([Equal-Supports] | $$\epsilon$$).
 
-[RecursiveFunctionNames]$$^{*}$$.
+[RecursiveFunctionNames]^*^.
 
-[RecursiveFunctionDefinitions]$$^{*}$$.
+[RecursiveFunctionDefinitions]^*^.
 
-[Lemmas]$$^{*}$$.
+[Lemmas]^*^.
 
-[Methods]$$^{*}$$.
+[Methods]^*^.
 
 NOTE: Variables may be declared anytime before [Methods].
 
@@ -199,13 +190,3 @@ FL formulas are written similarly. [TODO: cite paper here.]
 
 ###### `Old` operator
 When writing postconditions, one may write (Old (recdef ..vars..)) to refer to the recdef as defined at the beginning of the program.
-
->  (Program example (x) (ret))
->  (Pre (List x))                               
->  (Post (= (Keys ret) (SetAdd (Old (Keys x)) k)))
->  (alloc ret)
->  (assume (not (= ret nil)))
->  (assign (key ret) k)
->  (assign (next ret) x)
->  (return)
-

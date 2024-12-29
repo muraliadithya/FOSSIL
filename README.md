@@ -54,37 +54,37 @@ Each benchmark file contains variable declarations, followed by function declara
 
 A simple SLFL program to help read the benchmarks:
 
-> (Var x Loc)
-/\* variable x of location sort. \*/
-> (Var ret Loc)
->
-> (Function next Loc Loc)           
-/\* pointer next:Loc --> Loc \*/
-> (Function keys Loc Int)
->
-> (EqSp (List (Keys)))                  
-/\* Declare that the recursive functions List and Keys have the same heaplet (support). \*/
->
-> (RecFunction List Loc Bool)          
-/\* Recursive function List:Loc --> Bool. \*/
-> (RecFunction Keys Loc SetInt)
->
-> (RecDef (List x) (ite (= x nil) True (Exists (= y (next x)) (\* (= (next x) (next x)) (List y))))) 
->  /\* The definition of List. RecFunctions must be declared before providing a definition. \*/
-> (RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (Keys (next x)) (key x))))
->
->  (Program example (x) (ret))
->  (Pre (List x))  
-> /\* Precondition: (List x) holds at the start of the program. \*/
+> (Var x Loc) \
+/\* variable x of location sort. \*/ \
+> (Var ret Loc) \
+> \
+> (Function next Loc Loc) \           
+/\* pointer next:Loc --> Loc \*/ \
+> (Function keys Loc Int) \
+> \
+> (EqSp (List (Keys))) \
+/\* Declare that the recursive functions List and Keys have the same heaplet (support). \*/ \
+> \
+> (RecFunction List Loc Bool) \         
+/\* Recursive function List:Loc --> Bool. \*/ \
+> (RecFunction Keys Loc SetInt) \
+> \
+> (RecDef (List x) (ite (= x nil) True (Exists (= y (next x)) (\* (= (next x) (next x)) (List y))))) \
+>  /\* The definition of List. RecFunctions must be declared before providing a definition. \*/ \
+> (RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (Keys (next x)) (key x)))) \
+> \
+>  (Program example (x) (ret)) \
+>  (Pre (List x)) \
+> /\* Precondition: (List x) holds at the start of the program. \*/ \
 >  (Post (= (Keys ret) (SetAdd (Old (Keys x)) k))) \
 > /\* Postcondition: (Keys ret) at the end of the program is the same as (Keys x) plus k .\*/ \
->  (alloc ret)                           
+>  (alloc ret) \                           
 /\* Allocate a new location named ret. \*/ \
 >  (assume (not (= ret nil))) \
->  (assign (key ret) k)
->  (assign (next ret) x)                
+>  (assign (key ret) k) \
+>  (assign (next ret) x) \               
 /\* Mutation: the next pointer of ret points to x. \*/ \
->  (return)                            
+>  (return) \                            
 /\* end of program. \*/ 
 
 #### Writing Benchmarks

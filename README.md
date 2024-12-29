@@ -12,7 +12,7 @@ TODO: [cite paper here]
 0. [Requirements](#requirements)
 1. [Installation](#installation)
 2. [Experiments](#experiments)
-3. [How to write benchmarks](#how-to-write-benchmarks)
+3. [Structure of a File](#structureofafile)
 
 ---
 
@@ -46,134 +46,160 @@ TODO: [cite paper here]
     - For each file, it prints the total execution time.
 
 
-## How to write benchmarks
 
-### Structure of a File
+## Structure of a file
 
-Each benchmark file contains variable declarations, followed by function declarations (both pointers as well as recursively defined functions), then provides definitions for recursive functions, defines certain inductive lemmas which are checked automatically, and finally the methods. These are written in a lisp-like format.
+Programs are written in `.fsl` files. Each benchmark file contains variable declarations, followed by function declarations (both pointers as well as recursively defined functions), then provides definitions for recursive functions, defines certain inductive lemmas which are checked automatically, and finally the methods. These are written in a lisp-like format.
 
 A simple SLFL program to help read the benchmarks:
 
-> (Var x Loc) \
-/\* variable x of location sort. \*/ \
-> (Var ret Loc) \
-> \
-> (Function next Loc Loc)           
-/\* pointer next:Loc --> Loc \*/ \
-> (Function keys Loc Int) \
-> \
-> (EqSp (List (Keys))) \
-/\* Declare that the recursive functions List and Keys have the same heaplet (support). \*/ \
-> \
-> (RecFunction List Loc Bool)       
-/\* Recursive function List:Loc --> Bool. \*/ \
-> (RecFunction Keys Loc SetInt) \
-> \
-> (RecDef (List x) (ite (= x nil) True (Exists (= y (next x)) (\* (= (next x) (next x)) (List y))))) \
->  /\* The definition of List. RecFunctions must be declared before providing a definition. \*/ \
-> (RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (Keys (next x)) (key x)))) \
-> \
->  (Program example (x) (ret)) \
->  (Pre (List x)) \
-> /\* Precondition: (List x) holds at the start of the program. \*/ \
->  (Post (= (Keys ret) (SetAdd (Old (Keys x)) k))) \
-> /\* Postcondition: (Keys ret) at the end of the program is the same as (Keys x) plus k .\*/ \
->  (alloc ret)                           
-/\* Allocate a new location named ret. \*/ \
->  (assume (not (= ret nil))) \
->  (assign (key ret) k) \
->  (assign (next ret) x)              
-/\* Mutation: the next pointer of ret points to x. \*/ \
+> (Var x Loc) <br>
+> (Var ret Loc) <br>
+> (Var k Int)
+
+Declares variable x, ret of location sort.
+
+> (Function next Loc Loc) <br>
+> (Function key Loc Int)
+
+Declare pointer next:Loc --> Loc and data field key:Loc --> Int.
+
+> (EqSp (List (Keys)))
+
+Declare that the recursive functions List and Keys have the same heaplet (support).
+
+> (RecFunction List Loc Bool) <br>        
+> (RecFunction Keys Loc SetInt)
+
+Recursive function List:Loc --> Bool and Keys:Loc -> SetInt.
+
+> (RecDef (List x) (ite (= x nil) True (Exists (= y (next x)) (\* (= (next x) (next x)) (List y))))) <br>
+> (RecDef (Keys x) (ite (= x nil) EmptySetInt (SetAdd (Keys (next x)) (key x))))
+
+The definition of List and Keys. RecFunctions must be declared before providing a definition.
+
+>  (Program example (x) (ret)) <br>
+>  (Pre (List x))
+
+Precondition: (List x) holds at the start of the program.
+>  (Post (= (Keys ret) (SetAdd (Old (Keys x)) k)))
+
+ Postcondition: (Keys ret) at the end of the program is the same as (Keys x) and k .
+>  (alloc ret)                         
+
+Allocate a new location named ret.
+>  (assume (not (= ret nil))) <br>
+>  (assign (key ret) k) <br>
+>  (assign (next ret) x)  
+
+Mutation: the next pointer of ret points to x.
 >  (return)                            
-/\* end of program. \*/ 
+
+ end of program.
+
+
 
 #### Writing Benchmarks
 
 A program should be written in the following format:
 
-[Variables]^*^.
-[Pointers]^*^.
-([Equal-Supports] | $$\epsilon$$).
-[RecursiveFunctionNames]^*^.
-[RecursiveFunctionDefinitions]^*^.
-[Lemmas]^*^.
-[Methods]^*^.
+[Variables]\* \
+[MutableFuncs]\* \
+([Equal-Supports] | $\epsilon$) \
+[RecursiveFunctionNames]\* \
+[RecursiveFunctionDefinitions]\* \
+[Lemmas]\* \
+[Methods]\* 
 
 NOTE: Variables may be declared anytime before [Methods].
 
 
-[Variables]                    - (Var var-name sort)
-                                  /* NOTE: The allowed sortsare: `Loc`, `Int`, `Bool`, `SetLoc`, `SetInt`, `SetBool` */
 
-[Pointers]                     - (Function func Loc sort)
 
-[Equal-Supports]               - (EqSp (recfunc1 (recfunc11 recfunc12 ...)) (recfunc2 (recfunc21 recfunct22) ...) ...) 
+> [Variables]                    := (Var var-name sort) \
+\> The allowed sorts are `Loc`, `Int`, `Bool`, `SetLoc`, `SetInt` `SetBool`
 
-[RecursiveFunctionNames]       - (RecFunction recfunc input-sort1 input-sort2 ... output-sort) 
-                                 /* where input-sort1, input-sort2... must be `Loc`. output-sort can by anything*/
+> [MutableFuncs]                   := (Function func Loc sort)
 
-[RecursiveFunctionDefintions]  - (RecDef (recfunc arg1 arg2 ...) [logic-formula])
-                                 /* where relation symbols occur positively in the [logic-formula],
-                                    (or inside a support expression for frame logic formulas). */
+> [Equal-Supports]               := (EqSp (recfunc1 (recfunc11 recfunc12 ...)) (recfunc2 (recfunc21 recfunct22) ...) ...) 
 
-[Lemmas]                       - (lemma (arg1 arg2 ...) (=> (recfunc ..args..) [fl-formula] ))
-                                  /* NOTE: Lemmas are currently written in FL (even for SL benchmarks).*/
+> [RecursiveFunctionNames]       := (RecFunction recfunc input-sort1 input-sort2 ... output-sort)  
+\> where input-sort1, input-sort2... must be `Loc`. output-sort can by anything
 
-[Methods]                      - (Program method-name (..input-args..) (..output-vars..))
-                                 (Pre [logic-formula])
-                                 (Post [logic-formula-with-old])
-                                 [Program]
+> [RecursiveFunctionDefintions]  := (RecDef (recfunc arg1 arg2 ...) [logic-formula]) \
+\> where relation symbols occur positively in the [logic-formula], (or inside a support expression for frame logic formulas).
 
-[Program]                      - (assign var1 var2) | (assign var1 (func var2)) | (assign (func var1) var2)
-                                 |(assign bg-var bg-term) 
-                                 | (alloc var1) | (free var1) | (call method-name (..input-vars..) (..output-vars..))
-                                 | (assume deref-free-formula)
-                                 | (return)
+> [Lemmas]                       := (lemma (arg1 arg2 ...) (=> (recfunc ..args..) [fl-formula] )) \
+\> NOTE: Lemmas are currently written in FL (even for SL benchmarks).
+
+> [Methods]                      := (Program method-name (..input-args..) (..output-vars..)) \
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Pre [logic-formula]) \
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Post [logic-formula-with-old]) \
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Program]
+
+> [Program]                      := 
+> (assign var1 var2) <br> 
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (assign var1 (func var2)) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (assign (func var1) var2)  <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (assign bg-var bg-term) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  (alloc var1) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (free var1) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (call method-name (..input-vars..) (..output-vars..)) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  (assume deref-free-formula) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  (return) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
                                  | (If (deref-free-formula)
                                       Then [Program]
                                       Else [Program]
                                     )
-                                 | [Program] [Program]
-                                 /* where
-                                    - bg-terms are those of a background sort. Eg: `(assign m (+ (IntSort 1) n))` assigns 1 + n to the variable m.  
-                                    - deref-free-fromulas are those whose support is empty. 
-                                    - method-name can be any method defined before (and including) the current one.
-                                    */
-        
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [Program] [Program] <br> <br>
+> \> where: `bg-terms` are those of a background sort. Eg: `(assign m (+ (IntSort 1) n))` assigns 1 + n to the variable m; deref-free-fromulas are those whose support is empty; method-name can be any method defined before (and including) the current one; [logic-formula] is either an `SLFL-formula` or an `FL-formula` depending on the benchmark; [logic-formula-with-old] simply also allows the use of the `Old` operator.
 
-[logic-formula]                 -  Either [sl-formula] or [fl-formula] depending on the benchmark.
+###### `Old` operator
+When writing postconditions, one may write (Old (recdef ..vars..)) to refer to the recdef as defined at the beginning of the program.
 
 ###### SLFL-Formulas
-[sl-formula]                    -  True | False | (= var1 var2) | (not (= var1 var2)) | (= var1 nil) | (not (= var1 nil)) | (= var1 (func1 var2))
-                                  | [set-formula]
-                                  | [int-formula] 
-                                  | (* [sl-formula] [sl-formula]) | (and [sl-formula] [sl-formula]) |  (nonsepand [sl-formula] [sl-formula])
-                                  | (or [sl-formula] [sl-formula]) | (ite [sl-formula] [sl-formula] [sl-formula]) 
-                                  | (Exists (= var1 (func1 var2)) [sl-formula]) | (boolean-recfunc ..vars..)   
+> [sl-formula] :=                      True | False <br> 
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (= var1 var2) | (not (= var1 var2)) | (= var1 nil) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (not (= var1 nil)) | (= var1 (func1 var2)) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| [set-formula] | [int-formula] <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (* [sl-formula] [sl-formula]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | (and [sl-formula] [sl-formula]) <br> 
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|  (nonsepand [sl-formula] [sl-formula]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (or [sl-formula] [sl-formula]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (ite [sl-formula] [sl-formula] [sl-formula]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (Exists (= var1 (func1 var2)) [sl-formula]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (boolean-recfunc ..vars..)   
 
-[set-formula]                   - [locset-formula] | [boolset-formula] | [intset-formula]
+> [set-formula] := [locset-formula] | [boolset-formula] | [intset-formula]
 
-[locset-formula]                - (= [locset-term] [locset-term]) | (IsMember var1 [locset-term]) | (IsSubset [locset-term] [locset-term]) 
-                                  | (Not [locset-formula])
-
-[locset-term]                   - EmptySetLoc | (locset-recfunc ..vars..) 
-                                  |(SetAdd [locset-term] var1) | (SetDel [locset-term] var1) | (SetIntersect [locset-term] [locset-term])
-                                  | (SetUnion [locset-term] [locset-term]) | | (ite [sl-formula] [locset-term] [locset-term])
-
-/* NOTE: [set-formula] and [set-term] above are defined for sets of `Loc`s. They can also be defined for `Bool`, `Int` with variables, recursive-functions of the appropriate sorts, and whose corresponding empty sets are `EmptySetBool` and `EmptySetInt`.*/ 
-
-
-[int-formula]                   - (< [int-term] [int-term]) | (> [int-term] [int-term]) | (<= [int-term] [int-term]) | (>= [int-term] [int-term])
-                                  | (= [int-term] [int-term]) | (not [int-formula])
-
-[int-term]                      - (IntConst [int]) | (intfunc locvar)| intvar | (+ [int-term] [int-term]) | (- [int-term] [int-term])
+> [locset-formula] := (= [locset-term] [locset-term]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (IsMember var1 [locset-term]) <br> 
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (IsSubset [locset-term] [locset-term]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (Not [locset-formula])
+> <br><br>
+> [locset-term] := EmptySetLoc | (locset-recfunc ..vars..) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; |(SetAdd [locset-term] var1) | (SetDel [locset-term] var1) 
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | (SetIntersect [locset-term] [locset-term]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | (SetUnion [locset-term] [locset-term]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | (ite [sl-formula] [locset-term] [locset-term])
+> <br><br>
+> \> [set-formula] and [set-term] above are defined for sets of `Loc`s. They can also be defined for `Bool`, `Int` with variables, recursive-functions of the appropriate sorts, and whose corresponding empty sets are `EmptySetBool` and `EmptySetInt`.
 
 
- 
-> A singly linked list can be defined as follows: 
->                       (RecDef (List x) (ite (= x nil) True (Exists (= y (next x)) (* (= (next x) (next x)) (List y)))))
-> The lists List(x) and List(y) are disjoint: 
-                        (* (List x) (List y))
+> [int-formula] := (< [int-term] [int-term]) | (> [int-term] [int-term]) <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (<= [int-term] [int-term]) | (>= [int-term] [int-term])
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (= [int-term] [int-term]) | (not [int-formula])
+> <br><br>
+> [int-term] := (IntConst [int]) | (intfunc locvar)| intvar <br>
+> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;| (+ [int-term] [int-term]) | (- [int-term] [int-term])
+
+
+A singly linked list can be defined as follows: 
+> (RecDef (List x) (ite (= x nil) True (Exists (= y (next x)) (* (= (next x) (next x)) (List y)))))
+
+The lists List(x) and List(y) are disjoint: 
+> (* (List x) (List y))
 
 ###### FL-formulas
 FL formulas are written similarly. [TODO: cite paper here.]
@@ -181,11 +207,8 @@ FL formulas are written similarly. [TODO: cite paper here.]
 - (Sp ...) is used for the support operator.
 - (antiSp ...) is used for cloud operator.
 
-> A singly linked list can be defined as follows: 
->                       (RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x)))))))))
-> The lists List(x) and List(y) are disjoint: 
->                       (and (List x) (List y) (= EmptySetLoc (SetIntersect (Sp (List x)) (Sp (List y)))) )
+A singly linked list can be defined as follows: 
+> (RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x)))))))))
 
-
-###### `Old` operator
-When writing postconditions, one may write (Old (recdef ..vars..)) to refer to the recdef as defined at the beginning of the program.
+The lists List(x) and List(y) are disjoint: 
+> (and (List x) (List y) (= EmptySetLoc (SetIntersect (Sp (List x)) (Sp (List y)))) )

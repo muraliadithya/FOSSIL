@@ -1,9 +1,7 @@
 # FL/SL-FL Verification Condition Generator
 
 A tool for generating and proving verification conditions for heap manipulation programs annotated
-with Frame Logic (FL) or FL inspired Separation Logic (SL-FL) specification.
-
-TODO: [cite paper here]
+with Frame Logic (FL) or FL inspired Separation Logic (SL-FL) specification. [cite paper]
 
 ---
 
@@ -19,7 +17,7 @@ TODO: [cite paper here]
 ## Requirements
 - [Python 3.5 or above](https://www.python.org/downloads/)
 - [Z3Py](https://pypi.org/project/z3-solver/)
-- [CVC4 1.9](https://cvc4.github.io/downloads.html) <!-- Check if we use this>
+- [CVC4 1.9](https://cvc4.github.io/downloads.html)
 
 
 ## Installation
@@ -202,10 +200,12 @@ The lists List(x) and List(y) are disjoint:
 > (* (List x) (List y))
 
 ###### FL-formulas
-FL formulas are written similarly. [TODO: cite paper here.]
+FL formulas are written similarly. In FL, heap heap properties are denoted using
 
-- (Sp ...) is used for the support operator.
-- (antiSp ...) is used for cloud operator.
+- (Sp ...) - the `support` operator. The support of ab FL term/formula is the portion of the heap upon which the formula depends.
+- (antiSp ...) - the `cloud` operator. A clouded FL term/formula acts as if it is supportless, i.e (Sp (antSp ...)) is empty.
+
+See [cite paper] for the syntax of FL.
 
 A singly linked list can be defined as follows: 
 > (RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x)))))))))

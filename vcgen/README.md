@@ -9,7 +9,7 @@ TODO: [cite paper here]
 
 ## Table of Contents
 
-0. [Requirements] (#requirements)
+0. [Requirements](#requirements)
 1. [Installation](#installation)
 2. [Experiments](#experiments)
 3. [How to write benchmarks](#how-to-write-benchmarks)
@@ -36,7 +36,7 @@ TODO: [cite paper here]
 
 - To run all the SL-FL benchmarks, run `python runbench.py ./benchmarksSL/all/`
     - NOTE: `runbench.py` runs a python script of the form `python ...`. You may need add a symbolic link `python` if your system does not recognize the `python` command. You may also replace the command in `runbench.py` (line 61) with the appropriate one. 
-- To run all the FL benchmarks, run `python runbench.py ./verifiedEqSp/all/ --lang fl`
+- To run all the FL benchmarks, run `python runbench.py ./benchmarksFL/all/ --lang fl`
     - NOTE: The tool assumes specifications are in SL-FL by default. Use `--lang fl` when running FL annotated files.
 - To run individual files, simply run `python runbench.py ./path-to-file/filename.fsl`
 - Additionally, you may log the entire output of the tool by adding `&> name-of-log-file.txt`.
@@ -84,11 +84,17 @@ A simple program to help read the benchmarks:
 A program should be written in the following format:
 
 [Variables]$$^{*}$$.
+
 [Pointers]$$^{*}$$.
+
 ([Equal-Supports] | $$\epsilon$$).
+
 [RecursiveFunctionNames]$$^{*}$$.
+
 [RecursiveFunctionDefinitions]$$^{*}$$.
+
 [Lemmas]$$^{*}$$.
+
 [Methods]$$^{*}$$.
 
 NOTE: Variables may be declared anytime before [Methods].

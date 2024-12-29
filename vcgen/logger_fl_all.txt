@@ -1,0 +1,1531 @@
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.5656619071960449
+checking validity...
+---------------
+Number of VCs generated for BB: 6
+---------------
+goal is valid
+Time elapsed: 1.001899003982544
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.04167890548706055
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.4036109447479248
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.14368796348571777
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.5111451148986816
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.04001116752624512
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.34302306175231934
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.04026198387145996
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.09629583358764648
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.13787579536437988
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.34386587142944336
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.9726262092590332
+checking validity...
+---------------
+Number of VCs generated for BB: 7
+---------------
+goal is valid
+Time elapsed: 1.4609122276306152
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 2.3438780307769775
+checking validity...
+---------------
+Number of VCs generated for BB: 6
+---------------
+goal is valid
+Time elapsed: 3.7775511741638184
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 4.326174974441528
+checking validity...
+---------------
+Number of VCs generated for BB: 8
+---------------
+goal is valid
+Time elapsed: 5.917524099349976
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 7.326753854751587
+checking validity...
+---------------
+Number of VCs generated for BB: 13
+---------------
+goal is valid
+Time elapsed: 9.90115475654602
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 3.859466075897217
+checking validity...
+---------------
+Number of VCs generated for BB: 7
+---------------
+goal is valid
+Time elapsed: 5.71685791015625
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 2.144587993621826
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 3.6927390098571777
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 2.3400588035583496
+checking validity...
+---------------
+Number of VCs generated for BB: 6
+---------------
+goal is valid
+Time elapsed: 3.776921033859253
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 4.379134893417358
+checking validity...
+---------------
+Number of VCs generated for BB: 8
+---------------
+goal is valid
+Time elapsed: 6.145295858383179
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 7.320372104644775
+checking validity...
+---------------
+Number of VCs generated for BB: 13
+---------------
+goal is valid
+Time elapsed: 9.899985074996948
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 3.8359267711639404
+checking validity...
+---------------
+Number of VCs generated for BB: 7
+---------------
+goal is valid
+Time elapsed: 5.674127817153931
+done creating input list
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil), Not(SPKeys0(left0(x0))[x0])))
+Lemma is valid
+this is the lemma: Implies(RBT0(x0),
+        Implies(Not(x0 == nil),
+                Not(SPKeys0(right0(x0))[x0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 2.149914026260376
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 3.716792106628418
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.16222596168518066
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.8188450336456299
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.167510986328125
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 1.1367299556732178
+done creating input list
+this is the lemma: Implies(Sorted0(x0),
+        Implies(k0 < Min0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.03735804557800293
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.06009316444396973
+done creating input list
+this is the lemma: Implies(Sorted0(x0),
+        Implies(k0 < Min0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.03775596618652344
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.06185603141784668
+done creating input list
+this is the lemma: Implies(Sorted0(x0),
+        Implies(k0 < Min0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.03769087791442871
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.06224989891052246
+done creating input list
+this is the lemma: Implies(Sorted0(x0),
+        Implies(k0 < Min0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.10427284240722656
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.2149980068206787
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.006166934967041016
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.019572019577026367
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.0062329769134521484
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.02072596549987793
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.04740309715270996
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.11639213562011719
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.4069082736968994
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.6401252746582031
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.1774280071258545
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.2664639949798584
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7459399700164795
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 1.545119047164917
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7461690902709961
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 1.5586400032043457
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.1733548641204834
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.2425389289855957
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.17319893836975098
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.24419093132019043
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.3510591983795166
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.6287999153137207
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.35279202461242676
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.6333191394805908
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.013818979263305664
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.06780695915222168
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.013808965682983398
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.0683751106262207
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.43116092681884766
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 1.087453842163086
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.4334719181060791
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 1.0782339572906494
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.011800050735473633
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.053611040115356445
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.03833603858947754
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.07880806922912598
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.74497389793396
+checking validity...
+---------------
+Number of VCs generated for BB: 6
+---------------
+goal is valid
+Time elapsed: 1.4952192306518555
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.009257078170776367
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.04288482666015625
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.009270906448364258
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.04383087158203125
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 1.6040000915527344
+checking validity...
+---------------
+Number of VCs generated for BB: 5
+---------------
+goal is valid
+Time elapsed: 3.155783176422119
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.009005069732666016
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.036871910095214844
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.20975184440612793
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.355151891708374
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.21785187721252441
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.5350232124328613
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.01153111457824707
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.18688106536865234
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.011574983596801758
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.18864107131958008
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.44484400749206543
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 1.401846170425415
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.010867834091186523
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.07883691787719727
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.010985136032104492
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.08167123794555664
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.20507121086120605
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.6957612037658691
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.24631309509277344
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.3467860221862793
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.24947190284729004
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.3535141944885254
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.4963679313659668
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.910883903503418
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.5059590339660645
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.93379807472229
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.04092907905578613
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.09824419021606445
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.00551295280456543
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.022908926010131836
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.13455414772033691
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.22435498237609863
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.13966608047485352
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.347271203994751
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.10130882263183594
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.20088696479797363
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.10554885864257812
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.21020102500915527
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(And(Not(x0 == nil), key0(x0) < plus_infty0),
+                If(left0(x0) == nil,
+                   MinTree0(x0) == key0(x0),
+                   MinTree0(x0) == MinTree0(left0(x0)))))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.5630490779876709
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.9095141887664795
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(And(Not(x0 == nil), key0(x0) < plus_infty0),
+                If(left0(x0) == nil,
+                   MinTree0(x0) == key0(x0),
+                   MinTree0(x0) == MinTree0(left0(x0)))))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.2756659984588623
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.5355970859527588
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(And(Not(x0 == nil), key0(x0) < plus_infty0),
+                If(left0(x0) == nil,
+                   MinTree0(x0) == key0(x0),
+                   MinTree0(x0) == MinTree0(left0(x0)))))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 7.020895004272461
+checking validity...
+---------------
+Number of VCs generated for BB: 7
+---------------
+goal is valid
+Time elapsed: 18.7639319896698
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.00804281234741211
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.03569674491882324
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.16903090476989746
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.4180929660797119
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.03244185447692871
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.11595010757446289
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.01796889305114746
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.08788776397705078
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.5640671253204346
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 1.4103789329528809
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.037506818771362305
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.15581583976745605
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.648618221282959
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 2.0480682849884033
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.5690391063690186
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 1.9303538799285889
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.13289880752563477
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.7398257255554199
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.011175870895385742
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.05423283576965332
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 1.1575119495391846
+checking validity...
+---------------
+Number of VCs generated for BB: 6
+---------------
+goal is valid
+Time elapsed: 2.4581758975982666
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 3.31440806388855
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 6.563586950302124
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.01818990707397461
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.08962893486022949
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 1.937873125076294
+checking validity...
+---------------
+Number of VCs generated for BB: 7
+---------------
+goal is valid
+Time elapsed: 3.377084255218506
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.42716407775878906
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.7742958068847656
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.1603562831878662
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.44850707054138184
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.29140305519104004
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.5785882472991943
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.1503300666809082
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.2851591110229492
+done creating input list
+this is the lemma: Implies(Lseg0(x0, y0), Not(SPLseg0(x0, y0)[y0]))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.20037412643432617
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.47983407974243164
+done creating input list
+this is the lemma: Implies(Lseg0(x0, y0), Not(SPLseg0(x0, y0)[y0]))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7789831161499023
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 2.359369993209839
+done creating input list
+this is the lemma: Implies(Lseg0(x0, y0), Not(SPLseg0(x0, y0)[y0]))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.1927659511566162
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.3165571689605713
+done creating input list
+this is the lemma: Implies(Lseg0(x0, y0), Not(SPLseg0(x0, y0)[y0]))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.26859283447265625
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.39333200454711914
+done creating input list
+this is the lemma: Implies(Lseg0(x0, y0), Not(SPLseg0(x0, y0)[y0]))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 2.3204009532928467
+checking validity...
+---------------
+Number of VCs generated for BB: 5
+---------------
+goal is valid
+Time elapsed: 4.195262908935547
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.007962703704833984
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.026891708374023438
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.24353575706481934
+checking validity...
+---------------
+Number of VCs generated for BB: 5
+---------------
+goal is valid
+Time elapsed: 0.46743083000183105
+done creating input list
+this is the lemma: Implies(Sorted0(x0), List0(x0))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.06809401512145996
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.11266112327575684
+done creating input list
+this is the lemma: Implies(Sorted0(x0), List0(x0))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7975559234619141
+checking validity...
+---------------
+Number of VCs generated for BB: 5
+---------------
+goal is valid
+Time elapsed: 1.7856690883636475
+done creating input list
+this is the lemma: Implies(Sorted0(x0), List0(x0))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.03940415382385254
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.08507323265075684
+done creating input list
+this is the lemma: Implies(Sorted0(x0), List0(x0))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.03775525093078613
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.07355427742004395
+done creating input list
+this is the lemma: Implies(Sorted0(x0), List0(x0))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.6926679611206055
+checking validity...
+---------------
+Number of VCs generated for BB: 5
+---------------
+goal is valid
+Time elapsed: 1.5219697952270508
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.008109807968139648
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.03574872016906738
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.22218799591064453
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.5610213279724121
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.06323885917663574
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.15096497535705566
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.2227158546447754
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.5431299209594727
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.06618165969848633
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.15536260604858398
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.308866024017334
+checking validity...
+---------------
+Number of VCs generated for BB: 5
+---------------
+goal is valid
+Time elapsed: 0.6710677146911621
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.0993187427520752
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.22851181030273438
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed: 0.39354968070983887
+checking validity...
+---------------
+Number of VCs generated for BB: 5
+---------------
+goal is valid
+Time elapsed: 0.7875537872314453
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.24387812614440918
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.3310830593109131
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.3186299800872803
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.40799999237060547
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.3181731700897217
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.4078361988067627
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 1.5305259227752686
+checking validity...
+---------------
+Number of VCs generated for BB: 6
+---------------
+goal is valid
+Time elapsed: 3.3393971920013428
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.1736459732055664
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.2592480182647705
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.45904994010925293
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 0.9969189167022705
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7326169013977051
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 1.5664570331573486
+done creating input list
+this is the lemma: Implies(BST0(x0),
+        Implies(Min0(x0) > k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(BST0(x0),
+        Implies(Max0(x0) < k0, Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7415568828582764
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 1.608389139175415
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.6010351181030273
+checking validity...
+---------------
+Number of VCs generated for BB: 2
+---------------
+goal is valid
+Time elapsed: 0.737483024597168
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7201011180877686
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.8606410026550293
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7176580429077148
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.858489990234375
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 2.920504093170166
+checking validity...
+---------------
+Number of VCs generated for BB: 7
+---------------
+goal is valid
+Time elapsed: 6.826191186904907
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 2.6910011768341064
+checking validity...
+---------------
+Number of VCs generated for BB: 5
+---------------
+goal is valid
+Time elapsed: 6.347073078155518
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.49657702445983887
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.6310091018676758
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 0.7668311595916748
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 1.2965922355651855
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 1.335172176361084
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 2.666133165359497
+done creating input list
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 < MinKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(k0 > MaxKey0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(p0 > MaxPrio0(x0), Not(Priorities0(x0)[p0])))
+Lemma is valid
+this is the lemma: Implies(Treap0(x0),
+        Implies(Not(x0 == nil), MaxPrio0(x0) == prio0(x0)))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time elapsed: 1.3278348445892334
+checking validity...
+---------------
+Number of VCs generated for BB: 4
+---------------
+goal is valid
+Time elapsed: 2.6932427883148193
+****************************************************************************************
+Time: 2.982656955718994
+****************************************************************************************
+Time: 0.76924729347229
+****************************************************************************************
+Time: 62.51765179634094
+****************************************************************************************
+Time: 2.4025940895080566
+****************************************************************************************
+Time: 1.0644001960754395
+****************************************************************************************
+Time: 0.604823112487793
+****************************************************************************************
+Time: 5.083940029144287
+****************************************************************************************
+Time: 2.7481181621551514
+****************************************************************************************
+Time: 8.79040002822876
+****************************************************************************************
+Time: 1.493791103363037
+****************************************************************************************
+Time: 3.614603042602539
+****************************************************************************************
+Time: 3.8906309604644775
+****************************************************************************************
+Time: 0.34119701385498047
+****************************************************************************************
+Time: 1.1049671173095703
+****************************************************************************************
+Time: 0.8643410205841064
+****************************************************************************************
+Time: 21.581467151641846
+****************************************************************************************
+Time: 1.1066789627075195
+****************************************************************************************
+Time: 18.00000309944153
+****************************************************************************************
+Time: 4.419419050216675
+****************************************************************************************
+Time: 3.008334159851074
+****************************************************************************************
+Time: 8.836838960647583
+****************************************************************************************
+Time: 0.9421360492706299
+****************************************************************************************
+Time: 4.624032020568848
+****************************************************************************************
+Time: 1.0327160358428955
+****************************************************************************************
+Time: 1.582960844039917
+****************************************************************************************
+Time: 1.5026681423187256
+****************************************************************************************
+Time: 1.521468162536621
+****************************************************************************************
+Time: 11.062823057174683
+****************************************************************************************
+Time: 25.9326913356781
+('dll_mid_insert', 2.982656955718994)
+('sll_insert_back', 0.76924729347229)
+('rbt_insert', 62.51765179634094)
+('cl_insert_front', 2.4025940895080566)
+('sorted_find', 1.0644001960754395)
+('sll_find', 0.604823112487793)
+('bst_insert', 5.083940029144287)
+('bst_find', 2.7481181621551514)
+('merge_sort', 8.79040002822876)
+('sorted_delete', 1.493791103363037)
+('cl_find', 3.614603042602539)
+('treap_find', 3.8906309604644775)
+('sll_insert_front', 0.34119701385498047)
+('sll_delete', 1.1049671173095703)
+('dll_insert_front', 0.8643410205841064)
+('tree2list', 21.581467151641846)
+('sll_reverse', 1.1066789627075195)
+('quick_sort', 18.00000309944153)
+('tree_inorder', 4.419419050216675)
+('dll_mid_delete', 3.008334159851074)
+('cl_delete_front', 8.836838960647583)
+('sll_copy_all', 0.9421360492706299)
+('insertion_sort', 4.624032020568848)
+('sll_append', 1.0327160358428955)
+('sorted_insert', 1.582960844039917)
+('bst_rotate_right', 1.5026681423187256)
+('dll_insert_back', 1.521468162536621)
+('bst_delete', 11.062823057174683)
+('treap_delete', 25.9326913356781)

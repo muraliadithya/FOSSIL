@@ -6,15 +6,6 @@ import subprocess
 import logging
 from BBGenerator import BBGenerator
 
-# # os.makedirs(os.path.dirname(logfile), exist_ok=True)
-# logfile  ='C:\\Users\\hrish\\OneDrive\\Documents\\GitHub\\FOSSIL\\vcgen\\logs\\vcgen.txt'
-
-# # logfile = '\\logs\\vcgen.txt'
-
-# logging.basicConfig(filename=logfile, level=logging.INFO)
-# with open(logfile, 'a+'):
-#     pass
-
 argparser = argparse.ArgumentParser()
 argparser.add_argument('program')
 argparser.add_argument('--lang', choices=['sl', 'fl'], default='sl', help='Language of annotations (SL or FL)')

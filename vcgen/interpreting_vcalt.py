@@ -1,10 +1,5 @@
-from ast import ExceptHandler
-import logging
-import os
-
 from z3 import And, Or, Not, Implies, If
 from z3 import IsSubset, IsMember, SetIntersect, SetUnion, SetAdd, EmptySet, IntSort, SetDifference, SetDel
-
 from naturalproofs.uct import fgsort, fgsetsort, intsort, intsetsort, boolsort
 from naturalproofs.decl_api import Const, Var, Function, AddRecDefinition, AddAxiom
 from naturalproofs.prover import NPSolver, get_foreground_terms
@@ -12,19 +7,11 @@ from naturalproofs.pfp import make_pfp_formula
 import naturalproofs.proveroptions as proveroptions
 from naturalproofs.AnnotatedContext import default_annctx
 from naturalproofs.prover_utils import instantiate, make_recdef_unfoldings
-
 from preprocessing import ml_to_sl, remove_comments, create_input, sl_to_fl_commands
-
-
-from naturalproofs.decl_api import get_recursive_definition, get_all_axioms
 from z3 import simplify
-
-
 import time
 
 immutables = ['=', 'not', 'or', 'and', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'SetDel','SetIntersect', 'SetUnion', '<', '>', '>=', '<=', '+', '-']
-
-
 
 # --------------------GLOBAL-------------------------------
 vardict = {'nil' : {'z3name': Const('nil', fgsort),'z3type': fgsort,'type': 'Loc', 'counter': None, 'is_free_var': False}}                                                        # Dictionary to store variables
@@ -1084,8 +1071,8 @@ def prove_lemma( solver, lemma_body, lemmas, already_proven_lemmas = []):
             if not(i == is_nil):
                 locs_in_lemma_pointers.add(f(i))
     locs_in_lemma = locs_in_lemma.union(locs_in_lemma_pointers)
-    print('These are the terms instantiated upon to prove lemmas:', locs_in_lemma)
-    print('Number of lemmas assumed already:', len(already_proven_lemmas))
+    # print('These are the terms instantiated upon to prove lemmas:', locs_in_lemma)
+    # print('Number of lemmas proven already:', len(already_proven_lemmas))
     pfp_formula = make_pfp_formula(lem)
     # print('This is the pfp formula', pfp_formula)
 

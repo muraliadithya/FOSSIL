@@ -17,15 +17,13 @@ with Frame Logic (FL) or FL inspired Separation Logic (SL-FL) specification. [ci
 ## Requirements
 - [Python 3.5 or above](https://www.python.org/downloads/)
 - [Z3Py](https://pypi.org/project/z3-solver/)
-- [CVC4 1.9](https://cvc4.github.io/downloads.html)
 
 
 ## Installation
 
 1. Clone or download the repo.
 2. Install Z3Py.
-3. Install the naturalproof package from the FOSSIL repository.
-    - Add the path to the naturalproofs toplevel folder to `PYTHONPATH`: execute `export PYTHONPATH ="/path/to/naturalproofs":$PYTHONPATH` or add it to `~/.bashrc` and then do `source ~/.bashrc`.
+3. Add the path to the naturalproof subdirectory to PYTHONPATH - execute `export PYTHONPATH="/path/to/naturalproofs":$PYTHONPATH` or add it to `~/.bashrc` and then do `source ~/.bashrc`.
 4. Change directory to `vcgen`.
 
 ## Experiments

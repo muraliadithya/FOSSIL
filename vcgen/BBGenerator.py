@@ -58,7 +58,7 @@ class _ProgDeclParser:
         self.contracts = dict()
 
     def _make_parser(self):
-        Keywords = pp.one_of("Program Pre Post")
+        Keywords = pp.oneOf("Program Pre Post")
         Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_<>')
 
         TextExpr = pp.Forward()
@@ -141,7 +141,7 @@ class BBGenerator:
         self.decls_and_lemmas = None
 
     def _make_parser(self):
-        Keywords = pp.one_of("Program Pre Post skip assign assume alloc free call return If Then Else")
+        Keywords = pp.oneOf("Program Pre Post skip assign assume alloc free call return If Then Else")
         Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_<>')
 
         TextExpr = pp.Forward()

@@ -62,7 +62,7 @@ class _ProgDeclParser:
         Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_<>')
 
         TextExpr = pp.Forward()
-        TextExpr <<= pp.original_text_for(Thing ^ (LParen + TextExpr[1, ...] + RParen))
+        TextExpr <<= pp.originalTextFor(Thing ^ (LParen + TextExpr[1, ...] + RParen))
 
         SubstitutableExpr = pp.Forward()
         SubstitutableExpr <<= Thing ^ (LParen + SubstitutableExpr[1, ...] + RParen)
@@ -145,7 +145,7 @@ class BBGenerator:
         Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_<>')
 
         TextExpr = pp.Forward()
-        TextExpr <<= pp.original_text_for(Thing ^ (LParen + TextExpr[1, ...] + RParen))
+        TextExpr <<= pp.originalTextFor(Thing ^ (LParen + TextExpr[1, ...] + RParen))
 
         SubstitutableExpr = pp.Forward()
         SubstitutableExpr <<= Thing ^ (LParen + SubstitutableExpr[1, ...] + RParen)

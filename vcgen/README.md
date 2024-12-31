@@ -17,12 +17,12 @@ with Frame Logic (FL) or FL inspired Separation Logic (SL-FL) specification. [ci
 ## Requirements
 - [Python 3.5 or above](https://www.python.org/downloads/)
 - [Z3Py](https://pypi.org/project/z3-solver/)
-
+- [Pyparsing 3.2.0 or above](https://pypi.org/project/pyparsing/)
 
 ## Installation
 
 1. Clone or download the repo.
-2. Install Z3Py.
+2. Install Z3Py and pyparsing.
 3. Add the path to the naturalproof subdirectory to PYTHONPATH - execute `export PYTHONPATH="/path/to/naturalproofs":$PYTHONPATH` or add it to `~/.bashrc` and then do `source ~/.bashrc`.
 4. Change directory to `vcgen`.
 

@@ -58,11 +58,11 @@ class _ProgDeclParser:
         self.contracts = dict()
 
     def _make_parser(self):
-        Keywords = pp.oneOf("Program Pre Post")
+        Keywords = pp.one_of("Program Pre Post")
         Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_<>')
 
         TextExpr = pp.Forward()
-        TextExpr <<= pp.originalTextFor(Thing ^ (LParen + TextExpr[1, ...] + RParen))
+        TextExpr <<= pp.original_text_for(Thing ^ (LParen + TextExpr[1, ...] + RParen))
 
         SubstitutableExpr = pp.Forward()
         SubstitutableExpr <<= Thing ^ (LParen + SubstitutableExpr[1, ...] + RParen)
@@ -141,11 +141,11 @@ class BBGenerator:
         self.decls_and_lemmas = None
 
     def _make_parser(self):
-        Keywords = pp.oneOf("Program Pre Post skip assign assume alloc free call return If Then Else")
+        Keywords = pp.one_of("Program Pre Post skip assign assume alloc free call return If Then Else")
         Thing = ~Keywords + pp.Word(pp.alphanums + '=+-*_<>')
 
         TextExpr = pp.Forward()
-        TextExpr <<= pp.originalTextFor(Thing ^ (LParen + TextExpr[1, ...] + RParen))
+        TextExpr <<= pp.original_text_for(Thing ^ (LParen + TextExpr[1, ...] + RParen))
 
         SubstitutableExpr = pp.Forward()
         SubstitutableExpr <<= Thing ^ (LParen + SubstitutableExpr[1, ...] + RParen)

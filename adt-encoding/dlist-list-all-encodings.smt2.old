@@ -33,7 +33,6 @@
 ;; 	    (=> (ite (= x empty) (= ret empty) (= ret (tail x))) (lst ret))))
 ;; ))
 
-;; goal -- adithya's encoding: goes through
 ;; (assert (not 
 ;; (forall ((x ListOfLoc) (k Int) (xs ListOfLoc) (ret ListOfLoc))
 ;;         (=> (dlst x)

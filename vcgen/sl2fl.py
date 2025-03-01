@@ -13,6 +13,7 @@ Expr <<= Thing ^ (LParen + Expr[1, ...] + RParen)
 
 ### Attribute to denote propagation of emptyset ###
 emptysetprop = True
+# emptysetprop = False # unoptimized
 supportless_operators = ['IntConst','True','False','Old','EmptySetLoc', 'antiSp']
 union_operators = ['=', 'not', 'or', 'and', 'nonsepand', '*', '=>', 'IsMember', 'IsSubset', 'SetAdd', 'SetDel','SetIntersect', 'SetUnion', '<', '>', '>=', '<=', '+', '-']
 

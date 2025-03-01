@@ -58,7 +58,7 @@ for prog in progfiles:
     end = time.time()
     time_taken = end-start
     print(f'Time: {time_taken}')
-    times.append((progname, time_taken))
+    times.append((progname, time_taken, len(parsed_bbs)))
 
 for i in times:
     print(i)

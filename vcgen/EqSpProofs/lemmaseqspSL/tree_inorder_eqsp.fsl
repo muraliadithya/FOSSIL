@@ -1,0 +1,55 @@
+(Var x Loc)
+
+(Function key   Loc Int)
+(Function left  Loc Loc)
+(Function right Loc Loc)
+
+(RecFunction Tree   Loc Bool)
+(RecFunction InTree Loc Bool)
+(RecFunction Order  Loc Int)
+(RecFunction Size   Loc Int)
+(RecFunction LSize  Loc Int)
+(RecFunction RSize  Loc Int)
+
+(RecDef (Tree x) (ite (= x nil) True
+                      (Exists (= lft (left x)) (Exists (= rht (right x))
+                        (* (= lft (left x)) (* (Tree lft) (Tree rht)))
+                      ))
+                  ))
+                  
+
+
+(RecDef (Order x) (ite (= x nil) (IntConst 0) (key x)))
+(RecDef (Size x) (ite (= x nil) (IntConst 0)
+                      (+ (IntConst 1)
+                         (+ (Size (left x)) (Size (right x))))))
+(RecDef (LSize x) (Size (left x)))
+(RecDef (RSize x) (Size (right x)))
+(RecDef (InTree x) (ite (= x nil) True (Exists (= k (key x)) (= rht (right x)) (= lft (left x))
+                                          (* (= k (key x)) (*
+                                                  (ite (= lft nil) True 
+                                                    (and (InTree lft) (Exists (= lft2 (left lft)) 
+                                                            (* (InTree lft2) (= k (+ (+ (Order lft) (RSize lft)) (IntConst 1))))))
+                                                                        )
+                                              (ite (= rht nil) True 
+                                                    (and (InTree rht) (Exists (= rht2 (right rht)) 
+                                                            (* (InTree rht2) (= (Order rht) (+ (+ k (LSize rht)) (IntConst 1))))))
+                                                                        )
+                                                          
+                                                          )
+                                          )
+                                        )))
+
+(Program temp1 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (Size (antiSp (left x)))) (Sp (InTree (antiSp (left x)))))
+                              (= (Sp (Size (antiSp (right x)))) (Sp (InTree (antiSp (right x)))))
+)))
+(Post (= (Sp (Size x)) (Sp (InTree x))))
+(return)
+
+(Program temp2 (x) (ret))
+(Pre (ite (= x nil) True (and (= (Sp (Tree (antiSp (left x)))) (Sp (Size (antiSp (left x)))))
+                              (= (Sp (Tree (antiSp (right x)))) (Sp (Size (antiSp (right x)))))
+)))
+(Post (= (Sp (Tree x)) (Sp (Size x))))
+(return)

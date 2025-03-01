@@ -1,0 +1,12 @@
+done creating input list
+done preprocessing and checking side-conditions
+Time elapsed preprocessing and checking side-conditions: 0.05309724807739258
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.10884213447570801
+****************************************************************************************
+Time: 0.30164504051208496
+('example', 0.30164504051208496, 1)

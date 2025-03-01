@@ -1455,7 +1455,7 @@ def vc(user_input, aux_mode=testing_mode, logic='sl', onthefly=False, weaken_all
 
     print('done preprocessing and checking side-conditions')
     end = time.time()
-    print('Time elapsed:', end-start)
+    print('Time spent preprocessing and checking side-conditions:', end-start)
     print('checking validity...')
     # print(instantiation_pairs)
 

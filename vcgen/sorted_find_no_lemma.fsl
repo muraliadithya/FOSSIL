@@ -1,0 +1,56 @@
+(Var x Loc)
+(Var k Int)
+(Var nxt Loc)
+
+(Function next Loc Loc)
+(Function key  Loc Int)
+
+(Var plus_infty Int)
+
+(EqSp (Min (List Keys Sorted)))
+(RecFunction Min Loc Int)
+(RecDef (Min x) (ite (= x nil) plus_infty (ite (< (key x) (Min (next x))) (key x) (Min (next x)))))
+
+(RecFunction Keys   Loc SetInt)
+(RecFunction Sorted Loc Bool)
+
+(RecDef (Keys x) (ite (= x nil) EmptySetInt
+                 (SetAdd (Keys (next x)) (key x))))
+
+(RecDef (Sorted x) (ite (= x nil) True
+                    (Exists (= nxt (next x)) (Exists (= k (key x))
+                    (* (< k plus_infty) (* 
+                      (= k (key x)) (and (Sorted nxt) (<= k (Min nxt)))))
+                    ))
+               ))
+
+
+(Var ret Bool)
+(Var aux Loc)
+
+(Program sorted_find (x k) (ret))
+(Pre (* (Sorted x) (< k plus_infty)))
+(Post (and (Sorted x) (and (= (Keys x) (Old (Keys x))) (and (= (Min x) (Old (Min x)))
+           (= ret (IsMember k (Keys x))) ))))
+
+(If (= x nil)
+ Then
+  (assign ret False)
+  (return)
+ Else
+  (If (= (key x) k)
+   Then
+    (assign ret True)
+    (return)
+   Else
+    (If (> (key x) k)
+     Then
+      (assign ret False)
+      (return)
+     Else
+      (assign aux (next x))
+      (call sorted_find (aux k) (ret))
+      (return)
+    )
+  )
+)

@@ -1,0 +1,39 @@
+done creating input list
+done preprocessing and checking side-conditions
+Time spent preprocessing and checking side-conditions: 0.023997068405151367
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.038573265075683594
+done creating input list
+done preprocessing and checking side-conditions
+Time spent preprocessing and checking side-conditions: 0.023605823516845703
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.038667917251586914
+done creating input list
+done preprocessing and checking side-conditions
+Time spent preprocessing and checking side-conditions: 0.024176836013793945
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal not proven
+Time elapsed: 0.040921926498413086
+done creating input list
+done preprocessing and checking side-conditions
+Time spent preprocessing and checking side-conditions: 0.07967901229858398
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.15265321731567383
+****************************************************************************************
+Time: 0.7279400825500488
+('sorted_find_no_lemma', 0.7279400825500488, 4)

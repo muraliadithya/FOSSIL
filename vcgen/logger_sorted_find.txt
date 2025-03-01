@@ -1,0 +1,51 @@
+done creating input list
+this is the lemma: Implies(Sorted0(x0),
+        Implies(k0 < Min0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time spent preprocessing and checking side-conditions: 0.04365181922912598
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.06006503105163574
+done creating input list
+this is the lemma: Implies(Sorted0(x0),
+        Implies(k0 < Min0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time spent preprocessing and checking side-conditions: 0.046751976013183594
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.06463003158569336
+done creating input list
+this is the lemma: Implies(Sorted0(x0),
+        Implies(k0 < Min0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time spent preprocessing and checking side-conditions: 0.04520082473754883
+checking validity...
+---------------
+Number of VCs generated for BB: 1
+---------------
+goal is valid
+Time elapsed: 0.0620119571685791
+done creating input list
+this is the lemma: Implies(Sorted0(x0),
+        Implies(k0 < Min0(x0), Not(Keys0(x0)[k0])))
+Lemma is valid
+done preprocessing and checking side-conditions
+Time spent preprocessing and checking side-conditions: 0.10038614273071289
+checking validity...
+---------------
+Number of VCs generated for BB: 3
+---------------
+goal is valid
+Time elapsed: 0.1780862808227539
+****************************************************************************************
+Time: 0.8420627117156982
+('sorted_find', 0.8420627117156982, 4)

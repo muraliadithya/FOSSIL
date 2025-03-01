@@ -4,8 +4,6 @@
 (Function prev Loc Loc)
 (Function key  Loc Int)
 
-(EqSp (DLL (Keys)) (RevDLL (RevKeys)))
-
 (RecFunction DLL     Loc Bool)
 (RecFunction RevDLL  Loc Bool)
 (RecFunction Keys    Loc SetInt)
@@ -29,41 +27,13 @@
                       (SetAdd (RevKeys (prev x)) (key x))))
 
 
-(Var u Loc)
-(Var v Loc)
-(Var k Int)
 (Var ret Loc)
+(Program temp (x) (ret))
+(Pre (ite (= x nil) True (= (Sp (DLL (antiSp (next x)))) (Sp (Keys (antiSp (next x)))))))
+(Post (= (Sp (DLL x)) (Sp (Keys x))))
+(return)
 
-(Program dll_mid_insert (u v k) (ret))
-(Pre (and (DLL v) (RevDLL u)
-          (= EmptySetLoc (SetIntersect (Sp (DLL v)) (Sp (RevDLL u))))
-          (ite (= u nil) True (= (next u) v))
-          (ite (= v nil) True (= (prev v) u)) ))
-(Post (and (DLL ret) (= (Keys ret) (SetAdd (Old (Keys v)) k))
-           (RevDLL u) (= (RevKeys u) (Old (RevKeys u)))
-           (= EmptySetLoc (SetIntersect (Sp (DLL ret)) (Sp (RevDLL u))))
-           (ite (= u nil) True (= (next u) ret)) (= (prev ret) u)
-           (ite True True (= (prev u) (prev u)))
-           (ite True True (= (next v) (next v))) ))
-
-(alloc ret)
-(assume (not (= ret nil)))
-
-(assign (key ret) k)
-(assign (prev ret) u)
-(assign (next ret) v)
-
-(If (not (= u nil))
- Then
-  (assign (next u) ret)
- Else
-  (assume True)
-)
-(If (not (= v nil))
- Then
-  (assign (prev v) ret)
- Else
-  (assume True)
-)
-
+(Program temprev (x) (ret))
+(Pre (ite (= x nil) True (= (Sp (RevDLL (antiSp (prev x)))) (Sp (RevKeys (antiSp (prev x)))))))
+(Post (= (Sp (RevDLL x)) (Sp (RevKeys x))))
 (return)

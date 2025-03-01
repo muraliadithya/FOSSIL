@@ -1,7 +1,7 @@
 # FL/SL-FL Verification Condition Generator
 
 A tool for generating and proving verification conditions for heap manipulation programs annotated
-with Frame Logic (FL) or FL inspired Separation Logic (SL-FL) specification. [cite paper]
+with Frame Logic (FL) or FL inspired Separation Logic (SL-FL) specification.
 
 ---
 
@@ -31,7 +31,8 @@ with Frame Logic (FL) or FL inspired Separation Logic (SL-FL) specification. [ci
 - Benchmarks written with SL-FL (resp. FL) are in the directory `benchmarksSL` (resp. `verifiedEqSP`). This contains subdirectories categorized by the primary data structure being manipulated, as well an `all` directory containing all the benchmarks.
 
 - To run all the SL-FL benchmarks, run `python runbench.py ./benchmarksSL/all/`
-    - NOTE: `runbench.py` runs a python script of the form `python ...`. You may need add a symbolic link `python` if your system does not recognize the `python` command. You may also replace the command in `runbench.py` (line 61) with the appropriate one. 
+    - NOTE: `runbench.py` runs a python script of the form `python ...`. You may need add a symbolic link `python` if your system does not recognize the `python` command:
+      You may also replace the command in `runbench.py` (line 61) with the appropriate one (eg: `python3`). 
 - To run all the FL benchmarks, run `python runbench.py ./benchmarksFL/all/ --lang fl`
     - NOTE: The tool assumes specifications are in SL-FL by default. Use `--lang fl` when running FL annotated files.
 - To run individual files, simply run `python runbench.py ./path-to-file/filename.fsl`
@@ -199,7 +200,7 @@ FL formulas are written similarly. In FL, heap heap properties are denoted using
 - (Sp ...) - the `support` operator. The support of ab FL term/formula is the portion of the heap upon which the formula depends.
 - (antiSp ...) - the `cloud` operator. A clouded FL term/formula acts as if it is supportless, i.e (Sp (antSp ...)) is empty.
 
-See [cite paper] for the syntax of FL.
+Please see the paper for the syntax of FL.
 
 A singly linked list can be defined as follows: 
 > (RecDef (List x) (ite (= x nil) True (and (List (next x)) (not (IsMember x (Sp (List (antiSp (next x)))))))))

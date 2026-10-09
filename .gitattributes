@@ -1,0 +1,7 @@
+# Force LF line endings for shell scripts and YAML in the repo.
+# Without this, a Windows contributor's git (core.autocrlf=true) can check in
+# CRLF endings, which break bash on the Ubuntu CI runner with
+#   /usr/bin/env^M: bad interpreter
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
